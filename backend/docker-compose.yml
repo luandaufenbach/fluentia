@@ -1,0 +1,38 @@
+services:
+  banco:
+    image: postgres:16-alpine
+    container_name: agente-ingles-banco
+    environment:
+      POSTGRES_DB: agente_ingles
+      POSTGRES_USER: agente
+      POSTGRES_PASSWORD: agente
+    ports:
+      - "5432:5432"
+    volumes:
+      - dados-do-banco:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U agente -d agente_ingles"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  aplicacao:
+    build: .
+    container_name: agente-ingles-aplicacao
+    depends_on:
+      banco:
+        condition: service_healthy
+    environment:
+      BANCO_URL: jdbc:postgresql://banco:5432/agente_ingles
+      BANCO_USUARIO: agente
+      BANCO_SENHA: agente
+      # Deixe USAR_CLAUDE=true e informe a chave para ligar os agentes reais.
+      USAR_CLAUDE: ${USAR_CLAUDE:-false}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+    ports:
+      - "8080:8080"
+    profiles:
+      - completo
+
+volumes:
+  dados-do-banco:
