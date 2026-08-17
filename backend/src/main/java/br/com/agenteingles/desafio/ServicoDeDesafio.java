@@ -70,16 +70,16 @@ public class ServicoDeDesafio {
      * o anterior e criaria buraco no historico que alimenta a nota.
      */
     @Transactional
-    public Desafio proximoDesafio(Usuario usuario) {
+    public ResumoDoDesafio proximoDesafio(Usuario usuario) {
         List<Desafio> emAberto = desafioRepositorio.listarEmAberto(usuario.getId(), Limit.of(1));
         if (!emAberto.isEmpty()) {
-            return emAberto.get(0);
+            return ResumoDoDesafio.de(emAberto.get(0));
         }
         return gerarNovoDesafio(usuario);
     }
 
     @Transactional
-    public Desafio gerarNovoDesafio(Usuario usuario) {
+    public ResumoDoDesafio gerarNovoDesafio(Usuario usuario) {
         DecisaoDoOrquestrador decisao = orquestrador.decidirProximaPratica(usuario);
         Modulo modulo = decisao.situacaoDoModulo().modulo();
 
@@ -114,7 +114,7 @@ public class ServicoDeDesafio {
                 gerado.criterioDeAvaliacao(),
                 decisao.motivo());
 
-        return desafioRepositorio.save(desafio);
+        return ResumoDoDesafio.de(desafioRepositorio.save(desafio));
     }
 
     /**
@@ -162,7 +162,14 @@ public class ServicoDeDesafio {
         BigDecimal notaDoModulo = recalcularNotaDoModulo(usuario, modulo, agora);
         log.debug("Modulo {} recalculado para a nota {}", modulo.getCodigo(), notaDoModulo);
 
-        return new ResultadoDaResposta(avaliacao, notaDoModulo, servicoDeNota.faixaDa(notaDoModulo));
+        return new ResultadoDaResposta(
+                desafio.getId(),
+                avaliacao.getNotaObtida(),
+                avaliacao.getFeedback(),
+                resultado.erros() == null ? List.of() : resultado.erros(),
+                notaDoModulo,
+                servicoDeNota.faixaDa(notaDoModulo),
+                modulo.getNome());
     }
 
     /**
@@ -191,7 +198,9 @@ public class ServicoDeDesafio {
     }
 
     @Transactional(readOnly = true)
-    public List<Desafio> historico(Usuario usuario, int quantidade) {
-        return desafioRepositorio.listarHistorico(usuario.getId(), Limit.of(quantidade));
+    public List<ResumoDoDesafio> historico(Usuario usuario, int quantidade) {
+        return desafioRepositorio.listarHistorico(usuario.getId(), Limit.of(quantidade)).stream()
+                .map(ResumoDoDesafio::de)
+                .toList();
     }
 }

@@ -1,0 +1,14 @@
+# Os testes usam um banco proprio: a suite grava de verdade (avaliacoes, notas) e nao
+# pode sujar o banco de desenvolvimento.
+spring:
+  datasource:
+    url: ${BANCO_DE_TESTE_URL:jdbc:postgresql://localhost:5432/agente_ingles_teste}
+    username: ${BANCO_USUARIO:agente}
+    password: ${BANCO_SENHA:agente}
+  flyway:
+    # Recria o schema a cada execucao da suite, garantindo ponto de partida identico.
+    clean-disabled: false
+    clean-on-validation-error: true
+
+agente-ingles:
+  usar-claude: false

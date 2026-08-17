@@ -80,19 +80,19 @@ public class DesafioController {
         Usuario usuario = servicoDeUsuario.usuarioAtual();
         ResultadoDaResposta resultado = servicoDeDesafio.responder(usuario, desafioId, requisicao.resposta());
 
-        List<ErroResposta> erros = resultado.avaliacao().getErrosDetectados().stream()
+        List<ErroResposta> erros = resultado.erros().stream()
                 .map(erro -> new ErroResposta(
-                        erro.getTipo(), erro.getTrechoErrado(), erro.getCorrecao(), erro.getExplicacao()))
+                        erro.tipo(), erro.trechoErrado(), erro.correcao(), erro.explicacao()))
                 .toList();
 
         return new CorrecaoResposta(
-                desafioId,
-                resultado.avaliacao().getNotaObtida(),
-                resultado.avaliacao().getFeedback(),
+                resultado.desafioId(),
+                resultado.notaDaResposta(),
+                resultado.feedback(),
                 erros,
                 resultado.notaDoModulo(),
                 resultado.faixaDoModulo(),
-                resultado.avaliacao().getDesafio().getModulo().getNome());
+                resultado.moduloNome());
     }
 
     @GetMapping("/historico")
@@ -101,17 +101,18 @@ public class DesafioController {
         return servicoDeDesafio.historico(usuario, quantidade).stream().map(this::converter).toList();
     }
 
-    private DesafioResposta converter(Desafio desafio) {
+    /** A resposta de referencia fica de fora de proposito: seria entregar o gabarito. */
+    private DesafioResposta converter(ResumoDoDesafio desafio) {
         return new DesafioResposta(
-                desafio.getId(),
-                desafio.getEnunciado(),
-                desafio.getContextoDaCena(),
-                desafio.getFormato(),
-                desafio.getStatus(),
-                desafio.getModulo().getCodigo(),
-                desafio.getModulo().getNome(),
-                desafio.getTema().getNome(),
-                desafio.getMotivoDaEscolha(),
-                desafio.getCriadoEm());
+                desafio.id(),
+                desafio.enunciado(),
+                desafio.contextoDaCena(),
+                desafio.formato(),
+                desafio.status(),
+                desafio.moduloCodigo(),
+                desafio.moduloNome(),
+                desafio.temaNome(),
+                desafio.motivoDaEscolha(),
+                desafio.criadoEm());
     }
 }

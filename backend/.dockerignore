@@ -1,0 +1,7 @@
+target/
+.idea/
+.git/
+.mvn/wrapper/*.jar
+*.log
+docker-compose.yml
+README.md

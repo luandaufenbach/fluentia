@@ -2,6 +2,7 @@ package br.com.agenteingles.desafio;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import br.com.agenteingles.LimpezaDoBancoDeTeste;
 import br.com.agenteingles.modulo.ServicoDeModulo;
 import br.com.agenteingles.modulo.SituacaoDoModulo;
 import br.com.agenteingles.nota.FaixaDeNota;
@@ -34,10 +35,14 @@ class LoopDoDesafioIT {
     @Autowired
     private ServicoDeModulo servicoDeModulo;
 
+    @Autowired
+    private LimpezaDoBancoDeTeste limpeza;
+
     private Usuario usuario;
 
     @BeforeEach
-    void resolverUsuario() {
+    void prepararLinhaDeBase() {
+        limpeza.limparHistoricoENotas();
         usuario = servicoDeUsuario.usuarioAtual();
     }
 
@@ -51,21 +56,21 @@ class LoopDoDesafioIT {
     @Test
     @DisplayName("o primeiro desafio cai no verbo to be, que e o unico A1 sem pre-requisito pendente")
     void primeiroDesafioCaiNoVerboToBe() {
-        Desafio desafio = servicoDeDesafio.proximoDesafio(usuario);
+        ResumoDoDesafio desafio = servicoDeDesafio.proximoDesafio(usuario);
 
-        assertThat(desafio.getModulo().getCodigo()).isEqualTo("verbo_to_be");
-        assertThat(desafio.getStatus()).isEqualTo(StatusDoDesafio.AGUARDANDO_RESPOSTA);
-        assertThat(desafio.getEnunciado()).isNotBlank();
-        assertThat(desafio.getMotivoDaEscolha()).contains("ainda nao praticado");
+        assertThat(desafio.moduloCodigo()).isEqualTo("verbo_to_be");
+        assertThat(desafio.status()).isEqualTo(StatusDoDesafio.AGUARDANDO_RESPOSTA);
+        assertThat(desafio.enunciado()).isNotBlank();
+        assertThat(desafio.motivoDaEscolha()).contains("ainda nao praticado");
     }
 
     @Test
     @DisplayName("enquanto o desafio nao e respondido, o proximo devolve o mesmo desafio")
     void naoGeraOutroDesafioComUmEmAberto() {
-        Desafio primeiro = servicoDeDesafio.proximoDesafio(usuario);
-        Desafio segundo = servicoDeDesafio.proximoDesafio(usuario);
+        ResumoDoDesafio primeiro = servicoDeDesafio.proximoDesafio(usuario);
+        ResumoDoDesafio segundo = servicoDeDesafio.proximoDesafio(usuario);
 
-        assertThat(segundo.getId()).isEqualTo(primeiro.getId());
+        assertThat(segundo.id()).isEqualTo(primeiro.id());
     }
 
     @Test
@@ -73,11 +78,11 @@ class LoopDoDesafioIT {
     void respostaErradaDerrubaANotaERegistraOErro() {
         assertThat(situacaoDe("verbo_to_be").nota()).isNull();
 
-        Desafio desafio = servicoDeDesafio.proximoDesafio(usuario);
-        ResultadoDaResposta resultado = servicoDeDesafio.responder(usuario, desafio.getId(), "I are wrong");
+        ResumoDoDesafio desafio = servicoDeDesafio.proximoDesafio(usuario);
+        ResultadoDaResposta resultado = servicoDeDesafio.responder(usuario, desafio.id(), "I are wrong");
 
-        assertThat(resultado.avaliacao().getErrosDetectados()).isNotEmpty();
-        assertThat(resultado.avaliacao().getErrosDetectados().get(0).getTipo())
+        assertThat(resultado.erros()).isNotEmpty();
+        assertThat(resultado.erros().get(0).tipo())
                 .isEqualTo("concordancia_do_verbo_to_be");
         assertThat(resultado.notaDoModulo()).isLessThan(new java.math.BigDecimal("6"));
         assertThat(resultado.faixaDoModulo()).isEqualTo(FaixaDeNota.VERMELHO);
@@ -90,26 +95,26 @@ class LoopDoDesafioIT {
     @Test
     @DisplayName("com o modulo em vermelho o orquestrador insiste nele em vez de avancar")
     void orquestradorInsisteNoModuloEmVermelho() {
-        Desafio primeiro = servicoDeDesafio.proximoDesafio(usuario);
-        servicoDeDesafio.responder(usuario, primeiro.getId(), "I are wrong");
+        ResumoDoDesafio primeiro = servicoDeDesafio.proximoDesafio(usuario);
+        servicoDeDesafio.responder(usuario, primeiro.id(), "I are wrong");
 
-        Desafio segundo = servicoDeDesafio.proximoDesafio(usuario);
+        ResumoDoDesafio segundo = servicoDeDesafio.proximoDesafio(usuario);
 
-        assertThat(segundo.getId()).isNotEqualTo(primeiro.getId());
-        assertThat(segundo.getModulo().getCodigo()).isEqualTo("verbo_to_be");
-        assertThat(segundo.getMotivoDaEscolha()).contains("vermelho");
-        assertThat(segundo.getEnunciado()).isNotEqualTo(primeiro.getEnunciado());
+        assertThat(segundo.id()).isNotEqualTo(primeiro.id());
+        assertThat(segundo.moduloCodigo()).isEqualTo("verbo_to_be");
+        assertThat(segundo.motivoDaEscolha()).contains("vermelho");
+        assertThat(segundo.enunciado()).isNotEqualTo(primeiro.enunciado());
     }
 
     @Test
     @DisplayName("acertando seguidamente a nota sobe, o modulo fica verde e o curriculo avanca")
     void acertosConsecutivosLiberamOProximoModulo() {
         for (int rodada = 0; rodada < 4; rodada++) {
-            Desafio desafio = servicoDeDesafio.proximoDesafio(usuario);
-            if (!desafio.getModulo().getCodigo().equals("verbo_to_be")) {
+            ResumoDoDesafio desafio = servicoDeDesafio.proximoDesafio(usuario);
+            if (!desafio.moduloCodigo().equals("verbo_to_be")) {
                 break;
             }
-            servicoDeDesafio.responder(usuario, desafio.getId(), desafio.getRespostaDeReferencia());
+            servicoDeDesafio.responder(usuario, desafio.id(), desafio.respostaDeReferencia());
         }
 
         SituacaoDoModulo verboToBe = situacaoDe("verbo_to_be");
@@ -122,9 +127,9 @@ class LoopDoDesafioIT {
         assertThat(artigos.preRequisitosPendentes()).isEmpty();
 
         // E o orquestrador passa a mirar o proximo conceito, ja que o anterior esta verde.
-        Desafio proximo = servicoDeDesafio.proximoDesafio(usuario);
-        assertThat(proximo.getModulo().getCodigo()).isNotEqualTo("verbo_to_be");
-        assertThat(proximo.getMotivoDaEscolha()).contains("ainda nao praticado");
+        ResumoDoDesafio proximo = servicoDeDesafio.proximoDesafio(usuario);
+        assertThat(proximo.moduloCodigo()).isNotEqualTo("verbo_to_be");
+        assertThat(proximo.motivoDaEscolha()).contains("ainda nao praticado");
     }
 
     @Test

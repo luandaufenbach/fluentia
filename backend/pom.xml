@@ -111,6 +111,23 @@
 	<build>
 		<plugins>
 			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<configuration>
+					<!--
+						O padrao do Surefire ignora arquivos terminados em IT, que ficam reservados
+						para o Failsafe. Aqui os testes de integracao sao os mais importantes do
+						projeto (cobrem o loop contra o Postgres), entao entram na mesma suite:
+						sem isto, um ./mvnw test passaria verde sem executa-los.
+					-->
+					<includes>
+						<include>**/*Test.java</include>
+						<include>**/*Tests.java</include>
+						<include>**/*IT.java</include>
+					</includes>
+				</configuration>
+			</plugin>
+			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
 			</plugin>
