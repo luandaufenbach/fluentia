@@ -1,6 +1,6 @@
-# Agente de Inglês — backend
+# Fluentia — backend
 
-Backend de um app de aprendizado de inglês que funciona como **currículo adaptativo**:
+Backend do Fluentia, app de aprendizado de inglês que funciona como **trilha adaptativa**:
 o conteúdo é organizado por nível CEFR (A1 a C2), mas o que praticar a seguir é decidido
 por um agente a partir dos erros reais do usuário — não é um curso fixo igual para todo mundo,
 e não é um chat de conversação solta.
@@ -40,6 +40,21 @@ conceito se repete, a roupagem não.
 **Liberação por pré-requisito:** um módulo só abre quando todos os pré-requisitos têm nota ≥ 6.
 Fica no limite do amarelo de propósito: o usuário avança sem precisar zerar o conceito anterior,
 mas não destrava um nível novo carregando um conceito em vermelho.
+
+## Ensinar antes de cobrar
+
+Cada módulo tem material de estudo próprio (`ConteudoDoModulo`): um resumo, a explicação em
+parágrafos, de 4 a 6 exemplos com tradução e os erros que brasileiro costuma cometer naquele
+conceito — estes últimos no mesmo formato *errado → certo* usado pela correção do avaliador,
+para que ler antes e errar depois falem a mesma língua.
+
+O conteúdo é **por módulo, não por desafio**: o desafio muda toda vez, a regra do *to be* não.
+
+Quando o aluno estuda um conceito e pede para praticá-lo, `/api/desafios/proximo?modulo=codigo`
+gera o desafio daquele conceito em vez de deixar a escolha com o orquestrador — estudar uma
+coisa e ser cobrado em outra é o caminho mais curto para o aluno desistir. Se havia um desafio
+em aberto de outro módulo, ele é **descartado**: como nunca foi respondido, não existe avaliação
+e a média de nenhum módulo se altera.
 
 ## Cálculo da nota
 
@@ -138,6 +153,24 @@ set -a; . ./.env; set +a; ./mvnw spring-boot:run
 Para pegar a chave: console.anthropic.com → Settings → API keys → Create Key. É preciso adicionar
 créditos em Plans & Billing (a API é pré-paga e separada da assinatura do Claude.ai).
 
+### Gerando o conteúdo de ensino
+
+O material de estudo de cada módulo é gerado uma vez pela Claude e vira **migration
+versionada** — não é chamado em tempo de uso, então a API fica desligada no dia a dia:
+
+```bash
+set -a; . ./.env; set +a; ./mvnw spring-boot:run -Dspring-boot.run.profiles=gerar-conteudo
+```
+
+A rotina pula módulos que já têm conteúdo no banco e escreve só o que faltou, num arquivo
+`V{próximo}__conteudo_dos_modulos.sql`. Editar esse SQL à mão é o caminho esperado para
+corrigir uma explicação: ele é a fonte da verdade do material, não a chamada de API que o
+produziu.
+
+> O prompt dessa rotina é escrito **com acentuação**, ao contrário do resto dos comentários
+> do projeto. A primeira versão veio sem acento e o modelo espelhou o estilo, devolvendo os
+> 16 módulos de material didático sem acentuação nenhuma.
+
 #### Leitura da resposta estruturada
 
 `LeitorDeRespostaEstruturada` existe porque o `.entity()` do Spring AI quebra em dois casos que
@@ -153,13 +186,14 @@ não usar markdown.
 ./mvnw test
 ```
 
-38 testes. Os de integração exigem o Postgres no ar e usam um **banco próprio**
+45 testes. Os de integração exigem o Postgres no ar e usam um **banco próprio**
 (`agente_ingles_teste`), porque a suíte grava de verdade pela camada HTTP e não pode sujar os
 dados locais.
 
 | Classe | O que cobre |
 |---|---|
-| `LeitorDeRespostaEstruturadaTest` | Os formatos de resposta reais da Claude: cerca de codigo aberta, bloco de raciocinio vazio e texto em volta do JSON |
+| `LeitorDeRespostaEstruturadaTest` | Os formatos de resposta reais da Claude: cerca de código aberta, bloco de raciocínio vazio e texto em volta do JSON |
+| `ConteudoPelaApiIT` | Conteúdo de ensino pela camada HTTP, e a garantia de que **todo** módulo tem material |
 | `ServicoDeNotaTest` | Peso por recência, janela de avaliações, decaimento e limites das faixas |
 | `AvaliadorSimuladoTest` | Faixas de nota e detecção do erro de concordância |
 | `GeradorDeDesafioSimuladoTest` | Não repetição de enunciados e reforço dirigido |
@@ -177,8 +211,9 @@ lazy continuam carregando e um vazamento de entidade JPA para fora do serviço p
 
 | Método | Rota | O que faz |
 |---|---|---|
-| `GET` | `/api/modulos` | Currículo agrupado por nível CEFR, com nota, faixa e bloqueio |
-| `GET` | `/api/desafios/proximo` | Desafio da vez (reaproveita o que está em aberto) |
+| `GET` | `/api/modulos` | Trilha agrupada por nível CEFR, com nota, faixa e bloqueio |
+| `GET` | `/api/modulos/{codigo}/conteudo` | Material de estudo: explicação, exemplos e erros comuns |
+| `GET` | `/api/desafios/proximo` | Desafio da vez. `?modulo=codigo` pratica o conceito recém-estudado |
 | `POST` | `/api/desafios/{id}/resposta` | Avalia, grava o histórico e devolve a correção |
 | `GET` | `/api/desafios/historico` | Desafios recentes |
 | `GET` | `/api/progresso` | Quantos módulos em cada faixa e o que precisa de atenção |
@@ -199,8 +234,10 @@ Há um teste garantindo isso.
 - [x] Loop completo: desafio → resposta → avaliação → nota → novo desafio
 - [x] Agentes simulados e com Claude atrás da mesma interface — o caminho com Claude validado
       contra a API real (geração, avaliação e nota fechando o loop)
-- [x] Endpoints REST de currículo, desafio, progresso, sugestão e preferências
+- [x] Endpoints REST de trilha, conteúdo, desafio, progresso, sugestão e preferências
 - [x] Empacotamento Docker e banco de testes separado
+- [x] Conteúdo de ensino dos 16 módulos: o app ensina antes de cobrar
+- [x] Prática dirigida: praticar justamente o conceito que acabou de ser estudado
 
 ## O que ainda não está
 

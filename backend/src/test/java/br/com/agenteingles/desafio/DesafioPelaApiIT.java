@@ -3,6 +3,7 @@ package br.com.agenteingles.desafio;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -67,6 +68,31 @@ class DesafioPelaApiIT {
         assertThat(segunda.get("id").asLong()).isEqualTo(primeira.get("id").asLong());
         assertThat(segunda.get("moduloNome").asText()).isNotBlank();
         assertThat(segunda.get("temaNome").asText()).isNotBlank();
+    }
+
+    @Test
+    @DisplayName("pedir o mesmo modulo que ja esta em aberto reaproveita o desafio")
+    void praticaDirigidaDoMesmoModuloNaoGeraOutro() throws Exception {
+        JsonNode emAberto = chamar(get("/api/desafios/proximo"));
+
+        JsonNode dirigido = chamar(get("/api/desafios/proximo")
+                .param("modulo", emAberto.get("moduloCodigo").asText()));
+
+        assertThat(dirigido.get("id").asLong()).isEqualTo(emAberto.get("id").asLong());
+    }
+
+    @Test
+    @DisplayName("praticar modulo bloqueado por pre-requisito e recusado")
+    void praticaDirigidaRespeitaPreRequisito() throws Exception {
+        mockMvc.perform(get("/api/desafios/proximo").param("modulo", "expressoes_idiomaticas"))
+                .andExpect(status().isConflict());
+    }
+
+    @Test
+    @DisplayName("praticar modulo inexistente devolve 404")
+    void praticaDirigidaDeModuloInexistente() throws Exception {
+        mockMvc.perform(get("/api/desafios/proximo").param("modulo", "nao_existe"))
+                .andExpect(status().isNotFound());
     }
 
     @Test

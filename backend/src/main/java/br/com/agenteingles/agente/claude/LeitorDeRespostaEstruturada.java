@@ -1,6 +1,8 @@
 package br.com.agenteingles.agente.claude;
 
 import java.util.stream.Collectors;
+import tools.jackson.core.json.JsonReadFeature;
+import tools.jackson.databind.json.JsonMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.ai.chat.model.ChatResponse;
@@ -24,24 +26,33 @@ import org.springframework.ai.converter.BeanOutputConverter;
  * <p>A instrucao de formato tambem passa a ser responsabilidade de quem chama, porque
  * ela so e anexada automaticamente pelo {@code .entity()}.
  */
-class LeitorDeRespostaEstruturada<T> {
+public class LeitorDeRespostaEstruturada<T> {
 
     private static final Logger log = LoggerFactory.getLogger(LeitorDeRespostaEstruturada.class);
 
     private static final int TAMANHO_NO_ERRO = 800;
 
+    /**
+     * Aceita quebra de linha crua dentro de string. Em texto longo o modelo escreve o
+     * enter de verdade em vez de {@code \n}, e o parser padrao recusa o JSON inteiro
+     * por causa disso. Tolerar aqui e mais barato do que perder a resposta.
+     */
+    private static final JsonMapper MAPEADOR_TOLERANTE = JsonMapper.builder()
+            .enable(JsonReadFeature.ALLOW_UNESCAPED_CONTROL_CHARS)
+            .build();
+
     private final BeanOutputConverter<T> conversor;
 
-    LeitorDeRespostaEstruturada(Class<T> tipo) {
-        this.conversor = new BeanOutputConverter<>(tipo);
+    public LeitorDeRespostaEstruturada(Class<T> tipo) {
+        this.conversor = new BeanOutputConverter<>(tipo, MAPEADOR_TOLERANTE);
     }
 
     /** Descricao do JSON esperado, para anexar ao pedido enviado ao modelo. */
-    String instrucaoDeFormato() {
+    public String instrucaoDeFormato() {
         return conversor.getFormat();
     }
 
-    T converter(ChatResponse resposta) {
+    public T converter(ChatResponse resposta) {
         if (resposta == null || resposta.getResults() == null || resposta.getResults().isEmpty()) {
             throw new RespostaIlegivelDaClaudeException("A Claude nao devolveu nenhum bloco.", null);
         }
@@ -99,7 +110,7 @@ class LeitorDeRespostaEstruturada<T> {
     }
 
     /** Falha explicita: sem isto o sintoma seria um erro de desserializacao sem contexto. */
-    static class RespostaIlegivelDaClaudeException extends RuntimeException {
+    public static class RespostaIlegivelDaClaudeException extends RuntimeException {
         RespostaIlegivelDaClaudeException(String mensagem, Throwable causa) {
             super(mensagem, causa);
         }

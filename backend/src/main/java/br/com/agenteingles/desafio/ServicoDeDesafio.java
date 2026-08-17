@@ -71,16 +71,46 @@ public class ServicoDeDesafio {
      */
     @Transactional
     public ResumoDoDesafio proximoDesafio(Usuario usuario) {
+        return proximoDesafio(usuario, null);
+    }
+
+    /**
+     * @param codigoDoModulo modulo que o aluno pediu para praticar, ou {@code null} para
+     *                       deixar o orquestrador escolher
+     */
+    @Transactional
+    public ResumoDoDesafio proximoDesafio(Usuario usuario, String codigoDoModulo) {
         List<Desafio> emAberto = desafioRepositorio.listarEmAberto(usuario.getId(), Limit.of(1));
+
         if (!emAberto.isEmpty()) {
-            return ResumoDoDesafio.de(emAberto.get(0));
+            Desafio aberto = emAberto.get(0);
+            boolean serveParaOPedido = codigoDoModulo == null
+                    || aberto.getModulo().getCodigo().equals(codigoDoModulo);
+
+            if (serveParaOPedido) {
+                return ResumoDoDesafio.de(aberto);
+            }
+
+            // O aluno estudou outro conceito e pediu para praticar esse. Manter o desafio
+            // antigo em aberto deixaria dois pendentes; descartar nao perde nota, porque
+            // desafio sem resposta nunca entrou no historico que alimenta a media.
+            aberto.descartar();
+            log.debug("Desafio {} descartado: aluno pediu pratica de {}", aberto.getId(), codigoDoModulo);
         }
-        return gerarNovoDesafio(usuario);
+
+        return gerarNovoDesafio(usuario, codigoDoModulo);
     }
 
     @Transactional
     public ResumoDoDesafio gerarNovoDesafio(Usuario usuario) {
-        DecisaoDoOrquestrador decisao = orquestrador.decidirProximaPratica(usuario);
+        return gerarNovoDesafio(usuario, null);
+    }
+
+    @Transactional
+    public ResumoDoDesafio gerarNovoDesafio(Usuario usuario, String codigoDoModulo) {
+        DecisaoDoOrquestrador decisao = codigoDoModulo == null
+                ? orquestrador.decidirProximaPratica(usuario)
+                : orquestrador.decidirPraticaDoModulo(usuario, codigoDoModulo);
         Modulo modulo = decisao.situacaoDoModulo().modulo();
 
         List<String> enunciadosRecentes = desafioRepositorio.listarEnunciadosRecentes(
@@ -125,10 +155,10 @@ public class ServicoDeDesafio {
     @Transactional
     public ResultadoDaResposta responder(Usuario usuario, Long desafioId, String resposta) {
         Desafio desafio = desafioRepositorio.buscarDoUsuario(desafioId, usuario.getId())
-                .orElseThrow(() -> new RecursoNaoEncontradoException("Desafio nao encontrado: " + desafioId));
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Desafio não encontrado: " + desafioId));
 
         if (desafio.getStatus() != StatusDoDesafio.AGUARDANDO_RESPOSTA) {
-            throw new RegraDeNegocioException("Este desafio ja foi respondido.");
+            throw new RegraDeNegocioException("Este desafio já foi respondido.");
         }
 
         Modulo modulo = desafio.getModulo();

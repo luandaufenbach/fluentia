@@ -61,7 +61,7 @@ class LoopDoDesafioIT {
         assertThat(desafio.moduloCodigo()).isEqualTo("verbo_to_be");
         assertThat(desafio.status()).isEqualTo(StatusDoDesafio.AGUARDANDO_RESPOSTA);
         assertThat(desafio.enunciado()).isNotBlank();
-        assertThat(desafio.motivoDaEscolha()).contains("ainda nao praticado");
+        assertThat(desafio.motivoDaEscolha()).contains("não foi praticado");
     }
 
     @Test
@@ -107,6 +107,32 @@ class LoopDoDesafioIT {
     }
 
     @Test
+    @DisplayName("praticar o modulo estudado troca o desafio em aberto pelo do modulo pedido")
+    void praticaDirigidaTrocaODesafioEmAberto() {
+        // Consolida o to be para liberar "artigos" e ter dois modulos disponiveis.
+        for (int rodada = 0; rodada < 4; rodada++) {
+            ResumoDoDesafio desafio = servicoDeDesafio.proximoDesafio(usuario);
+            if (!desafio.moduloCodigo().equals("verbo_to_be")) {
+                break;
+            }
+            servicoDeDesafio.responder(usuario, desafio.id(), desafio.respostaDeReferencia());
+        }
+
+        ResumoDoDesafio doOrquestrador = servicoDeDesafio.proximoDesafio(usuario);
+        assertThat(doOrquestrador.moduloCodigo()).isNotEqualTo("verbo_to_be");
+
+        // O aluno abriu o conteudo do "to be" e pediu para praticar justamente ele.
+        ResumoDoDesafio dirigido = servicoDeDesafio.proximoDesafio(usuario, "verbo_to_be");
+
+        assertThat(dirigido.moduloCodigo()).isEqualTo("verbo_to_be");
+        assertThat(dirigido.id()).isNotEqualTo(doOrquestrador.id());
+        assertThat(dirigido.motivoDaEscolha()).contains("escolheu praticar");
+
+        // O anterior saiu da fila sem entrar no historico: nao havia resposta nele.
+        assertThat(servicoDeDesafio.proximoDesafio(usuario).id()).isEqualTo(dirigido.id());
+    }
+
+    @Test
     @DisplayName("acertando seguidamente a nota sobe, o modulo fica verde e o curriculo avanca")
     void acertosConsecutivosLiberamOProximoModulo() {
         for (int rodada = 0; rodada < 4; rodada++) {
@@ -129,7 +155,7 @@ class LoopDoDesafioIT {
         // E o orquestrador passa a mirar o proximo conceito, ja que o anterior esta verde.
         ResumoDoDesafio proximo = servicoDeDesafio.proximoDesafio(usuario);
         assertThat(proximo.moduloCodigo()).isNotEqualTo("verbo_to_be");
-        assertThat(proximo.motivoDaEscolha()).contains("ainda nao praticado");
+        assertThat(proximo.motivoDaEscolha()).contains("não foi praticado");
     }
 
     @Test

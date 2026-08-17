@@ -1,5 +1,6 @@
 package br.com.agenteingles.orquestrador;
 
+import br.com.agenteingles.comum.RecursoNaoEncontradoException;
 import br.com.agenteingles.comum.RegraDeNegocioException;
 import br.com.agenteingles.desafio.Desafio;
 import br.com.agenteingles.desafio.DesafioRepositorio;
@@ -12,7 +13,6 @@ import br.com.agenteingles.usuario.Usuario;
 import java.math.BigDecimal;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import org.springframework.data.domain.Limit;
@@ -65,7 +65,7 @@ public class Orquestrador {
 
         if (liberados.isEmpty()) {
             throw new RegraDeNegocioException(
-                    "Nenhum modulo liberado para pratica. Verifique os pre-requisitos do curriculo.");
+                    "Nenhum módulo liberado para prática. Verifique os pré-requisitos da trilha.");
         }
 
         SituacaoDoModulo escolhido = escolherModulo(liberados);
@@ -107,7 +107,7 @@ public class Orquestrador {
         return liberados.stream()
                 .min(Comparator.comparing(SituacaoDoModulo::dataDaUltimaPratica,
                         Comparator.nullsFirst(Comparator.naturalOrder())))
-                .orElseThrow(() -> new RegraDeNegocioException("Nao foi possivel escolher um modulo para praticar."));
+                .orElseThrow(() -> new RegraDeNegocioException("Não foi possível escolher um módulo para praticar."));
     }
 
     /**
@@ -118,7 +118,7 @@ public class Orquestrador {
         String codigoPreferido = TEMA_PREFERIDO_POR_OBJETIVO.getOrDefault(usuario.getObjetivo(), TEMA_PADRAO);
         Tema preferido = temaRepositorio.buscarPorCodigo(codigoPreferido)
                 .or(() -> temaRepositorio.buscarPorCodigo(TEMA_PADRAO))
-                .orElseThrow(() -> new RegraDeNegocioException("Nenhum tema cadastrado no curriculo."));
+                .orElseThrow(() -> new RegraDeNegocioException("Nenhum tema cadastrado na trilha."));
 
         List<Desafio> ultimos = desafioRepositorio.listarHistorico(usuario.getId(), Limit.of(1));
         boolean repetiuTemaNoMesmoModulo = !ultimos.isEmpty()
@@ -135,25 +135,62 @@ public class Orquestrador {
                 .orElse(preferido);
     }
 
+    /**
+     * Pratica dirigida: o aluno acabou de estudar um modulo e pediu para exercitar
+     * justamente ele. A ordem de prioridade do orquestrador nao se aplica aqui — quem
+     * escolheu foi o aluno, e o orquestrador so decide a cena. O pre-requisito continua
+     * valendo: praticar um conceito cuja base ainda esta aberta so produz erro sem causa.
+     */
+    @Transactional(readOnly = true)
+    public DecisaoDoOrquestrador decidirPraticaDoModulo(Usuario usuario, String codigoDoModulo) {
+        SituacaoDoModulo situacao = servicoDeModulo.situacaoDeTodosOsModulos(usuario).stream()
+                .filter(candidato -> candidato.modulo().getCodigo().equals(codigoDoModulo))
+                .findFirst()
+                .orElseThrow(() -> new RecursoNaoEncontradoException(
+                        "Módulo %s não existe.".formatted(codigoDoModulo)));
+
+        if (!situacao.liberado()) {
+            throw new RegraDeNegocioException(
+                    "Módulo %s ainda depende de: %s.".formatted(
+                            situacao.modulo().getNome(),
+                            String.join(", ", situacao.preRequisitosPendentes())));
+        }
+
+        Tema tema = escolherTema(usuario, situacao);
+        return new DecisaoDoOrquestrador(situacao, tema, montarMotivoEscolhidoPeloAluno(situacao, tema));
+    }
+
+    private String montarMotivoEscolhidoPeloAluno(SituacaoDoModulo escolhido, Tema tema) {
+        // Sem aspas em volta do nome: alguns modulos ja tem aspas no proprio nome
+        // (Verbo "to be"), e o texto sairia com aspas aninhadas.
+        return "Você escolheu praticar " + escolhido.modulo().getNome()
+                + " logo depois de estudar o conteúdo. A cena vem do tema "
+                + tema.getNome() + ".";
+    }
+
+    /*
+     * Sem aspas em volta do nome do modulo: alguns ja tem aspas no proprio nome
+     * (Verbo "to be") e o texto sairia com aspas aninhadas na tela.
+     */
     private String montarMotivo(SituacaoDoModulo escolhido, Tema tema, Usuario usuario) {
         String nomeDoModulo = escolhido.modulo().getNome();
-        String cena = " A cena vem do tema \"" + tema.getNome() + "\", alinhado ao objetivo "
-                + usuario.getObjetivo().name().toLowerCase(Locale.ROOT).replace('_', ' ') + ".";
+        String cena = " A cena vem do tema " + tema.getNome() + ", alinhado ao objetivo "
+                + usuario.getObjetivo().getRotulo() + ".";
 
         if (escolhido.nuncaPraticado()) {
-            return "Modulo \"" + nomeDoModulo + "\" ainda nao praticado e com pre-requisitos em dia: "
-                    + "e o proximo passo do curriculo." + cena;
+            return nomeDoModulo + " ainda não foi praticado e está com os pré-requisitos em dia: "
+                    + "é o próximo passo da trilha." + cena;
         }
         String notaFormatada = escolhido.nota().toPlainString();
         if (escolhido.nota().compareTo(ServicoDeModulo.NOTA_QUE_LIBERA_O_PROXIMO) < 0) {
-            return "Modulo \"" + nomeDoModulo + "\" esta em vermelho (nota " + notaFormatada
-                    + "), entao e o reforco mais urgente." + cena;
+            return nomeDoModulo + " está em vermelho (nota " + notaFormatada
+                    + "), então é o reforço mais urgente." + cena;
         }
         if (escolhido.nota().compareTo(NOTA_DE_CONSOLIDACAO) < 0) {
-            return "Modulo \"" + nomeDoModulo + "\" esta em amarelo (nota " + notaFormatada
-                    + ") e ainda nao consolidou." + cena;
+            return nomeDoModulo + " está em amarelo (nota " + notaFormatada
+                    + ") e ainda não consolidou." + cena;
         }
-        return "Todos os modulos liberados estao consolidados; \"" + nomeDoModulo
-                + "\" e o que esta ha mais tempo sem pratica, entao entra como revisao." + cena;
+        return "Todos os módulos liberados estão consolidados; " + nomeDoModulo
+                + " é o que está há mais tempo sem prática, então entra como revisão." + cena;
     }
 }

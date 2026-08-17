@@ -82,6 +82,14 @@ public class Desafio {
         this.respondidoEm = momento;
     }
 
+    /**
+     * Sai da fila sem entrar no historico. Usado quando o aluno escolhe praticar outro
+     * conceito: como nunca foi respondido, nao ha avaliacao e a media do modulo nao muda.
+     */
+    public void descartar() {
+        this.status = StatusDoDesafio.DESCARTADO;
+    }
+
     public Long getId() {
         return id;
     }

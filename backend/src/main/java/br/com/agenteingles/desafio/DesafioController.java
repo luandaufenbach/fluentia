@@ -67,11 +67,16 @@ public class DesafioController {
             String moduloNome) {
     }
 
-    /** Desafio da vez: devolve o que esta em aberto ou gera um novo. */
+    /**
+     * Desafio da vez: devolve o que esta em aberto ou gera um novo.
+     *
+     * @param modulo codigo do modulo que o aluno pediu para praticar, logo depois de
+     *               estudar o conteudo dele. Ausente deixa a escolha com o orquestrador.
+     */
     @GetMapping("/proximo")
-    public DesafioResposta proximo() {
+    public DesafioResposta proximo(@RequestParam(required = false) String modulo) {
         Usuario usuario = servicoDeUsuario.usuarioAtual();
-        return converter(servicoDeDesafio.proximoDesafio(usuario));
+        return converter(servicoDeDesafio.proximoDesafio(usuario, modulo));
     }
 
     @PostMapping("/{desafioId}/resposta")

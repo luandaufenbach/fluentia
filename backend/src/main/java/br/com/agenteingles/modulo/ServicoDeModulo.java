@@ -92,6 +92,6 @@ public class ServicoDeModulo {
     @Transactional(readOnly = true)
     public Modulo buscarPorCodigo(String codigo) {
         return moduloRepositorio.buscarPorCodigo(codigo)
-                .orElseThrow(() -> new RecursoNaoEncontradoException("Modulo nao encontrado: " + codigo));
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Módulo não encontrado: " + codigo));
     }
 }
