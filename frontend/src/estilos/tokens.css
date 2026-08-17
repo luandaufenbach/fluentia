@@ -1,0 +1,58 @@
+/*
+ * Identidade visual do agente de ingles.
+ * Destaque em amarelo mostarda, fundo quase-branco e texto quase-preto.
+ * Espacamentos em rem para que a fonte maior do sistema nao quebre o layout.
+ */
+
+:root {
+  /* Cores da marca */
+  --cor-destaque: #f2b705;
+  --cor-destaque-suave: #fdf3d3;
+  --cor-destaque-borda: #e0a904;
+
+  /* Superficies e texto */
+  --cor-fundo: #fbfaf7;
+  --cor-superficie: #ffffff;
+  --cor-superficie-sutil: #f4f2ed;
+  --cor-texto: #1a1a1a;
+  --cor-texto-secundario: #6b6862;
+  --cor-borda: #e6e2d9;
+  --cor-borda-forte: #d5d0c4;
+
+  /* Faixas de nota — sem lacuna entre elas */
+  --cor-vermelho: #d1414a;
+  --cor-vermelho-fundo: #fbe9ea;
+  --cor-amarelo: #d99000;
+  --cor-amarelo-fundo: #fdf3d3;
+  --cor-verde: #2f8f5b;
+  --cor-verde-fundo: #e6f4ec;
+  --cor-novo: #9a968e;
+  --cor-novo-fundo: #f0eee9;
+
+  /* Tipografia: fonte do sistema, que ja traz ajuste optico e tracking proprios */
+  --fonte: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+
+  /* Escala de espacamento */
+  --espaco-1: 0.25rem;
+  --espaco-2: 0.5rem;
+  --espaco-3: 0.75rem;
+  --espaco-4: 1rem;
+  --espaco-5: 1.5rem;
+  --espaco-6: 2rem;
+  --espaco-7: 3rem;
+
+  /* Cantos arredondados */
+  --raio-pequeno: 0.5rem;
+  --raio-medio: 0.75rem;
+  --raio-grande: 1rem;
+
+  --sombra-suave: 0 1px 2px rgba(26, 26, 26, 0.04), 0 4px 16px rgba(26, 26, 26, 0.05);
+
+  /*
+   * Movimento: resposta de 0.3s a 0.4s e curva sem overshoot, seguindo o padrao
+   * de mola criticamente amortecida. O overshoot fica reservado para gesto com
+   * momento, que esta interface nao tem.
+   */
+  --transicao-rapida: 120ms cubic-bezier(0.2, 0, 0.2, 1);
+  --transicao-padrao: 320ms cubic-bezier(0.2, 0, 0.2, 1);
+}

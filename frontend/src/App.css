@@ -1,0 +1,24 @@
+.aplicacao {
+  display: grid;
+  grid-template-columns: 15rem 1fr;
+  min-height: 100vh;
+}
+
+.aplicacao__conteudo {
+  padding: var(--espaco-6) var(--espaco-7);
+  max-width: 64rem;
+}
+
+.aplicacao__titulo {
+  margin-bottom: var(--espaco-6);
+}
+
+@media (max-width: 52rem) {
+  .aplicacao {
+    grid-template-columns: 1fr;
+  }
+
+  .aplicacao__conteudo {
+    padding: var(--espaco-5) var(--espaco-4);
+  }
+}
