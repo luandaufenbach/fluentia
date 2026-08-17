@@ -1,0 +1,84 @@
+.lista-de-modulos {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-6);
+}
+
+.lista-de-modulos__cabecalho {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  padding-bottom: var(--espaco-2);
+  margin-bottom: var(--espaco-1);
+  border-bottom: 2px solid var(--cor-texto);
+}
+
+.lista-de-modulos__cabecalho h2 {
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.lista-de-modulos__contagem {
+  font-size: 0.8125rem;
+  color: var(--cor-texto-secundario);
+}
+
+.lista-de-modulos__linhas {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+/* Linha densa separada por borda fina — nao card solto. */
+.linha-de-modulo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--espaco-4);
+  padding: var(--espaco-3) var(--espaco-2);
+  border-bottom: 1px solid var(--cor-borda);
+  transition: background-color var(--transicao-rapida);
+}
+
+.linha-de-modulo:hover {
+  background: var(--cor-superficie-sutil);
+}
+
+.linha-de-modulo--destaque {
+  background: var(--cor-destaque-suave);
+  box-shadow: inset 3px 0 0 var(--cor-destaque);
+}
+
+.linha-de-modulo--destaque:hover {
+  background: var(--cor-destaque-suave);
+}
+
+.linha-de-modulo--bloqueado .linha-de-modulo__nome,
+.linha-de-modulo--bloqueado .linha-de-modulo__descricao {
+  color: var(--cor-texto-secundario);
+}
+
+.linha-de-modulo__identificacao {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  min-width: 0;
+}
+
+.linha-de-modulo__nome {
+  font-weight: 600;
+  font-size: 1rem;
+}
+
+.linha-de-modulo__descricao {
+  font-size: 0.8125rem;
+  color: var(--cor-texto-secundario);
+  line-height: 1.4;
+}
+
+.linha-de-modulo__bloqueio {
+  font-size: 0.75rem;
+  color: var(--cor-novo);
+  margin-top: var(--espaco-1);
+}
