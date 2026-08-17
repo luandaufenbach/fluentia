@@ -61,6 +61,7 @@ button {
 
 .botao-primario {
   background: var(--cor-destaque);
+  min-height: var(--alvo-de-toque);
   color: var(--cor-texto);
   border: 1px solid var(--cor-destaque-borda);
   border-radius: var(--raio-medio);
@@ -79,6 +80,7 @@ button {
 
 .botao-secundario {
   background: var(--cor-superficie);
+  min-height: var(--alvo-de-toque);
   color: var(--cor-texto);
   border: 1px solid var(--cor-borda-forte);
   border-radius: var(--raio-medio);

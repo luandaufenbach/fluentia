@@ -100,3 +100,27 @@ export interface Preferencias {
   tipoDeCorrecao?: TipoDeCorrecao;
   nivelEstimado?: NivelCefr;
 }
+
+export interface ExemploDoConteudo {
+  emIngles: string;
+  emPortugues: string;
+  /** null quando a frase dispensa explicacao. */
+  observacao: string | null;
+}
+
+export interface ErroComumDoConteudo {
+  errado: string;
+  certo: string;
+  explicacao: string;
+}
+
+/** O material de estudo do modulo: o aluno le antes de praticar e volta quando erra. */
+export interface ConteudoDoModulo {
+  moduloCodigo: string;
+  moduloNome: string;
+  nivel: NivelCefr;
+  resumo: string;
+  explicacao: string;
+  exemplos: ExemploDoConteudo[];
+  errosComuns: ErroComumDoConteudo[];
+}

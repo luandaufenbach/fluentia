@@ -4,15 +4,15 @@ import type { ObjetivoDoUsuario, TipoDeCorrecao, Usuario } from "../tipos";
 import "./TelaDeConfiguracoes.css";
 
 interface Props {
-  /** O objetivo influencia o tema escolhido pelo orquestrador, entao o curriculo recarrega. */
+  /** O objetivo influencia o tema escolhido pelo orquestrador, entao a trilha recarrega. */
   onPreferenciasSalvas: () => void;
 }
 
 const OBJETIVOS: { valor: ObjetivoDoUsuario; rotulo: string }[] = [
-  { valor: "CONVERSACAO_GERAL", rotulo: "Conversacao geral" },
+  { valor: "CONVERSACAO_GERAL", rotulo: "Conversação geral" },
   { valor: "VIAGEM", rotulo: "Viagem" },
   { valor: "TRABALHO", rotulo: "Trabalho" },
-  { valor: "DEV", rotulo: "Ingles para dev" },
+  { valor: "DEV", rotulo: "Inglês para dev" },
 ];
 
 const TIPOS_DE_CORRECAO: { valor: TipoDeCorrecao; rotulo: string }[] = [
@@ -32,7 +32,7 @@ export function TelaDeConfiguracoes({ onPreferenciasSalvas }: Props) {
       .buscarUsuario()
       .then(setUsuario)
       .catch((falha: unknown) =>
-        setErro(falha instanceof Error ? falha.message : "Nao foi possivel carregar o perfil."),
+        setErro(falha instanceof Error ? falha.message : "Não foi possível carregar o perfil."),
       );
   }, []);
 
@@ -50,10 +50,10 @@ export function TelaDeConfiguracoes({ onPreferenciasSalvas }: Props) {
         tipoDeCorrecao: usuario.tipoDeCorrecao,
       });
       setUsuario(atualizado);
-      setMensagem("Preferencias salvas.");
+      setMensagem("Preferências salvas.");
       onPreferenciasSalvas();
     } catch (falha) {
-      setErro(falha instanceof Error ? falha.message : "Nao foi possivel salvar.");
+      setErro(falha instanceof Error ? falha.message : "Não foi possível salvar.");
     } finally {
       setSalvando(false);
     }
@@ -90,7 +90,7 @@ export function TelaDeConfiguracoes({ onPreferenciasSalvas }: Props) {
 
       <label className="tela-de-configuracoes__campo">
         <span className="tela-de-configuracoes__rotulo">Ritmo</span>
-        <span className="tela-de-configuracoes__ajuda">Minutos de pratica por dia.</span>
+        <span className="tela-de-configuracoes__ajuda">Minutos de prática por dia.</span>
         <input
           type="number"
           min={5}
@@ -103,9 +103,9 @@ export function TelaDeConfiguracoes({ onPreferenciasSalvas }: Props) {
       </label>
 
       <label className="tela-de-configuracoes__campo">
-        <span className="tela-de-configuracoes__rotulo">Tipo de correcao</span>
+        <span className="tela-de-configuracoes__rotulo">Tipo de correção</span>
         <span className="tela-de-configuracoes__ajuda">
-          Quanto detalhe aparece no resumo ao final da sessao.
+          Quanto detalhe aparece no resumo ao final da sessão.
         </span>
         <select
           value={usuario.tipoDeCorrecao}
@@ -128,7 +128,7 @@ export function TelaDeConfiguracoes({ onPreferenciasSalvas }: Props) {
           onClick={() => void salvar()}
           disabled={salvando}
         >
-          {salvando ? "Salvando..." : "Salvar preferencias"}
+          {salvando ? "Salvando..." : "Salvar preferências"}
         </button>
         {mensagem && <span className="tela-de-configuracoes__mensagem">{mensagem}</span>}
         {erro && <span className="tela-de-configuracoes__erro">{erro}</span>}

@@ -5,14 +5,15 @@ import "./ListaDeModulos.css";
 interface Props {
   niveis: NivelComModulos[];
   moduloEmDestaque?: string;
+  onEstudarModulo: (codigoDoModulo: string) => void;
 }
 
 /**
- * Lista densa do curriculo, agrupada por nivel CEFR: linhas separadas por borda fina,
- * nao cards arredondados soltos. E o curriculo em si, entao a progressao precisa
- * ficar legivel de cima a baixo.
+ * Lista densa da trilha, agrupada por nível CEFR: linhas separadas por borda fina,
+ * não cards arredondados soltos. É a trilha em si, então a progressão precisa
+ * ficar legível de cima a baixo.
  */
-export function ListaDeModulos({ niveis, moduloEmDestaque }: Props) {
+export function ListaDeModulos({ niveis, moduloEmDestaque, onEstudarModulo }: Props) {
   return (
     <div className="lista-de-modulos">
       {niveis.map((nivel) => (
@@ -20,7 +21,7 @@ export function ListaDeModulos({ niveis, moduloEmDestaque }: Props) {
           <header className="lista-de-modulos__cabecalho">
             <h2>{nivel.nivel}</h2>
             <span className="lista-de-modulos__contagem">
-              {nivel.modulos.length} {nivel.modulos.length === 1 ? "modulo" : "modulos"}
+              {nivel.modulos.length} {nivel.modulos.length === 1 ? "módulo" : "módulos"}
             </span>
           </header>
 
@@ -30,6 +31,7 @@ export function ListaDeModulos({ niveis, moduloEmDestaque }: Props) {
                 key={modulo.id}
                 modulo={modulo}
                 emDestaque={modulo.codigo === moduloEmDestaque}
+                onEstudar={() => onEstudarModulo(modulo.codigo)}
               />
             ))}
           </ul>
@@ -39,7 +41,13 @@ export function ListaDeModulos({ niveis, moduloEmDestaque }: Props) {
   );
 }
 
-function LinhaDeModulo({ modulo, emDestaque }: { modulo: Modulo; emDestaque: boolean }) {
+interface PropsDaLinha {
+  modulo: Modulo;
+  emDestaque: boolean;
+  onEstudar: () => void;
+}
+
+function LinhaDeModulo({ modulo, emDestaque, onEstudar }: PropsDaLinha) {
   const classes = [
     "linha-de-modulo",
     modulo.liberado ? "" : "linha-de-modulo--bloqueado",
@@ -50,18 +58,31 @@ function LinhaDeModulo({ modulo, emDestaque }: { modulo: Modulo; emDestaque: boo
 
   return (
     <li className={classes}>
-      <div className="linha-de-modulo__identificacao">
-        <span className="linha-de-modulo__nome">{modulo.nome}</span>
-        <span className="linha-de-modulo__descricao">{modulo.descricao}</span>
+      {/*
+       * A linha inteira é o botão: o conteúdo do módulo é o destino natural de
+       * clicar num conceito da trilha. Módulo bloqueado não abre — ainda não há
+       * o que estudar antes dos pré-requisitos.
+       */}
+      <button
+        type="button"
+        className="linha-de-modulo__gatilho"
+        onClick={onEstudar}
+        disabled={!modulo.liberado}
+        aria-label={`Ver o conteúdo de ${modulo.nome}`}
+      >
+        <span className="linha-de-modulo__identificacao">
+          <span className="linha-de-modulo__nome">{modulo.nome}</span>
+          <span className="linha-de-modulo__descricao">{modulo.descricao}</span>
 
-        {!modulo.liberado && modulo.preRequisitosPendentes.length > 0 && (
-          <span className="linha-de-modulo__bloqueio">
-            Depende de: {modulo.preRequisitosPendentes.join(", ")}
-          </span>
-        )}
-      </div>
+          {!modulo.liberado && modulo.preRequisitosPendentes.length > 0 && (
+            <span className="linha-de-modulo__bloqueio">
+              Depende de: {modulo.preRequisitosPendentes.join(", ")}
+            </span>
+          )}
+        </span>
 
-      <IndicadorDeNota nota={modulo.nota} faixa={modulo.faixa} />
+        <IndicadorDeNota nota={modulo.nota} faixa={modulo.faixa} />
+      </button>
     </li>
   );
 }

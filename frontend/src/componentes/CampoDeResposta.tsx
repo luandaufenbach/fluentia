@@ -16,15 +16,15 @@ export function CampoDeResposta({ formato, valor, onChange, desabilitado }: Prop
   if (formato === "AUDIO") {
     return (
       <div className="campo-de-resposta__indisponivel">
-        Desafios em audio entram na fase 2. Este desafio ainda nao pode ser respondido por aqui.
+        Desafios em áudio entram na fase 2. Este desafio ainda não pode ser respondido por aqui.
       </div>
     );
   }
 
   const rotulo =
     formato === "CONVERSA"
-      ? "Sua fala nesta conversa (em ingles)"
-      : "Sua resposta (em ingles)";
+      ? "Sua fala nesta conversa (em inglês)"
+      : "Sua resposta (em inglês)";
 
   return (
     <label className="campo-de-resposta">

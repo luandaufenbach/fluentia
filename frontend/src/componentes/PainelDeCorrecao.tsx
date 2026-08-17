@@ -1,3 +1,4 @@
+import { motion } from "motion/react";
 import type { Correcao } from "../tipos";
 import { formatarNota } from "./IndicadorDeNota";
 import "./PainelDeCorrecao.css";
@@ -9,16 +10,24 @@ interface Props {
 }
 
 /**
- * Correcao resumida, exibida so ao final da sessao — nunca interrompendo a resposta.
- * Mostra a nota da resposta, os erros especificos e como a nota do modulo ficou.
+ * Correção resumida, exibida só ao final da sessão — nunca interrompendo a resposta.
+ * Mostra a nota da resposta, os erros específicos e como a nota do módulo ficou.
  */
 export function PainelDeCorrecao({ correcao, onProximoDesafio, carregandoProximo }: Props) {
   const acertou = correcao.erros.length === 0;
 
   return (
-    <section
+    /*
+     * Mola em vez de duração fixa, e interrompível: se a correção chegar enquanto
+     * a anterior ainda entra, a nova assume do ponto e da velocidade atuais em vez
+     * de reiniciar do zero. bounce 0 porque não há gesto com momento aqui.
+     */
+    <motion.section
       className={`painel-de-correcao painel-de-correcao--${correcao.faixaDoModulo.toLowerCase()}`}
       aria-live="polite"
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ type: "spring", visualDuration: 0.32, bounce: 0 }}
     >
       <header className="painel-de-correcao__cabecalho">
         <h2>{acertou ? "Correto" : "Vamos revisar"}</h2>
@@ -52,7 +61,7 @@ export function PainelDeCorrecao({ correcao, onProximoDesafio, carregandoProximo
 
       <footer className="painel-de-correcao__rodape">
         <p className="painel-de-correcao__modulo">
-          {correcao.moduloNome} agora esta em{" "}
+          {correcao.moduloNome} agora está em{" "}
           <strong>{formatarNota(correcao.notaDoModulo)}</strong>
         </p>
 
@@ -62,9 +71,9 @@ export function PainelDeCorrecao({ correcao, onProximoDesafio, carregandoProximo
           onClick={onProximoDesafio}
           disabled={carregandoProximo}
         >
-          {carregandoProximo ? "Gerando..." : "Proximo desafio"}
+          {carregandoProximo ? "Gerando..." : "Próximo desafio"}
         </button>
       </footer>
-    </section>
+    </motion.section>
   );
 }

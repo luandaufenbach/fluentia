@@ -1,8 +1,19 @@
+/*
+ * Duas colunas no desktop: o exercicio de um lado, o lembrete do conteudo do outro.
+ * Em coluna unica o lembrete cairia abaixo da dobra, que e onde ele deixa de servir.
+ */
 .tela-de-desafio {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--espaco-6);
+  align-items: start;
+}
+
+.tela-de-desafio__principal {
   display: flex;
   flex-direction: column;
   gap: var(--espaco-5);
-  max-width: 44rem;
+  min-width: 0;
 }
 
 .tela-de-desafio__estado {
@@ -51,8 +62,9 @@
 }
 
 .tela-de-desafio__enunciado {
-  font-size: clamp(1.375rem, 2.5vw, 1.75rem);
-  line-height: 1.25;
+  font-size: clamp(1.25rem, 2vw, 1.625rem);
+  line-height: 1.3;
+  letter-spacing: -0.015em;
 }
 
 .tela-de-desafio__resposta {
@@ -64,6 +76,7 @@
 
 .tela-de-desafio__resposta .botao-primario {
   align-self: flex-start;
+  min-height: var(--alvo-de-toque);
 }
 
 .tela-de-desafio__erro {
@@ -81,9 +94,20 @@
 .tela-de-desafio__motivo summary {
   cursor: pointer;
   font-weight: 500;
+  min-height: var(--alvo-de-toque);
+  display: flex;
+  align-items: center;
 }
 
 .tela-de-desafio__motivo p {
   margin-top: var(--espaco-2);
   line-height: 1.55;
 }
+
+@media (min-width: 68rem) {
+  .tela-de-desafio {
+    grid-template-columns: minmax(0, 1.6fr) minmax(19rem, 0.7fr);
+    gap: var(--espaco-7);
+  }
+}
+

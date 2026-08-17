@@ -21,6 +21,7 @@
 
 .lista-de-modulos__contagem {
   font-size: 0.8125rem;
+  letter-spacing: 0.01em;
   color: var(--cor-texto-secundario);
 }
 
@@ -30,27 +31,40 @@
   padding: 0;
 }
 
-/* Linha densa separada por borda fina — nao card solto. */
+/* Linha densa separada por borda fina — não card solto. */
 .linha-de-modulo {
+  border-bottom: 1px solid var(--cor-borda);
+}
+
+.linha-de-modulo__gatilho {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: var(--espaco-4);
+  width: 100%;
+  min-height: var(--alvo-de-toque);
   padding: var(--espaco-3) var(--espaco-2);
-  border-bottom: 1px solid var(--cor-borda);
+  background: transparent;
+  border: none;
+  text-align: left;
+  color: inherit;
   transition: background-color var(--transicao-rapida);
 }
 
-.linha-de-modulo:hover {
+.linha-de-modulo__gatilho:hover:not(:disabled) {
   background: var(--cor-superficie-sutil);
 }
 
-.linha-de-modulo--destaque {
+.linha-de-modulo__gatilho:disabled {
+  cursor: default;
+}
+
+.linha-de-modulo--destaque .linha-de-modulo__gatilho {
   background: var(--cor-destaque-suave);
   box-shadow: inset 3px 0 0 var(--cor-destaque);
 }
 
-.linha-de-modulo--destaque:hover {
+.linha-de-modulo--destaque .linha-de-modulo__gatilho:hover:not(:disabled) {
   background: var(--cor-destaque-suave);
 }
 
@@ -73,12 +87,27 @@
 
 .linha-de-modulo__descricao {
   font-size: 0.8125rem;
+  letter-spacing: 0.01em;
   color: var(--cor-texto-secundario);
   line-height: 1.4;
 }
 
 .linha-de-modulo__bloqueio {
   font-size: 0.75rem;
+  letter-spacing: 0.015em;
   color: var(--cor-novo);
   margin-top: var(--espaco-1);
+}
+
+/*
+ * Duas colunas a partir do desktop: são seis níveis CEFR empilhados, e em coluna
+ * única a trilha vira uma rolagem longa com metade da tela vazia ao lado.
+ */
+@media (min-width: 68rem) {
+  .lista-de-modulos {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--espaco-6) var(--espaco-7);
+    align-items: start;
+  }
 }

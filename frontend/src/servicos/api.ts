@@ -1,4 +1,5 @@
 import type {
+  ConteudoDoModulo,
   Correcao,
   Desafio,
   NivelComModulos,
@@ -54,13 +55,22 @@ export const api = {
 
   listarModulos: () => requisitar<NivelComModulos[]>("/modulos"),
 
+  buscarConteudo: (codigoDoModulo: string) =>
+    requisitar<ConteudoDoModulo>(`/modulos/${codigoDoModulo}/conteudo`),
+
   listarTemas: () => requisitar<Tema[]>("/temas"),
 
   buscarProgresso: () => requisitar<Progresso>("/progresso"),
 
   buscarSugestao: () => requisitar<Sugestao>("/dashboard/sugestao"),
 
-  proximoDesafio: () => requisitar<Desafio>("/desafios/proximo"),
+  /** Sem modulo, o orquestrador escolhe; com modulo, pratica o que o aluno acabou de estudar. */
+  proximoDesafio: (codigoDoModulo?: string) =>
+    requisitar<Desafio>(
+      codigoDoModulo
+        ? `/desafios/proximo?modulo=${encodeURIComponent(codigoDoModulo)}`
+        : "/desafios/proximo",
+    ),
 
   responderDesafio: (desafioId: number, resposta: string) =>
     requisitar<Correcao>(`/desafios/${desafioId}/resposta`, {

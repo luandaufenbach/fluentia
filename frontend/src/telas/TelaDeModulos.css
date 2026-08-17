@@ -20,6 +20,11 @@
   padding: var(--espaco-5);
 }
 
+.tela-de-modulos__sugestao-texto {
+  min-width: 0;
+  flex: 1 1 24rem;
+}
+
 .tela-de-modulos__sugestao-rotulo {
   display: block;
   font-size: 0.75rem;
@@ -39,4 +44,17 @@
   line-height: 1.55;
   color: var(--cor-texto-secundario);
   max-width: 46rem;
+}
+
+.tela-de-modulos__sugestao-acoes {
+  display: flex;
+  gap: var(--espaco-2);
+  flex-wrap: wrap;
+}
+
+@media (max-width: 40rem) {
+  .tela-de-modulos__sugestao-acoes {
+    width: 100%;
+    flex-direction: column;
+  }
 }

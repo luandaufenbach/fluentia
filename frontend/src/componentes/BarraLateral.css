@@ -1,4 +1,4 @@
-.sidebar {
+.barra-lateral {
   display: flex;
   flex-direction: column;
   gap: var(--espaco-6);
@@ -8,15 +8,16 @@
   min-height: 100vh;
 }
 
-.sidebar__marca {
+.barra-lateral__marca {
   display: flex;
   align-items: center;
   gap: var(--espaco-2);
+  font-size: 1.0625rem;
   font-weight: 700;
-  letter-spacing: -0.01em;
+  letter-spacing: -0.015em;
 }
 
-.sidebar__ponto {
+.barra-lateral__ponto {
   width: 0.75rem;
   height: 0.75rem;
   border-radius: 50%;
@@ -24,43 +25,46 @@
   flex: none;
 }
 
-.sidebar__navegacao {
+.barra-lateral__navegacao {
   display: flex;
   flex-direction: column;
   gap: var(--espaco-1);
 }
 
-.sidebar__aba {
+.barra-lateral__aba {
   text-align: left;
   background: transparent;
   border: none;
   border-radius: var(--raio-pequeno);
+  /* Altura mínima de alvo de toque: abaixo disto o dedo erra o botão. */
+  min-height: var(--alvo-de-toque);
   padding: var(--espaco-2) var(--espaco-3);
   color: var(--cor-texto-secundario);
   font-weight: 500;
 }
 
-.sidebar__aba:hover {
+.barra-lateral__aba:hover {
   background: var(--cor-superficie-sutil);
   color: var(--cor-texto);
 }
 
-.sidebar__aba--ativa {
+.barra-lateral__aba--ativa {
   background: var(--cor-destaque-suave);
   color: var(--cor-texto);
   font-weight: 600;
 }
 
-.sidebar__titulo {
+.barra-lateral__titulo {
   font-size: 0.75rem;
   font-weight: 700;
   text-transform: uppercase;
+  /* Tracking positivo em texto pequeno e em caixa alta: aperto demais fecha as letras. */
   letter-spacing: 0.08em;
   color: var(--cor-texto-secundario);
   margin-bottom: var(--espaco-3);
 }
 
-.sidebar__lista-de-temas {
+.barra-lateral__lista-de-temas {
   list-style: none;
   margin: 0 0 var(--espaco-3);
   padding: 0;
@@ -68,27 +72,36 @@
   flex-direction: column;
   gap: var(--espaco-2);
   font-size: 0.875rem;
+  letter-spacing: 0.005em;
 }
 
-.sidebar__nota {
+.barra-lateral__nota {
   font-size: 0.75rem;
   line-height: 1.5;
+  letter-spacing: 0.01em;
   color: var(--cor-novo);
 }
 
 @media (max-width: 52rem) {
-  .sidebar {
+  .barra-lateral {
     min-height: auto;
     border-right: none;
     border-bottom: 1px solid var(--cor-borda);
   }
 
-  .sidebar__navegacao {
+  .barra-lateral__navegacao {
     flex-direction: row;
     flex-wrap: wrap;
   }
 
-  .sidebar__temas {
+  .barra-lateral__aba {
+    /* No toque o alvo precisa da largura também, não só da altura. */
+    min-width: var(--alvo-de-toque);
+    display: flex;
+    align-items: center;
+  }
+
+  .barra-lateral__temas {
     display: none;
   }
 }

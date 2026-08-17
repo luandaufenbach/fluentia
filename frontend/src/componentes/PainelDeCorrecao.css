@@ -8,25 +8,6 @@
   flex-direction: column;
   gap: var(--espaco-4);
   box-shadow: var(--sombra-suave);
-  animation: correcao-entrando var(--transicao-padrao) both;
-}
-
-/* Fade curto com deslocamento minimo: a correcao aparece, nao salta na tela. */
-@keyframes correcao-entrando {
-  from {
-    opacity: 0;
-    transform: translateY(6px);
-  }
-  to {
-    opacity: 1;
-    transform: none;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .painel-de-correcao {
-    animation: none;
-  }
 }
 
 .painel-de-correcao--vermelho {
