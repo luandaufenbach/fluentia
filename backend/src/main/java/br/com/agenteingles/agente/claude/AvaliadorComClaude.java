@@ -1,0 +1,96 @@
+package br.com.agenteingles.agente.claude;
+
+import br.com.agenteingles.agente.AgenteAvaliador;
+import br.com.agenteingles.agente.PedidoDeAvaliacao;
+import br.com.agenteingles.agente.PropriedadesDoAgente;
+import br.com.agenteingles.agente.ResultadoDaAvaliacao;
+import com.anthropic.models.messages.Model;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.ai.anthropic.AnthropicChatModel;
+import org.springframework.ai.anthropic.AnthropicChatOptions;
+import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.stereotype.Component;
+
+/**
+ * Avaliador apoiado na Claude. Usa o modelo de raciocinio com raciocinio adaptativo:
+ * a nota que sai daqui alimenta a media do modulo e a decisao do orquestrador, entao
+ * um erro de correcao se propaga por todo o curriculo do usuario.
+ */
+@Component
+@ConditionalOnProperty(name = "agente-ingles.usar-claude", havingValue = "true")
+public class AvaliadorComClaude implements AgenteAvaliador {
+
+    private static final Logger log = LoggerFactory.getLogger(AvaliadorComClaude.class);
+
+    private static final int MAXIMO_DE_TOKENS = 4000;
+
+    private static final String INSTRUCAO_DO_SISTEMA = """
+            Voce e o agente avaliador de um curriculo adaptativo de ingles.
+
+            Sua tarefa e julgar a resposta do aluno ao desafio e apontar o erro especifico.
+
+            Regras:
+            - Avalie apenas o conceito que o desafio estava medindo. Nao desconte por questoes
+              de estilo ou por escolhas de vocabulario que tambem estariam corretas.
+            - A nota vai de 0 a 10 e se refere somente a esta resposta.
+              10 = correta; 7 a 9 = correta com deslize menor; 4 a 6 = conceito parcialmente
+              aplicado; 1 a 3 = conceito aplicado errado; 0 = sem resposta ou fora do pedido.
+            - Para cada erro, informe o tipo em snake_case (ex.: concordancia_do_verbo_to_be),
+              o trecho exato que esta errado, a correcao e a explicacao.
+            - Se a resposta estiver correta, devolva a lista de erros vazia.
+            - O feedback e as explicacoes vao em portugues; os trechos e correcoes, em ingles.
+            """;
+
+    private final ChatClient clienteDeChat;
+    private final PropriedadesDoAgente propriedades;
+
+    public AvaliadorComClaude(AnthropicChatModel modeloDeChat, PropriedadesDoAgente propriedades) {
+        this.clienteDeChat = ChatClient.create(modeloDeChat);
+        this.propriedades = propriedades;
+    }
+
+    @Override
+    public ResultadoDaAvaliacao avaliar(PedidoDeAvaliacao pedido) {
+        log.debug("Avaliando resposta do modulo {}", pedido.codigoDoModulo());
+
+        return clienteDeChat.prompt()
+                .system(INSTRUCAO_DO_SISTEMA)
+                .user(montarPedido(pedido))
+                .options(AnthropicChatOptions.builder()
+                        .model(Model.of(propriedades.modeloDeRaciocinio()))
+                        .maxTokens(MAXIMO_DE_TOKENS)
+                        .thinkingAdaptive())
+                .call()
+                .entity(ResultadoDaAvaliacao.class);
+    }
+
+    private String montarPedido(PedidoDeAvaliacao pedido) {
+        return """
+                Conceito medido: %s (codigo %s)
+                Descricao do conceito: %s
+                Nivel CEFR: %s
+                Cena do desafio: %s
+                Enunciado apresentado ao aluno: %s
+                Resposta de referencia: %s
+                Criterio de avaliacao: %s
+
+                Resposta do aluno:
+                %s
+                """.formatted(
+                pedido.nomeDoModulo(),
+                pedido.codigoDoModulo(),
+                pedido.descricaoDoModulo(),
+                pedido.nivel(),
+                textoOuAusente(pedido.contextoDaCena()),
+                pedido.enunciado(),
+                textoOuAusente(pedido.respostaDeReferencia()),
+                textoOuAusente(pedido.criterioDeAvaliacao()),
+                pedido.respostaDoUsuario());
+    }
+
+    private String textoOuAusente(String texto) {
+        return texto == null || texto.isBlank() ? "(nao informado)" : texto;
+    }
+}
