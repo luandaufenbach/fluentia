@@ -45,6 +45,8 @@ public class AvaliadorComClaude implements AgenteAvaliador {
 
     private final ChatClient clienteDeChat;
     private final PropriedadesDoAgente propriedades;
+    private final LeitorDeRespostaEstruturada<ResultadoDaAvaliacao> leitor =
+            new LeitorDeRespostaEstruturada<>(ResultadoDaAvaliacao.class);
 
     public AvaliadorComClaude(AnthropicChatModel modeloDeChat, PropriedadesDoAgente propriedades) {
         this.clienteDeChat = ChatClient.create(modeloDeChat);
@@ -55,15 +57,17 @@ public class AvaliadorComClaude implements AgenteAvaliador {
     public ResultadoDaAvaliacao avaliar(PedidoDeAvaliacao pedido) {
         log.debug("Avaliando resposta do modulo {}", pedido.codigoDoModulo());
 
-        return clienteDeChat.prompt()
+        var resposta = clienteDeChat.prompt()
                 .system(INSTRUCAO_DO_SISTEMA)
-                .user(montarPedido(pedido))
+                .user(montarPedido(pedido) + "\n" + leitor.instrucaoDeFormato())
                 .options(AnthropicChatOptions.builder()
                         .model(Model.of(propriedades.modeloDeRaciocinio()))
                         .maxTokens(MAXIMO_DE_TOKENS)
                         .thinkingAdaptive())
                 .call()
-                .entity(ResultadoDaAvaliacao.class);
+                .chatResponse();
+
+        return leitor.converter(resposta);
     }
 
     private String montarPedido(PedidoDeAvaliacao pedido) {

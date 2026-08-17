@@ -44,6 +44,8 @@ public class GeradorDeDesafioComClaude implements AgenteGeradorDeDesafio {
 
     private final ChatClient clienteDeChat;
     private final PropriedadesDoAgente propriedades;
+    private final LeitorDeRespostaEstruturada<DesafioGerado> leitor =
+            new LeitorDeRespostaEstruturada<>(DesafioGerado.class);
 
     public GeradorDeDesafioComClaude(AnthropicChatModel modeloDeChat, PropriedadesDoAgente propriedades) {
         this.clienteDeChat = ChatClient.create(modeloDeChat);
@@ -54,14 +56,16 @@ public class GeradorDeDesafioComClaude implements AgenteGeradorDeDesafio {
     public DesafioGerado gerar(PedidoDeGeracao pedido) {
         log.debug("Gerando desafio do modulo {} no tema {}", pedido.codigoDoModulo(), pedido.nomeDoTema());
 
-        return clienteDeChat.prompt()
+        var resposta = clienteDeChat.prompt()
                 .system(INSTRUCAO_DO_SISTEMA)
-                .user(montarPedido(pedido))
+                .user(montarPedido(pedido) + "\n" + leitor.instrucaoDeFormato())
                 .options(AnthropicChatOptions.builder()
                         .model(Model.of(propriedades.modeloDeRaciocinio()))
                         .maxTokens(MAXIMO_DE_TOKENS))
                 .call()
-                .entity(DesafioGerado.class);
+                .chatResponse();
+
+        return leitor.converter(resposta);
     }
 
     private String montarPedido(PedidoDeGeracao pedido) {

@@ -110,18 +110,42 @@ docker compose --profile completo up -d --build
 
 ### Ligando os agentes reais
 
-A chave **nunca** vai para o repositório: vem da variável de ambiente.
+A chave **nunca** vai para o repositório. Copie o exemplo e preencha o `.env`, que já está no
+`.gitignore` e é lido automaticamente pelo docker compose:
 
 ```bash
-export ANTHROPIC_API_KEY=sk-ant-...
+cp .env.exemplo .env
 ```
 
+> Preencha o `.env`, não o `.env.exemplo` — o arquivo de exemplo é versionado, então uma chave
+> colada nele vaza para o repositório no próximo commit.
+
+Depois suba normalmente. Para conferir qual implementação está no ar:
+
 ```bash
-USAR_CLAUDE=true ./mvnw spring-boot:run
+curl http://localhost:8080/api/diagnostico
+```
+
+Deve responder `GeradorDeDesafioComClaude` e `AvaliadorComClaude`. O endpoint informa apenas
+**se** a chave foi lida, nunca o valor dela.
+
+Rodando pelo Maven em vez do container, exporte as variáveis antes:
+
+```bash
+set -a; . ./.env; set +a; ./mvnw spring-boot:run
 ```
 
 Para pegar a chave: console.anthropic.com → Settings → API keys → Create Key. É preciso adicionar
 créditos em Plans & Billing (a API é pré-paga e separada da assinatura do Claude.ai).
+
+#### Leitura da resposta estruturada
+
+`LeitorDeRespostaEstruturada` existe porque o `.entity()` do Spring AI quebra em dois casos que
+aconteceram de verdade contra a API: com raciocínio adaptativo a resposta vem em mais de um bloco
+(o de raciocínio, vazio, vem primeiro), e o modelo às vezes abre uma cerca de código ` ``` ` sem
+fechá-la. Nos dois casos o sintoma é o mesmo erro enganoso de "end-of-input". O leitor junta os
+blocos com texto e recorta o objeto JSON, em vez de depender de o modelo obedecer à instrução de
+não usar markdown.
 
 ## Testes
 
@@ -129,12 +153,13 @@ créditos em Plans & Billing (a API é pré-paga e separada da assinatura do Cla
 ./mvnw test
 ```
 
-31 testes. Os de integração exigem o Postgres no ar e usam um **banco próprio**
+38 testes. Os de integração exigem o Postgres no ar e usam um **banco próprio**
 (`agente_ingles_teste`), porque a suíte grava de verdade pela camada HTTP e não pode sujar os
 dados locais.
 
 | Classe | O que cobre |
 |---|---|
+| `LeitorDeRespostaEstruturadaTest` | Os formatos de resposta reais da Claude: cerca de codigo aberta, bloco de raciocinio vazio e texto em volta do JSON |
 | `ServicoDeNotaTest` | Peso por recência, janela de avaliações, decaimento e limites das faixas |
 | `AvaliadorSimuladoTest` | Faixas de nota e detecção do erro de concordância |
 | `GeradorDeDesafioSimuladoTest` | Não repetição de enunciados e reforço dirigido |
@@ -160,6 +185,7 @@ lazy continuam carregando e um vazamento de entidade JPA para fora do serviço p
 | `GET` | `/api/dashboard/sugestao` | O que o orquestrador faria agora, sem gerar o desafio |
 | `GET` | `/api/temas` | Temas disponíveis |
 | `GET` `PUT` | `/api/usuario`, `/api/usuario/preferencias` | Perfil, objetivo, ritmo e tipo de correção |
+| `GET` | `/api/diagnostico` | Qual implementação de agente está ativa e se a chave foi lida |
 
 A resposta de referência do desafio **não** é exposta pela API — seria entregar o gabarito.
 Há um teste garantindo isso.
@@ -171,7 +197,8 @@ Há um teste garantindo isso.
 - [x] Cálculo da nota com peso por recência e decaimento por esquecimento
 - [x] Orquestrador com prioridade explícita e rotação de tema
 - [x] Loop completo: desafio → resposta → avaliação → nota → novo desafio
-- [x] Agentes simulados e com Claude atrás da mesma interface
+- [x] Agentes simulados e com Claude atrás da mesma interface — o caminho com Claude validado
+      contra a API real (geração, avaliação e nota fechando o loop)
 - [x] Endpoints REST de currículo, desafio, progresso, sugestão e preferências
 - [x] Empacotamento Docker e banco de testes separado
 
