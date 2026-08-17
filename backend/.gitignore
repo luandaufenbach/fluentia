@@ -1,0 +1,43 @@
+# Build Maven
+target/
+!.mvn/wrapper/maven-wrapper.jar
+!**/src/main/**/target/
+!**/src/test/**/target/
+
+# Compilados Java
+*.class
+*.jar
+*.war
+*.ear
+
+# IDEs
+.idea/
+*.iml
+*.iws
+*.ipr
+.vscode/
+.settings/
+.project
+.classpath
+nbproject/private/
+build/
+!**/src/main/**/build/
+!**/src/test/**/build/
+
+# Configuracao local e segredos (NUNCA versionar a chave da API)
+application-local.yml
+application-local.yaml
+application-local.properties
+src/main/resources/application-local.*
+.env
+.env.local
+
+# Logs e temporarios
+*.log
+logs/
+*.tmp
+*.bak
+
+# Sistema operacional
+.DS_Store
+Thumbs.db
