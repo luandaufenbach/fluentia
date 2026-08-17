@@ -1,0 +1,97 @@
+.tela-de-progresso {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-7);
+  max-width: 44rem;
+}
+
+.tela-de-progresso__titulo {
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  padding-bottom: var(--espaco-2);
+  border-bottom: 2px solid var(--cor-texto);
+  margin-bottom: var(--espaco-4);
+}
+
+.tela-de-progresso__resumo,
+.tela-de-progresso__estado {
+  font-size: 0.9375rem;
+  color: var(--cor-texto-secundario);
+  line-height: 1.55;
+  margin-bottom: var(--espaco-4);
+}
+
+.tela-de-progresso__faixas {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+  gap: var(--espaco-3);
+}
+
+.tela-de-progresso__faixa {
+  background: var(--cor-superficie);
+  border: 1px solid var(--cor-borda);
+  border-top: 3px solid var(--cor-novo);
+  border-radius: var(--raio-medio);
+  padding: var(--espaco-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-1);
+}
+
+.tela-de-progresso__faixa--verde {
+  border-top-color: var(--cor-verde);
+}
+
+.tela-de-progresso__faixa--amarelo {
+  border-top-color: var(--cor-amarelo);
+}
+
+.tela-de-progresso__faixa--vermelho {
+  border-top-color: var(--cor-vermelho);
+}
+
+.tela-de-progresso__quantidade {
+  font-size: 1.75rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+
+.tela-de-progresso__rotulo {
+  font-size: 0.8125rem;
+  color: var(--cor-texto-secundario);
+}
+
+.tela-de-progresso__atencao {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.tela-de-progresso__linha {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--espaco-4);
+  padding: var(--espaco-3) var(--espaco-2);
+  border-bottom: 1px solid var(--cor-borda);
+}
+
+.tela-de-progresso__modulo {
+  font-weight: 600;
+}
+
+.tela-de-progresso__nivel {
+  margin-left: var(--espaco-2);
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--cor-texto-secundario);
+  background: var(--cor-superficie-sutil);
+  border-radius: 999px;
+  padding: 0.125rem var(--espaco-2);
+}

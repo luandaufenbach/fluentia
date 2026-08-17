@@ -1,0 +1,65 @@
+.tela-de-configuracoes {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-5);
+  max-width: 28rem;
+}
+
+.tela-de-configuracoes__estado {
+  color: var(--cor-texto-secundario);
+}
+
+.tela-de-configuracoes__campo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-1);
+}
+
+.tela-de-configuracoes__rotulo {
+  font-weight: 600;
+}
+
+.tela-de-configuracoes__ajuda {
+  font-size: 0.8125rem;
+  color: var(--cor-texto-secundario);
+  margin-bottom: var(--espaco-2);
+}
+
+.tela-de-configuracoes select,
+.tela-de-configuracoes input {
+  font: inherit;
+  color: var(--cor-texto);
+  background: var(--cor-superficie);
+  border: 1px solid var(--cor-borda-forte);
+  border-radius: var(--raio-medio);
+  padding: var(--espaco-3) var(--espaco-4);
+  transition: border-color var(--transicao-rapida), box-shadow var(--transicao-rapida);
+}
+
+.tela-de-configuracoes select:focus,
+.tela-de-configuracoes input:focus {
+  outline: none;
+  border-color: var(--cor-destaque-borda);
+  box-shadow: 0 0 0 3px var(--cor-destaque-suave);
+}
+
+.tela-de-configuracoes__acoes {
+  display: flex;
+  align-items: center;
+  gap: var(--espaco-4);
+  flex-wrap: wrap;
+}
+
+.tela-de-configuracoes__acoes .botao-primario {
+  align-self: flex-start;
+}
+
+.tela-de-configuracoes__mensagem {
+  font-size: 0.9375rem;
+  color: var(--cor-verde);
+}
+
+.tela-de-configuracoes__erro {
+  font-size: 0.9375rem;
+  color: var(--cor-vermelho);
+}
