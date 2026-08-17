@@ -1,0 +1,89 @@
+.tela-de-desafio {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-5);
+  max-width: 44rem;
+}
+
+.tela-de-desafio__estado {
+  color: var(--cor-texto-secundario);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--espaco-3);
+}
+
+.tela-de-desafio__contexto {
+  display: flex;
+  align-items: center;
+  gap: var(--espaco-2);
+  font-size: 0.875rem;
+}
+
+.tela-de-desafio__etiqueta {
+  font-weight: 600;
+  background: var(--cor-destaque-suave);
+  border: 1px solid var(--cor-destaque);
+  border-radius: 999px;
+  padding: 0.125rem var(--espaco-3);
+}
+
+.tela-de-desafio__separador,
+.tela-de-desafio__tema {
+  color: var(--cor-texto-secundario);
+}
+
+.tela-de-desafio__cartao {
+  background: var(--cor-superficie);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-grande);
+  padding: var(--espaco-6);
+  box-shadow: var(--sombra-suave);
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-3);
+}
+
+.tela-de-desafio__cena {
+  font-size: 0.9375rem;
+  color: var(--cor-texto-secundario);
+  line-height: 1.55;
+}
+
+.tela-de-desafio__enunciado {
+  font-size: clamp(1.375rem, 2.5vw, 1.75rem);
+  line-height: 1.25;
+}
+
+.tela-de-desafio__resposta {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: var(--espaco-4);
+}
+
+.tela-de-desafio__resposta .botao-primario {
+  align-self: flex-start;
+}
+
+.tela-de-desafio__erro {
+  color: var(--cor-vermelho);
+  font-size: 0.9375rem;
+}
+
+.tela-de-desafio__motivo {
+  font-size: 0.875rem;
+  color: var(--cor-texto-secundario);
+  border-top: 1px solid var(--cor-borda);
+  padding-top: var(--espaco-4);
+}
+
+.tela-de-desafio__motivo summary {
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.tela-de-desafio__motivo p {
+  margin-top: var(--espaco-2);
+  line-height: 1.55;
+}
