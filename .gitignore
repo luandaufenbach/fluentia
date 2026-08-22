@@ -3,3 +3,6 @@
 Thumbs.db
 .idea/
 .vscode/
+
+# Backup dos repositorios separados de antes da juncao. Pode apagar quando quiser.
+.git.antigo/
