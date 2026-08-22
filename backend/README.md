@@ -56,6 +56,48 @@ coisa e ser cobrado em outra é o caminho mais curto para o aluno desistir. Se h
 em aberto de outro módulo, ele é **descartado**: como nunca foi respondido, não existe avaliação
 e a média de nenhum módulo se altera.
 
+## A trilha em fases
+
+O nível CEFR é a verdade técnica do conteúdo, mas "A2" não diz nada para quem está
+começando. A tabela `fase` traduz isso na promessa concreta do que se destrava, e é esse
+agrupamento que a tela principal mostra:
+
+| Fase | Nível | Marco |
+|---|---|---|
+| Primeiras frases | A1 | Se apresentar e falar da sua rotina sem travar |
+| Contar o que aconteceu | A2 | Contar como foi o seu fim de semana |
+| Destravar a conversa | B1 | Sustentar uma conversa sobre o dia a dia |
+| Precisão | B2 | Participar de uma reunião sem perder o fio |
+| Naturalidade | C1/C2 | Soar natural, não apenas correto |
+
+O marco de uma fase é alcançado quando **todos** os módulos dela saem do vermelho — o mesmo
+limite que libera o módulo seguinte. Seria incoerente destravar o próximo conceito e ainda
+assim dizer que este não foi vencido.
+
+## Custo por ciclo
+
+O consumo foi medido com o endpoint de contagem de tokens, não estimado:
+
+| | Antes | Depois |
+|---|---|---|
+| Entrada por desafio gerado | 1.609 | 176 |
+| Ciclo completo (gerar + avaliar) | US$ 0,0132 | US$ 0,0071 |
+
+Três mudanças produziram isso:
+
+1. **Lote de 5 desafios por chamada** (`desafios-por-lote`). Dos 1.609 tokens, 666 eram custo
+   fixo — instrução de sistema, dados do módulo e esquema do JSON — que se repetia a cada
+   desafio. Os quatro excedentes ficam com status `NA_FILA` e chegam ao aluno sem chamada
+   nenhuma: 58 ms contra 8 s.
+2. **Lista anti-repetição de 20 para 6 enunciados**, truncados em 90 caracteres. Ela sozinha
+   custava 943 tokens, 58% da chamada. O que garante a não repetição é o histórico gravado no
+   banco, não o tamanho desta lista.
+3. **A preferência "tipo de correção"** passou a ser usada. É o maior controle de custo do
+   avaliador, porque lá o peso está na saída — o token de saída custa cinco vezes o de entrada.
+
+`modelo-de-geracao` é separado de `modelo-de-raciocinio` para permitir baixar só o gerador de
+nível (`MODELO_DE_GERACAO=claude-haiku-4-5`) sem tocar na qualidade da correção.
+
 ## Cálculo da nota
 
 Duas etapas separadas (`ServicoDeNota`):
@@ -186,7 +228,7 @@ não usar markdown.
 ./mvnw test
 ```
 
-45 testes. Os de integração exigem o Postgres no ar e usam um **banco próprio**
+46 testes. Os de integração exigem o Postgres no ar e usam um **banco próprio**
 (`agente_ingles_teste`), porque a suíte grava de verdade pela camada HTTP e não pode sujar os
 dados locais.
 
@@ -211,7 +253,8 @@ lazy continuam carregando e um vazamento de entidade JPA para fora do serviço p
 
 | Método | Rota | O que faz |
 |---|---|---|
-| `GET` | `/api/modulos` | Trilha agrupada por nível CEFR, com nota, faixa e bloqueio |
+| `GET` | `/api/trilha` | O percurso em fases, com promessa, marco e progresso de cada uma |
+| `GET` | `/api/modulos` | Módulos agrupados por nível CEFR, com nota, faixa e bloqueio |
 | `GET` | `/api/modulos/{codigo}/conteudo` | Material de estudo: explicação, exemplos e erros comuns |
 | `GET` | `/api/desafios/proximo` | Desafio da vez. `?modulo=codigo` pratica o conceito recém-estudado |
 | `POST` | `/api/desafios/{id}/resposta` | Avalia, grava o histórico e devolve a correção |

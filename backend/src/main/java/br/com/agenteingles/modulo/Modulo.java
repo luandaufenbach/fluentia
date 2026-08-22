@@ -32,6 +32,10 @@ public class Modulo {
     @Column(nullable = false)
     private Integer ordem;
 
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "fase_id", nullable = false)
+    private br.com.agenteingles.trilha.Fase fase;
+
     /** Modulos que precisam de nota razoavel antes deste ser liberado. */
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
@@ -65,6 +69,10 @@ public class Modulo {
 
     public Integer getOrdem() {
         return ordem;
+    }
+
+    public br.com.agenteingles.trilha.Fase getFase() {
+        return fase;
     }
 
     public Set<Modulo> getPreRequisitos() {
