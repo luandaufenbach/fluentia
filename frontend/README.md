@@ -28,7 +28,7 @@ npm run build
 
 | Tela | Estado | O que faz |
 |---|---|---|
-| **Trilha** (`TelaDeModulos`) | ✅ | Lista densa agrupada de A1 a C2, com nota e faixa de cor por módulo, módulos bloqueados mostrando de que dependem, e a sugestão do orquestrador no topo. Clicar num módulo abre o conteúdo dele |
+| **Trilha** (`TelaDaTrilha`) | ✅ | O percurso inteiro em fases, cada uma com a promessa do que destrava e o marco que a fecha. Cada nó é um módulo real: a cor vem da nota, não de um clique. Clicar abre o conteúdo |
 | **Conteúdo** (`TelaDeConteudo`) | ✅ | O material de estudo do módulo: resumo, explicação em parágrafos, exemplos com tradução e os erros comuns. Daqui sai o botão para começar os exercícios |
 | **Desafio** (`TelaDeDesafio`) | ✅ | Cena + enunciado, campo de resposta e correção resumida ao final. No desktop, o lembrete do conteúdo fica ao lado, com "voltar para o conteúdo" |
 | **Progresso** (`TelaDeProgresso`) | ✅ | Quantos módulos em cada faixa e quais conceitos precisam de atenção agora |
@@ -55,8 +55,21 @@ Amarelo mostarda `#F2B705` como destaque, fundo quase-branco `#FBFAF7` e texto q
 `#1A1A1A`. Cantos arredondados e tipografia grande, com a fonte do sistema — que já traz ajuste
 óptico e tabelas de tracking próprias.
 
-A lista de módulos é densa, com linhas separadas por borda fina, não cards arredondados soltos:
-ela **é** a trilha, então a progressão precisa ser legível de cima a baixo.
+### A trilha como percurso
+
+A tela principal desenha o caminho, não uma lista: uma espinha tracejada, as fases ao longo
+dela e os conceitos pendurados. A linguagem visual vem dos roadmaps de aprendizado; a
+tipografia e a paleta continuam sendo as do app, sem virar outro produto no meio.
+
+Três decisões que a diferenciam de um roadmap comum:
+
+- **O estado vem da nota, não de um clique.** Em roadmap de checkbox o aluno marca o que
+  quiser; aqui a cor de cada nó é a faixa real do módulo, e o marco da fase só fecha quando
+  todos os conceitos dela saem do vermelho. Não dá para se enganar.
+- **Cada fase promete algo concreto.** "A2" não motiva ninguém; "contar como foi o seu fim de
+  semana" motiva. O nível CEFR continua sendo a verdade técnica por trás, mas quem lê a tela
+  vê a habilidade.
+- **"Você está aqui"** marca a fase em andamento — já encostada e ainda não fechada.
 
 Todos os tokens ficam em [`src/estilos/tokens.css`](src/estilos/tokens.css). Espaçamentos em `rem`
 para que a fonte maior do sistema aumente o layout junto, em vez de quebrá-lo.
@@ -71,7 +84,7 @@ A partir de `68rem` as telas viram duas colunas, e a segunda tem função — n�
 
 | Tela | Coluna principal | Segunda coluna |
 |---|---|---|
-| Trilha | níveis A1 a C2 | continuação dos níveis, para não virar uma rolagem longa |
+| Trilha | fases e conceitos | medidor de progresso e a sugestão do próximo passo |
 | Conteúdo | explicação e erros comuns | exemplos, fixos na rolagem, ao alcance do olho |
 | Desafio | enunciado e resposta | lembrete do conteúdo e o "voltar para o conteúdo" |
 
@@ -97,9 +110,9 @@ Decisões seguindo a skill `apple-design` (`npx skills@latest add emilkowalski/s
 
 ```
 src/
-  componentes/    IndicadorDeNota, ListaDeModulos, CampoDeResposta,
-                  PainelDeCorrecao, ResumoDoConteudo, BarraLateral
-  telas/          TelaDeModulos, TelaDeConteudo, TelaDeDesafio,
+  componentes/    IndicadorDeNota, CampoDeResposta, PainelDeCorrecao,
+                  ResumoDoConteudo, BarraLateral
+  telas/          TelaDaTrilha, TelaDeConteudo, TelaDeDesafio,
                   TelaDeProgresso, TelaDeConfiguracoes
   servicos/       api.ts — cliente tipado da API REST
   estilos/        tokens.css, global.css

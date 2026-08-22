@@ -3,7 +3,7 @@ import { BarraLateral, type Aba } from "./componentes/BarraLateral";
 import { TelaDeConfiguracoes } from "./telas/TelaDeConfiguracoes";
 import { TelaDeConteudo } from "./telas/TelaDeConteudo";
 import { TelaDeDesafio } from "./telas/TelaDeDesafio";
-import { TelaDeModulos } from "./telas/TelaDeModulos";
+import { TelaDaTrilha } from "./telas/TelaDaTrilha";
 import { TelaDeProgresso } from "./telas/TelaDeProgresso";
 import "./App.css";
 
@@ -63,7 +63,7 @@ export default function App() {
         <h1 className="aplicacao__titulo">{TITULO_DA_ABA[abaAtiva]}</h1>
 
         {abaAtiva === "modulos" && (
-          <TelaDeModulos
+          <TelaDaTrilha
             versao={versaoDosDados}
             onEstudarModulo={abrirConteudo}
             onIrParaDesafio={() => trocarAba("desafio")}

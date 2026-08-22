@@ -124,3 +124,24 @@ export interface ConteudoDoModulo {
   exemplos: ExemploDoConteudo[];
   errosComuns: ErroComumDoConteudo[];
 }
+
+export interface FaseNaTrilha {
+  codigo: string;
+  nome: string;
+  /** O que o aluno vai saber fazer ao terminar a fase. */
+  promessa: string;
+  /** A habilidade concreta que marca o fim da fase. */
+  marco: string;
+  marcoAlcancado: boolean;
+  /** Fase onde o aluno esta agora: ja encostou e ainda nao fechou. */
+  emAndamento: boolean;
+  modulosConsolidados: number;
+  totalDeModulos: number;
+  modulos: Modulo[];
+}
+
+export interface Trilha {
+  fases: FaseNaTrilha[];
+  modulosConsolidados: number;
+  totalDeModulos: number;
+}

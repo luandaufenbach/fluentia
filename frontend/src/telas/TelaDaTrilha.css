@@ -1,0 +1,410 @@
+/*
+ * A trilha desenhada como percurso: uma espinha vertical, fases ao longo dela e os
+ * conceitos pendurados dos dois lados. A linguagem visual vem dos roadmaps de
+ * aprendizado; a tipografia e a paleta continuam sendo as do app, sem virar outro
+ * produto no meio do caminho.
+ */
+.trilha {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-6);
+}
+
+.trilha__estado {
+  color: var(--cor-texto-secundario);
+}
+
+/* ---------- cabeçalho: medidor + sugestão ---------- */
+
+.trilha__cabecalho {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--espaco-5);
+  align-items: start;
+}
+
+.trilha__medidor-texto {
+  display: flex;
+  align-items: baseline;
+  gap: var(--espaco-3);
+  margin-bottom: var(--espaco-3);
+}
+
+.trilha__percentual {
+  font-size: 2rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1;
+}
+
+.trilha__contagem {
+  font-size: 0.875rem;
+  color: var(--cor-texto-secundario);
+}
+
+.trilha__barra {
+  height: 0.625rem;
+  border-radius: 999px;
+  background: var(--cor-superficie-sutil);
+  border: 1px solid var(--cor-borda);
+  overflow: hidden;
+}
+
+.trilha__barra i {
+  display: block;
+  height: 100%;
+  background: var(--cor-verde);
+}
+
+.trilha__sugestao {
+  background: var(--cor-destaque-suave);
+  border: 1px solid var(--cor-destaque);
+  border-radius: var(--raio-grande);
+  padding: var(--espaco-5);
+}
+
+.trilha__sugestao-rotulo {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--cor-amarelo);
+  margin-bottom: var(--espaco-1);
+}
+
+.trilha__sugestao h2 {
+  margin-bottom: var(--espaco-2);
+}
+
+.trilha__sugestao p {
+  font-size: 0.9375rem;
+  line-height: 1.55;
+  color: var(--cor-texto-secundario);
+  margin-bottom: var(--espaco-4);
+}
+
+.trilha__sugestao-acoes {
+  display: flex;
+  gap: var(--espaco-2);
+  flex-wrap: wrap;
+}
+
+/* ---------- percurso ---------- */
+
+.trilha__percurso {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-6);
+  padding-left: 1.75rem;
+}
+
+/* A espinha: tracejada porque o caminho é sugerido, não obrigatório. */
+.trilha__percurso::before {
+  content: "";
+  position: absolute;
+  left: 0.75rem;
+  top: 0.5rem;
+  bottom: 3rem;
+  border-left: 2px dashed var(--cor-borda-forte);
+}
+
+.fase {
+  position: relative;
+}
+
+.fase__cabecalho {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--espaco-3);
+  margin-bottom: var(--espaco-2);
+}
+
+.fase__numero {
+  flex: none;
+  width: 1.5rem;
+  height: 1.5rem;
+  margin-left: -1.75rem;
+  border-radius: 50%;
+  background: var(--cor-superficie);
+  border: 2px solid var(--cor-borda-forte);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.fase--concluida .fase__numero {
+  background: var(--cor-verde);
+  border-color: var(--cor-verde);
+  color: var(--cor-superficie);
+}
+
+.fase--em-andamento .fase__numero {
+  background: var(--cor-destaque);
+  border-color: var(--cor-destaque-borda);
+}
+
+.fase__titulo {
+  min-width: 0;
+  flex: 1;
+}
+
+.fase__titulo h2 {
+  font-size: 1.125rem;
+}
+
+.fase__promessa {
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: var(--cor-texto-secundario);
+  margin-top: 0.125rem;
+  max-width: 46rem;
+}
+
+.fase__contagem {
+  flex: none;
+  font-size: 0.8125rem;
+  letter-spacing: 0.01em;
+  color: var(--cor-texto-secundario);
+  font-variant-numeric: tabular-nums;
+}
+
+.fase__aqui {
+  display: inline-block;
+  margin-bottom: var(--espaco-3);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--cor-amarelo);
+  background: var(--cor-destaque-suave);
+  border: 1px solid var(--cor-destaque);
+  border-radius: 999px;
+  padding: 0.125rem var(--espaco-3);
+}
+
+/* ---------- nós ---------- */
+
+.fase__modulos {
+  list-style: none;
+  margin: 0 0 var(--espaco-3);
+  padding: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--espaco-2);
+}
+
+.no {
+  position: relative;
+}
+
+/* Conector até a espinha. */
+.no::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: -1.75rem;
+  width: 1.75rem;
+  border-top: 2px dashed var(--cor-borda);
+}
+
+.no__gatilho {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--espaco-4);
+  width: 100%;
+  min-height: var(--alvo-de-toque);
+  padding: var(--espaco-3) var(--espaco-4);
+  text-align: left;
+  color: inherit;
+  background: var(--cor-superficie);
+  border: 1px solid var(--cor-borda);
+  border-left: 3px solid var(--cor-novo);
+  border-radius: var(--raio-medio);
+  transition: background-color var(--transicao-rapida), border-color var(--transicao-rapida);
+}
+
+.no__gatilho:hover:not(:disabled) {
+  background: var(--cor-superficie-sutil);
+}
+
+.no__gatilho:disabled {
+  cursor: default;
+  background: transparent;
+  border-style: dashed;
+}
+
+/* A borda esquerda carrega a faixa de nota: mesma leitura da lista e do progresso. */
+.no--verde .no__gatilho {
+  border-left-color: var(--cor-verde);
+}
+
+.no--amarelo .no__gatilho {
+  border-left-color: var(--cor-amarelo);
+}
+
+.no--vermelho .no__gatilho {
+  border-left-color: var(--cor-vermelho);
+}
+
+.no--bloqueado .no__nome,
+.no--bloqueado .no__descricao {
+  color: var(--cor-texto-secundario);
+}
+
+.no__identificacao {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  min-width: 0;
+}
+
+.no__nome {
+  font-weight: 600;
+}
+
+.no__descricao {
+  font-size: 0.8125rem;
+  letter-spacing: 0.01em;
+  color: var(--cor-texto-secundario);
+  line-height: 1.4;
+}
+
+.no__bloqueio {
+  font-size: 0.75rem;
+  letter-spacing: 0.015em;
+  color: var(--cor-novo);
+  margin-top: var(--espaco-1);
+}
+
+/* ---------- marco ---------- */
+
+.fase__marco {
+  display: flex;
+  align-items: baseline;
+  gap: var(--espaco-3);
+  flex-wrap: wrap;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: var(--cor-texto-secundario);
+  border: 1px dashed var(--cor-borda-forte);
+  border-radius: var(--raio-medio);
+  padding: var(--espaco-3) var(--espaco-4);
+}
+
+.fase__marco--alcancado {
+  border-style: solid;
+  border-color: var(--cor-verde);
+  background: var(--cor-verde-fundo);
+  color: var(--cor-texto);
+}
+
+.fase__marco-rotulo {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--cor-novo);
+}
+
+.fase__marco--alcancado .fase__marco-rotulo {
+  color: var(--cor-verde);
+}
+
+.trilha__fim {
+  position: relative;
+}
+
+.trilha__bandeira {
+  display: inline-block;
+  margin-left: -1.75rem;
+  background: var(--cor-texto);
+  color: var(--cor-fundo);
+  border-radius: 999px;
+  padding: var(--espaco-2) var(--espaco-5);
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+/* ---------- regras ---------- */
+
+.trilha__regras {
+  border-top: 1px solid var(--cor-borda);
+  padding-top: var(--espaco-6);
+}
+
+.trilha__regras h2 {
+  margin-bottom: var(--espaco-4);
+}
+
+.trilha__regras ol {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: regra;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--espaco-3);
+}
+
+.trilha__regras li {
+  counter-increment: regra;
+  position: relative;
+  padding-left: 2.25rem;
+  font-size: 0.9375rem;
+  line-height: 1.55;
+  color: var(--cor-texto-secundario);
+}
+
+.trilha__regras li::before {
+  content: counter(regra);
+  position: absolute;
+  left: 0;
+  top: 0.0625rem;
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 50%;
+  background: var(--cor-destaque-suave);
+  border: 1px solid var(--cor-destaque);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--cor-texto);
+}
+
+.trilha__regras b {
+  color: var(--cor-texto);
+  font-weight: 600;
+}
+
+/* ---------- desktop ---------- */
+
+@media (min-width: 68rem) {
+  .trilha__cabecalho {
+    grid-template-columns: minmax(0, 1fr) minmax(22rem, 0.85fr);
+    gap: var(--espaco-7);
+  }
+
+  /* Dois conceitos por linha: a fase inteira cabe na tela sem rolagem. */
+  .fase__modulos {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--espaco-2) var(--espaco-4);
+  }
+
+  /* Só a coluna encostada na espinha recebe conector. */
+  .no--direita::before {
+    display: none;
+  }
+
+  .trilha__regras ol {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--espaco-4) var(--espaco-6);
+  }
+}

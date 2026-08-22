@@ -7,6 +7,7 @@ import type {
   Progresso,
   Sugestao,
   Tema,
+  Trilha,
   Usuario,
 } from "../tipos";
 
@@ -52,6 +53,8 @@ export const api = {
       method: "PUT",
       body: JSON.stringify(preferencias),
     }),
+
+  listarTrilha: () => requisitar<Trilha>("/trilha"),
 
   listarModulos: () => requisitar<NivelComModulos[]>("/modulos"),
 
