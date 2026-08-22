@@ -1,0 +1,5 @@
+# Cada projeto tem o seu .gitignore; aqui ficam so os do sistema operacional e do editor.
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
