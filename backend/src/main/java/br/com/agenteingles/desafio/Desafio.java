@@ -77,6 +77,24 @@ public class Desafio {
         this.motivoDaEscolha = motivoDaEscolha;
     }
 
+    /**
+     * Tira o desafio da fila e o coloca na frente do aluno.
+     *
+     * <p>O motivo e reescrito porque ele explica por que este desafio aparece <b>agora</b>:
+     * o texto gravado na geracao do lote e do momento anterior e pode estar desatualizado —
+     * o modulo pode ter caido para vermelho no meio tempo, ou o aluno pode ter pedido
+     * justamente este conceito depois de estudar.
+     */
+    public void apresentar(String motivoDaEscolha) {
+        this.status = StatusDoDesafio.AGUARDANDO_RESPOSTA;
+        this.motivoDaEscolha = motivoDaEscolha;
+    }
+
+    /** Guarda o desafio para uma proxima pratica, sem apresenta-lo agora. */
+    public void guardarNaFila() {
+        this.status = StatusDoDesafio.NA_FILA;
+    }
+
     public void marcarComoAvaliado(LocalDateTime momento) {
         this.status = StatusDoDesafio.AVALIADO;
         this.respondidoEm = momento;

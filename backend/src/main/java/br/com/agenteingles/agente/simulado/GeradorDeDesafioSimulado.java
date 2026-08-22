@@ -69,9 +69,23 @@ public class GeradorDeDesafioSimulado implements AgenteGeradorDeDesafio {
     private static final String CODIGO_DO_MODULO_COM_BANCO_PROPRIO = "verbo_to_be";
 
     @Override
-    public DesafioGerado gerar(PedidoDeGeracao pedido) {
+    public List<DesafioGerado> gerar(PedidoDeGeracao pedido, int quantidade) {
+        List<DesafioGerado> gerados = new ArrayList<>();
+        List<String> jaUsados = new ArrayList<>(
+                pedido.enunciadosRecentes() == null ? List.of() : pedido.enunciadosRecentes());
+
+        for (int i = 0; i < quantidade; i++) {
+            // Cada desafio ja gerado nesta rodada entra na lista de usados: sem isso o
+            // lote sairia com enunciados repetidos entre si.
+            DesafioGerado desafio = gerarUm(pedido, jaUsados);
+            gerados.add(desafio);
+            jaUsados.add(desafio.enunciado());
+        }
+        return gerados;
+    }
+
+    private DesafioGerado gerarUm(PedidoDeGeracao pedido, List<String> jaUsados) {
         List<String> cenas = CENAS_POR_TEMA.getOrDefault(pedido.nomeDoTema(), CENAS_PADRAO);
-        List<String> jaUsados = pedido.enunciadosRecentes() == null ? List.of() : pedido.enunciadosRecentes();
         String cena = sortear(cenas) + montarReforco(pedido.errosRecentes());
 
         if (!CODIGO_DO_MODULO_COM_BANCO_PROPRIO.equals(pedido.codigoDoModulo())) {

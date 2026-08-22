@@ -2,6 +2,7 @@ package br.com.agenteingles.agente.claude;
 
 import br.com.agenteingles.agente.AgenteGeradorDeDesafio;
 import br.com.agenteingles.agente.DesafioGerado;
+import br.com.agenteingles.agente.LoteDeDesafios;
 import br.com.agenteingles.agente.PedidoDeGeracao;
 import br.com.agenteingles.agente.PropriedadesDoAgente;
 import com.anthropic.models.messages.Model;
@@ -17,6 +18,10 @@ import org.springframework.stereotype.Component;
 /**
  * Gerador de desafio apoiado na Claude. Usa o modelo de raciocinio porque a qualidade do
  * desafio determina o que sera medido — um enunciado ambiguo contamina a nota do modulo.
+ *
+ * <p>Gera em lote. Medindo o pedido real, 666 dos tokens de entrada sao fixos e se
+ * repetiriam a cada desafio; pedindo varios de uma vez esse custo e dividido pelo tamanho
+ * do lote.
  */
 @Component
 @ConditionalOnProperty(name = "agente-ingles.usar-claude", havingValue = "true")
@@ -24,28 +29,35 @@ public class GeradorDeDesafioComClaude implements AgenteGeradorDeDesafio {
 
     private static final Logger log = LoggerFactory.getLogger(GeradorDeDesafioComClaude.class);
 
-    private static final int MAXIMO_DE_TOKENS = 2000;
+    /** Cabe o lote inteiro com folga: cada desafio ocupa por volta de 250 tokens. */
+    private static final int TOKENS_POR_DESAFIO = 400;
+
+    private static final int TOKENS_MINIMOS = 1500;
 
     private static final String INSTRUCAO_DO_SISTEMA = """
             Voce e o agente gerador de desafios de um curriculo adaptativo de ingles.
 
-            Sua tarefa e criar UM desafio novo que meça exatamente o conceito informado,
-            ambientado na cena do tema informado.
+            Sua tarefa e criar desafios novos que meçam exatamente o conceito informado,
+            ambientados na cena do tema informado.
 
             Regras:
-            - O desafio deve medir o conceito indicado, e nada alem dele. O tema so da a roupagem.
-            - O enunciado precisa ser inedito: nunca repita nenhum dos enunciados ja usados.
+            - Cada desafio deve medir o conceito indicado, e nada alem dele. O tema so da a roupagem.
+            - Os enunciados precisam ser ineditos: nunca repita nenhum dos ja usados, e nao
+              repita nenhum enunciado dentro do proprio lote.
+            - Varie a construcao entre os desafios do lote: traduzir uma frase, completar uma
+              lacuna, corrigir uma frase errada, responder uma pergunta, descrever uma cena.
             - Calibre a dificuldade pelo nivel CEFR e pela nota atual do usuario no modulo.
             - Se houver erros recentes, mire justamente neles.
-            - O enunciado e a explicacao vao em portugues; o conteudo a ser produzido pelo aluno, em ingles.
+            - O enunciado e a explicacao vao em portugues; o conteudo a ser produzido pelo aluno,
+              em ingles.
             - A resposta de referencia deve ser uma resposta correta e natural.
             - O criterio de avaliacao descreve objetivamente o que verificar na resposta.
             """;
 
     private final ChatClient clienteDeChat;
     private final PropriedadesDoAgente propriedades;
-    private final LeitorDeRespostaEstruturada<DesafioGerado> leitor =
-            new LeitorDeRespostaEstruturada<>(DesafioGerado.class);
+    private final LeitorDeRespostaEstruturada<LoteDeDesafios> leitor =
+            new LeitorDeRespostaEstruturada<>(LoteDeDesafios.class);
 
     public GeradorDeDesafioComClaude(AnthropicChatModel modeloDeChat, PropriedadesDoAgente propriedades) {
         this.clienteDeChat = ChatClient.create(modeloDeChat);
@@ -53,23 +65,30 @@ public class GeradorDeDesafioComClaude implements AgenteGeradorDeDesafio {
     }
 
     @Override
-    public DesafioGerado gerar(PedidoDeGeracao pedido) {
-        log.debug("Gerando desafio do modulo {} no tema {}", pedido.codigoDoModulo(), pedido.nomeDoTema());
+    public List<DesafioGerado> gerar(PedidoDeGeracao pedido, int quantidade) {
+        log.debug("Gerando {} desafio(s) do modulo {} no tema {}",
+                quantidade, pedido.codigoDoModulo(), pedido.nomeDoTema());
 
         var resposta = clienteDeChat.prompt()
                 .system(INSTRUCAO_DO_SISTEMA)
-                .user(montarPedido(pedido) + "\n" + leitor.instrucaoDeFormato())
+                .user(montarPedido(pedido, quantidade) + "\n" + leitor.instrucaoDeFormato())
                 .options(AnthropicChatOptions.builder()
-                        .model(Model.of(propriedades.modeloDeRaciocinio()))
-                        .maxTokens(MAXIMO_DE_TOKENS))
+                        .model(Model.of(propriedades.modeloDeGeracao()))
+                        .maxTokens(Math.max(TOKENS_MINIMOS, quantidade * TOKENS_POR_DESAFIO)))
                 .call()
                 .chatResponse();
 
-        return leitor.converter(resposta);
+        List<DesafioGerado> desafios = leitor.converter(resposta).desafios();
+        if (desafios == null || desafios.isEmpty()) {
+            throw new IllegalStateException("A Claude devolveu um lote de desafios vazio.");
+        }
+        return desafios;
     }
 
-    private String montarPedido(PedidoDeGeracao pedido) {
+    private String montarPedido(PedidoDeGeracao pedido, int quantidade) {
         return """
+                Gere %d desafios distintos entre si.
+
                 Conceito a medir: %s (codigo %s)
                 Descricao do conceito: %s
                 Nivel CEFR: %s
@@ -79,6 +98,7 @@ public class GeradorDeDesafioComClaude implements AgenteGeradorDeDesafio {
                 Erros recentes neste conceito: %s
                 Enunciados ja usados (nao repita nenhum): %s
                 """.formatted(
+                quantidade,
                 pedido.nomeDoModulo(),
                 pedido.codigoDoModulo(),
                 pedido.descricaoDoModulo(),

@@ -3,6 +3,7 @@ package br.com.agenteingles.desafio;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import br.com.agenteingles.LimpezaDoBancoDeTeste;
+import br.com.agenteingles.agente.PropriedadesDoAgente;
 import br.com.agenteingles.modulo.ServicoDeModulo;
 import br.com.agenteingles.modulo.SituacaoDoModulo;
 import br.com.agenteingles.nota.FaixaDeNota;
@@ -14,6 +15,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.domain.Limit;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
@@ -38,12 +40,22 @@ class LoopDoDesafioIT {
     @Autowired
     private LimpezaDoBancoDeTeste limpeza;
 
+    @Autowired
+    private DesafioRepositorio desafioRepositorio;
+
+    @Autowired
+    private PropriedadesDoAgente propriedades;
+
     private Usuario usuario;
 
     @BeforeEach
     void prepararLinhaDeBase() {
         limpeza.limparHistoricoENotas();
         usuario = servicoDeUsuario.usuarioAtual();
+    }
+
+    private Long idDoModulo(String codigo) {
+        return situacaoDe(codigo).modulo().getId();
     }
 
     private SituacaoDoModulo situacaoDe(String codigo) {
@@ -104,6 +116,29 @@ class LoopDoDesafioIT {
         assertThat(segundo.moduloCodigo()).isEqualTo("verbo_to_be");
         assertThat(segundo.motivoDaEscolha()).contains("vermelho");
         assertThat(segundo.enunciado()).isNotEqualTo(primeiro.enunciado());
+    }
+
+    @Test
+    @DisplayName("o lote enche a fila: as praticas seguintes do modulo saem sem gerar de novo")
+    void praticasSeguintesSaemDaFila() {
+        ResumoDoDesafio primeiro = servicoDeDesafio.proximoDesafio(usuario);
+        String modulo = primeiro.moduloCodigo();
+
+        List<Desafio> naFilaDepoisDoLote = desafioRepositorio.listarNaFila(
+                usuario.getId(), idDoModulo(modulo), Limit.of(50));
+
+        // O gerador foi chamado uma vez e produziu o lote inteiro: um apresentado, o resto guardado.
+        assertThat(naFilaDepoisDoLote).hasSize(propriedades.desafiosPorLote() - 1);
+
+        servicoDeDesafio.responder(usuario, primeiro.id(), "resposta qualquer");
+        ResumoDoDesafio segundo = servicoDeDesafio.proximoDesafio(usuario, modulo);
+
+        assertThat(segundo.id()).isNotEqualTo(primeiro.id());
+        assertThat(segundo.enunciado()).isNotEqualTo(primeiro.enunciado());
+
+        // A fila encolheu em vez de um lote novo ser gerado — e isso que economiza a chamada.
+        assertThat(desafioRepositorio.listarNaFila(usuario.getId(), idDoModulo(modulo), Limit.of(50)))
+                .hasSize(propriedades.desafiosPorLote() - 2);
     }
 
     @Test

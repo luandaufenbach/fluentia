@@ -18,6 +18,22 @@ public interface DesafioRepositorio extends JpaRepository<Desafio, Long> {
             """)
     List<Desafio> listarEmAberto(@Param("usuarioId") Long usuarioId, Limit limite);
 
+    /**
+     * Desafios ja gerados e ainda nao apresentados neste modulo.
+     *
+     * <p>Enquanto a fila tiver item, praticar de novo nao custa chamada de API nenhuma —
+     * e o aluno recebe o desafio sem espera de rede.
+     */
+    @Query("""
+            select d from Desafio d
+            where d.usuario.id = :usuarioId and d.modulo.id = :moduloId
+              and d.status = br.com.agenteingles.desafio.StatusDoDesafio.NA_FILA
+            order by d.criadoEm asc
+            """)
+    List<Desafio> listarNaFila(@Param("usuarioId") Long usuarioId,
+                               @Param("moduloId") Long moduloId,
+                               Limit limite);
+
     /** Enunciados recentes do modulo, usados para nao repetir cena nem construcao. */
     @Query("""
             select d.enunciado from Desafio d

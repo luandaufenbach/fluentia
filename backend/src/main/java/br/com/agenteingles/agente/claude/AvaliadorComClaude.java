@@ -4,6 +4,7 @@ import br.com.agenteingles.agente.AgenteAvaliador;
 import br.com.agenteingles.agente.PedidoDeAvaliacao;
 import br.com.agenteingles.agente.PropriedadesDoAgente;
 import br.com.agenteingles.agente.ResultadoDaAvaliacao;
+import br.com.agenteingles.usuario.TipoDeCorrecao;
 import com.anthropic.models.messages.Model;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,6 +44,26 @@ public class AvaliadorComClaude implements AgenteAvaliador {
             - O feedback e as explicacoes vao em portugues; os trechos e correcoes, em ingles.
             """;
 
+    /**
+     * Instrucao de tamanho conforme a preferencia do aluno. Alem de respeitar a escolha,
+     * e o maior controle de custo aqui: o token de saida custa cinco vezes o de entrada,
+     * entao encurtar a correcao pesa mais do que encurtar o pedido.
+     */
+    private static final String CORRECAO_RESUMIDA = """
+
+            Formato desta correcao: RESUMIDA.
+            - Feedback em no maximo uma frase.
+            - Explicacao de cada erro em no maximo uma frase curta.
+            - Nao repita a regra geral do conceito: aponte so o que esta errado nesta resposta.
+            """;
+
+    private static final String CORRECAO_DETALHADA = """
+
+            Formato desta correcao: DETALHADA.
+            - Feedback em ate tres frases, dizendo o que ficou bom antes do que precisa mudar.
+            - Explicacao de cada erro dizendo o porque da regra, nao so qual e a forma certa.
+            """;
+
     private final ChatClient clienteDeChat;
     private final PropriedadesDoAgente propriedades;
     private final LeitorDeRespostaEstruturada<ResultadoDaAvaliacao> leitor =
@@ -58,7 +79,7 @@ public class AvaliadorComClaude implements AgenteAvaliador {
         log.debug("Avaliando resposta do modulo {}", pedido.codigoDoModulo());
 
         var resposta = clienteDeChat.prompt()
-                .system(INSTRUCAO_DO_SISTEMA)
+                .system(INSTRUCAO_DO_SISTEMA + formatoDaCorrecao(pedido))
                 .user(montarPedido(pedido) + "\n" + leitor.instrucaoDeFormato())
                 .options(AnthropicChatOptions.builder()
                         .model(Model.of(propriedades.modeloDeRaciocinio()))
@@ -68,6 +89,12 @@ public class AvaliadorComClaude implements AgenteAvaliador {
                 .chatResponse();
 
         return leitor.converter(resposta);
+    }
+
+    private String formatoDaCorrecao(PedidoDeAvaliacao pedido) {
+        return pedido.tipoDeCorrecao() == TipoDeCorrecao.RESUMIDA
+                ? CORRECAO_RESUMIDA
+                : CORRECAO_DETALHADA;
     }
 
     private String montarPedido(PedidoDeAvaliacao pedido) {

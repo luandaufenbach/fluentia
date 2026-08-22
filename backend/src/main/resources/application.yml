@@ -24,8 +24,13 @@ spring:
 agente-ingles:
   # Enquanto false, os agentes usam a implementacao simulada e nao consomem a API.
   usar-claude: ${USAR_CLAUDE:false}
-  modelo-de-raciocinio: claude-sonnet-5
+  # Avaliador: a nota que sai daqui alimenta a media e a decisao do orquestrador.
+  modelo-de-raciocinio: ${MODELO_DE_RACIOCINIO:claude-sonnet-5}
+  # Gerador: separado para poder baixar so ele de nivel sem mexer na correcao.
+  modelo-de-geracao: ${MODELO_DE_GERACAO:claude-sonnet-5}
   modelo-simples: claude-haiku-4-5
+  # Desafios pedidos por chamada. O custo fixo do pedido e dividido por este numero.
+  desafios-por-lote: ${DESAFIOS_POR_LOTE:5}
   # Identidade do usuario de desenvolvimento ate a autenticacao entrar.
   email-do-usuario-padrao: dev@agenteingles.local
 

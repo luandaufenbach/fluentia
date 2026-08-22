@@ -7,6 +7,7 @@ import br.com.agenteingles.agente.PedidoDeAvaliacao;
 import br.com.agenteingles.agente.ResultadoDaAvaliacao;
 import br.com.agenteingles.modulo.NivelCefr;
 import org.junit.jupiter.api.DisplayName;
+import br.com.agenteingles.usuario.TipoDeCorrecao;
 import org.junit.jupiter.api.Test;
 
 class AvaliadorSimuladoTest {
@@ -23,7 +24,8 @@ class AvaliadorSimuladoTest {
                 "Voce acabou de conhecer alguem numa festa.",
                 "I am Brazilian.",
                 "Verificar a forma correta do verbo \"to be\".",
-                resposta);
+                resposta,
+                TipoDeCorrecao.DETALHADA);
     }
 
     @Test

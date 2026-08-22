@@ -6,6 +6,7 @@ import br.com.agenteingles.agente.DesafioGerado;
 import br.com.agenteingles.agente.ErroApontado;
 import br.com.agenteingles.agente.PedidoDeAvaliacao;
 import br.com.agenteingles.agente.PedidoDeGeracao;
+import br.com.agenteingles.agente.PropriedadesDoAgente;
 import br.com.agenteingles.agente.ResultadoDaAvaliacao;
 import br.com.agenteingles.comum.RecursoNaoEncontradoException;
 import br.com.agenteingles.comum.RegraDeNegocioException;
@@ -35,8 +36,21 @@ public class ServicoDeDesafio {
 
     private static final Logger log = LoggerFactory.getLogger(ServicoDeDesafio.class);
 
-    /** Quantos enunciados anteriores sao enviados ao gerador para ele nao repetir a cena. */
-    private static final Limit ENUNCIADOS_PARA_EVITAR_REPETICAO = Limit.of(20);
+    /**
+     * Quantos enunciados anteriores sao enviados ao gerador para ele nao repetir a cena.
+     *
+     * <p>Eram 20, e medindo o pedido real eles sozinhos custavam 943 dos 1.609 tokens de
+     * entrada — 58% da chamada. Seis bastam para o modelo perceber o padrao do que ja foi
+     * cobrado; o que garante de fato a nao repeticao e o historico gravado no banco, nao
+     * o tamanho desta lista.
+     */
+    private static final Limit ENUNCIADOS_PARA_EVITAR_REPETICAO = Limit.of(6);
+
+    /**
+     * Enunciado longo nao ajuda o modelo a evitar repeticao: o inicio ja identifica o
+     * desafio. Cortar aqui derruba o custo sem perder a funcao da lista.
+     */
+    private static final int TAMANHO_DO_ENUNCIADO_NA_LISTA = 90;
 
     /** Quantos tipos de erro recentes alimentam o reforco dirigido. */
     private static final Limit ERROS_PARA_REFORCO = Limit.of(5);
@@ -48,6 +62,7 @@ public class ServicoDeDesafio {
     private final DesafioRepositorio desafioRepositorio;
     private final AvaliacaoDoDesafioRepositorio avaliacaoRepositorio;
     private final NotaDoModuloRepositorio notaRepositorio;
+    private final PropriedadesDoAgente propriedades;
 
     public ServicoDeDesafio(Orquestrador orquestrador,
                             AgenteGeradorDeDesafio agenteGerador,
@@ -55,7 +70,8 @@ public class ServicoDeDesafio {
                             ServicoDeNota servicoDeNota,
                             DesafioRepositorio desafioRepositorio,
                             AvaliacaoDoDesafioRepositorio avaliacaoRepositorio,
-                            NotaDoModuloRepositorio notaRepositorio) {
+                            NotaDoModuloRepositorio notaRepositorio,
+                            PropriedadesDoAgente propriedades) {
         this.orquestrador = orquestrador;
         this.agenteGerador = agenteGerador;
         this.agenteAvaliador = agenteAvaliador;
@@ -63,6 +79,7 @@ public class ServicoDeDesafio {
         this.desafioRepositorio = desafioRepositorio;
         this.avaliacaoRepositorio = avaliacaoRepositorio;
         this.notaRepositorio = notaRepositorio;
+        this.propriedades = propriedades;
     }
 
     /**
@@ -113,8 +130,30 @@ public class ServicoDeDesafio {
                 : orquestrador.decidirPraticaDoModulo(usuario, codigoDoModulo);
         Modulo modulo = decisao.situacaoDoModulo().modulo();
 
-        List<String> enunciadosRecentes = desafioRepositorio.listarEnunciadosRecentes(
-                usuario.getId(), modulo.getId(), ENUNCIADOS_PARA_EVITAR_REPETICAO);
+        // Fila antes de API: o lote anterior ja pagou por estes desafios.
+        List<Desafio> naFila = desafioRepositorio.listarNaFila(
+                usuario.getId(), modulo.getId(), Limit.of(1));
+        if (!naFila.isEmpty()) {
+            Desafio daFila = naFila.get(0);
+            daFila.apresentar(decisao.motivo());
+            log.debug("Desafio {} veio da fila do modulo {}, sem chamada de API",
+                    daFila.getId(), modulo.getCodigo());
+            return ResumoDoDesafio.de(daFila);
+        }
+
+        return gerarLote(usuario, decisao, modulo);
+    }
+
+    /**
+     * Pede o lote inteiro numa chamada e guarda o excedente na fila. O primeiro desafio
+     * volta para o aluno; os demais ficam prontos para as proximas praticas do modulo.
+     */
+    private ResumoDoDesafio gerarLote(Usuario usuario, DecisaoDoOrquestrador decisao, Modulo modulo) {
+        List<String> enunciadosRecentes = desafioRepositorio
+                .listarEnunciadosRecentes(usuario.getId(), modulo.getId(), ENUNCIADOS_PARA_EVITAR_REPETICAO)
+                .stream()
+                .map(this::encurtar)
+                .toList();
         List<String> errosRecentes = avaliacaoRepositorio.listarTiposDeErroRecentes(
                 usuario.getId(), modulo.getId(), ERROS_PARA_REFORCO);
 
@@ -130,21 +169,36 @@ public class ServicoDeDesafio {
                 errosRecentes,
                 enunciadosRecentes);
 
-        DesafioGerado gerado = agenteGerador.gerar(pedido);
-        log.debug("Desafio gerado para o modulo {}: {}", modulo.getCodigo(), gerado.enunciado());
+        List<DesafioGerado> gerados = agenteGerador.gerar(pedido, propriedades.desafiosPorLote());
+        log.debug("Lote de {} desafio(s) gerado para o modulo {}", gerados.size(), modulo.getCodigo());
 
-        Desafio desafio = new Desafio(
-                usuario,
-                modulo,
-                decisao.tema(),
-                FormatoDoDesafio.TEXTO,
-                gerado.enunciado(),
-                gerado.contextoDaCena(),
-                gerado.respostaDeReferencia(),
-                gerado.criterioDeAvaliacao(),
-                decisao.motivo());
+        Desafio primeiro = null;
+        for (DesafioGerado gerado : gerados) {
+            Desafio desafio = new Desafio(
+                    usuario,
+                    modulo,
+                    decisao.tema(),
+                    FormatoDoDesafio.TEXTO,
+                    gerado.enunciado(),
+                    gerado.contextoDaCena(),
+                    gerado.respostaDeReferencia(),
+                    gerado.criterioDeAvaliacao(),
+                    decisao.motivo());
 
-        return ResumoDoDesafio.de(desafioRepositorio.save(desafio));
+            if (primeiro == null) {
+                primeiro = desafioRepositorio.save(desafio);
+            } else {
+                desafio.guardarNaFila();
+                desafioRepositorio.save(desafio);
+            }
+        }
+        return ResumoDoDesafio.de(primeiro);
+    }
+
+    private String encurtar(String enunciado) {
+        return enunciado.length() <= TAMANHO_DO_ENUNCIADO_NA_LISTA
+                ? enunciado
+                : enunciado.substring(0, TAMANHO_DO_ENUNCIADO_NA_LISTA) + "...";
     }
 
     /**
@@ -171,7 +225,8 @@ public class ServicoDeDesafio {
                 desafio.getContextoDaCena(),
                 desafio.getRespostaDeReferencia(),
                 desafio.getCriterioDeAvaliacao(),
-                resposta);
+                resposta,
+                usuario.getTipoDeCorrecao());
 
         ResultadoDaAvaliacao resultado = agenteAvaliador.avaliar(pedido);
         LocalDateTime agora = LocalDateTime.now();
