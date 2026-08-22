@@ -1,0 +1,50 @@
+.indicador-de-nota {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--espaco-2);
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  font-size: 0.9375rem;
+}
+
+.indicador-de-nota__ponto {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+  flex: none;
+  background: var(--cor-novo);
+}
+
+.indicador-de-nota__valor {
+  min-width: 2.5rem;
+  text-align: right;
+}
+
+.indicador-de-nota--novo .indicador-de-nota__valor {
+  color: var(--cor-novo);
+  font-weight: 500;
+}
+
+.indicador-de-nota--vermelho .indicador-de-nota__ponto {
+  background: var(--cor-vermelho);
+}
+
+.indicador-de-nota--vermelho .indicador-de-nota__valor {
+  color: var(--cor-vermelho);
+}
+
+.indicador-de-nota--amarelo .indicador-de-nota__ponto {
+  background: var(--cor-amarelo);
+}
+
+.indicador-de-nota--amarelo .indicador-de-nota__valor {
+  color: var(--cor-amarelo);
+}
+
+.indicador-de-nota--verde .indicador-de-nota__ponto {
+  background: var(--cor-verde);
+}
+
+.indicador-de-nota--verde .indicador-de-nota__valor {
+  color: var(--cor-verde);
+}

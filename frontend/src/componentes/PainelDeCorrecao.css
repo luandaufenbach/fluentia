@@ -1,0 +1,109 @@
+.painel-de-correcao {
+  background: var(--cor-superficie);
+  border: 1px solid var(--cor-borda);
+  border-left: 4px solid var(--cor-novo);
+  border-radius: var(--raio-grande);
+  padding: var(--espaco-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-4);
+  box-shadow: var(--sombra-suave);
+}
+
+.painel-de-correcao--vermelho {
+  border-left-color: var(--cor-vermelho);
+}
+
+.painel-de-correcao--amarelo {
+  border-left-color: var(--cor-amarelo);
+}
+
+.painel-de-correcao--verde {
+  border-left-color: var(--cor-verde);
+}
+
+.painel-de-correcao__cabecalho {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--espaco-4);
+}
+
+.painel-de-correcao__nota {
+  font-size: 1.5rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+}
+
+.painel-de-correcao__nota-total {
+  font-size: 0.9375rem;
+  font-weight: 500;
+  color: var(--cor-texto-secundario);
+}
+
+.painel-de-correcao__feedback {
+  font-size: 1rem;
+  line-height: 1.6;
+}
+
+.painel-de-correcao__erros {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-3);
+}
+
+.painel-de-correcao__erro {
+  background: var(--cor-superficie-sutil);
+  border-radius: var(--raio-medio);
+  padding: var(--espaco-3) var(--espaco-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-2);
+}
+
+.painel-de-correcao__tipo {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--cor-texto-secundario);
+}
+
+.painel-de-correcao__troca {
+  font-size: 1.0625rem;
+}
+
+.painel-de-correcao__errado {
+  color: var(--cor-vermelho);
+  text-decoration: line-through;
+}
+
+.painel-de-correcao__certo {
+  color: var(--cor-verde);
+  font-weight: 600;
+}
+
+.painel-de-correcao__explicacao {
+  font-size: 0.9375rem;
+  line-height: 1.55;
+  color: var(--cor-texto-secundario);
+}
+
+.painel-de-correcao__rodape {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--espaco-4);
+  flex-wrap: wrap;
+  padding-top: var(--espaco-3);
+  border-top: 1px solid var(--cor-borda);
+}
+
+.painel-de-correcao__modulo {
+  font-size: 0.9375rem;
+  color: var(--cor-texto-secundario);
+}

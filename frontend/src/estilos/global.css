@@ -1,0 +1,107 @@
+@import "./tokens.css";
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  font: 100% / 1.5 var(--fonte);
+}
+
+body {
+  margin: 0;
+  background: var(--cor-fundo);
+  color: var(--cor-texto);
+  -webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2,
+h3 {
+  margin: 0;
+  /* Tracking negativo cresce com o tamanho: texto grande le melhor mais apertado. */
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+}
+
+h1 {
+  font-size: clamp(1.75rem, 3vw, 2.25rem);
+}
+
+h2 {
+  font-size: 1.25rem;
+  letter-spacing: -0.01em;
+}
+
+p {
+  margin: 0;
+}
+
+button {
+  font: inherit;
+  cursor: pointer;
+}
+
+/* O feedback aparece no pointer-down, nao na soltura: a pressao precisa ser instantanea. */
+button:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+button {
+  transition: transform var(--transicao-rapida), background-color var(--transicao-rapida),
+    border-color var(--transicao-rapida);
+}
+
+:focus-visible {
+  outline: 2px solid var(--cor-destaque-borda);
+  outline-offset: 2px;
+}
+
+.botao-primario {
+  background: var(--cor-destaque);
+  min-height: var(--alvo-de-toque);
+  color: var(--cor-texto);
+  border: 1px solid var(--cor-destaque-borda);
+  border-radius: var(--raio-medio);
+  padding: var(--espaco-3) var(--espaco-5);
+  font-weight: 600;
+}
+
+.botao-primario:hover:not(:disabled) {
+  background: var(--cor-destaque-borda);
+}
+
+.botao-primario:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.botao-secundario {
+  background: var(--cor-superficie);
+  min-height: var(--alvo-de-toque);
+  color: var(--cor-texto);
+  border: 1px solid var(--cor-borda-forte);
+  border-radius: var(--raio-medio);
+  padding: var(--espaco-3) var(--espaco-5);
+  font-weight: 500;
+}
+
+.botao-secundario:hover:not(:disabled) {
+  background: var(--cor-superficie-sutil);
+}
+
+/* Movimento reduzido: troca deslocamento por fade curto, sem eliminar o feedback. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 150ms !important;
+  }
+
+  button:active:not(:disabled) {
+    transform: none;
+  }
+}

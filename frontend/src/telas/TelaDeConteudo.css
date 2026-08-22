@@ -1,0 +1,158 @@
+/*
+ * Duas colunas no desktop: a leitura corrida de um lado, os exemplos do outro.
+ * Exemplo é material de consulta — fica ao alcance do olho enquanto se lê a regra,
+ * em vez de obrigar a rolar de volta.
+ */
+.tela-de-conteudo {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--espaco-6);
+  align-items: start;
+}
+
+.tela-de-conteudo__estado {
+  color: var(--cor-texto-secundario);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--espaco-3);
+}
+
+.tela-de-conteudo__leitura {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-5);
+  min-width: 0;
+}
+
+.tela-de-conteudo__resumo {
+  font-size: 1.125rem;
+  line-height: 1.5;
+  font-weight: 500;
+  border-left: 3px solid var(--cor-destaque);
+  padding-left: var(--espaco-4);
+}
+
+.tela-de-conteudo__explicacao {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-4);
+  /* Medida de leitura: linha longa demais cansa e faz perder a próxima. */
+  max-width: 40rem;
+  line-height: 1.65;
+}
+
+.tela-de-conteudo__secao h2 {
+  margin-bottom: var(--espaco-4);
+}
+
+.tela-de-conteudo__erros {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.tela-de-conteudo__erros li {
+  padding: var(--espaco-4) 0;
+  border-bottom: 1px solid var(--cor-borda);
+}
+
+.tela-de-conteudo__erros li:first-child {
+  border-top: 1px solid var(--cor-borda);
+}
+
+.tela-de-conteudo__troca {
+  font-size: 1rem;
+  margin-bottom: var(--espaco-2);
+}
+
+.tela-de-conteudo__errado {
+  color: var(--cor-vermelho);
+  text-decoration: line-through;
+}
+
+.tela-de-conteudo__certo {
+  color: var(--cor-verde);
+  font-weight: 600;
+}
+
+.tela-de-conteudo__explicacao-do-erro {
+  font-size: 0.9375rem;
+  color: var(--cor-texto-secundario);
+  line-height: 1.55;
+}
+
+.tela-de-conteudo__exemplos {
+  background: var(--cor-superficie);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-grande);
+  padding: var(--espaco-5);
+  box-shadow: var(--sombra-suave);
+}
+
+.tela-de-conteudo__exemplos h2 {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--cor-texto-secundario);
+  margin-bottom: var(--espaco-4);
+}
+
+.tela-de-conteudo__lista-de-exemplos {
+  list-style: none;
+  margin: 0 0 var(--espaco-5);
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-4);
+}
+
+.tela-de-conteudo__lista-de-exemplos li {
+  padding-bottom: var(--espaco-4);
+  border-bottom: 1px solid var(--cor-borda);
+}
+
+.tela-de-conteudo__lista-de-exemplos li:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.tela-de-conteudo__ingles {
+  font-weight: 600;
+  line-height: 1.45;
+}
+
+.tela-de-conteudo__portugues {
+  font-size: 0.9375rem;
+  color: var(--cor-texto-secundario);
+  line-height: 1.45;
+  margin-top: 0.125rem;
+}
+
+.tela-de-conteudo__observacao {
+  font-size: 0.8125rem;
+  color: var(--cor-novo);
+  line-height: 1.5;
+  margin-top: var(--espaco-2);
+}
+
+.tela-de-conteudo__acoes {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-2);
+}
+
+@media (min-width: 68rem) {
+  .tela-de-conteudo {
+    grid-template-columns: minmax(0, 1.5fr) minmax(20rem, 0.75fr);
+    gap: var(--espaco-7);
+  }
+
+  .tela-de-conteudo__exemplos {
+    position: sticky;
+    top: var(--espaco-6);
+  }
+}

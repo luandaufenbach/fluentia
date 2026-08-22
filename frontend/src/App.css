@@ -1,0 +1,36 @@
+.aplicacao {
+  display: grid;
+  grid-template-columns: 15rem minmax(0, 1fr);
+  min-height: 100vh;
+}
+
+/*
+ * Centralizado dentro da coluna, e não colado à esquerda: numa tela larga o texto
+ * ficava todo de um lado com uma faixa morta do outro. A largura máxima segura o
+ * comprimento da linha; a margem automática distribui a sobra dos dois lados.
+ */
+.aplicacao__conteudo {
+  padding: var(--espaco-6) var(--espaco-7) var(--espaco-7);
+  width: 100%;
+  max-width: var(--largura-do-conteudo);
+  margin-inline: auto;
+  min-width: 0;
+}
+
+.aplicacao__titulo {
+  margin-bottom: var(--espaco-6);
+}
+
+.aplicacao__vazio {
+  color: var(--cor-texto-secundario);
+}
+
+@media (max-width: 52rem) {
+  .aplicacao {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .aplicacao__conteudo {
+    padding: var(--espaco-5) var(--espaco-4) var(--espaco-6);
+  }
+}

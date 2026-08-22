@@ -1,0 +1,69 @@
+.resumo-do-conteudo {
+  background: var(--cor-superficie);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-grande);
+  padding: var(--espaco-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-4);
+}
+
+.resumo-do-conteudo__titulo {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--cor-texto-secundario);
+}
+
+.resumo-do-conteudo__resumo {
+  font-size: 0.9375rem;
+  line-height: 1.55;
+}
+
+.resumo-do-conteudo__exemplos {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-3);
+}
+
+.resumo-do-conteudo__exemplos li {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  padding-bottom: var(--espaco-3);
+  border-bottom: 1px solid var(--cor-borda);
+}
+
+.resumo-do-conteudo__exemplos li:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.resumo-do-conteudo__ingles {
+  font-weight: 600;
+  font-size: 0.9375rem;
+  line-height: 1.45;
+}
+
+.resumo-do-conteudo__portugues {
+  font-size: 0.8125rem;
+  letter-spacing: 0.01em;
+  color: var(--cor-texto-secundario);
+  line-height: 1.45;
+}
+
+.resumo-do-conteudo .botao-secundario {
+  width: 100%;
+  min-height: var(--alvo-de-toque);
+}
+
+@media (min-width: 68rem) {
+  .resumo-do-conteudo {
+    position: sticky;
+    top: var(--espaco-6);
+  }
+}

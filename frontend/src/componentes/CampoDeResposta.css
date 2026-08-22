@@ -1,0 +1,43 @@
+.campo-de-resposta {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-2);
+}
+
+.campo-de-resposta__rotulo {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--cor-texto-secundario);
+}
+
+.campo-de-resposta__area {
+  font: inherit;
+  font-size: 1.0625rem;
+  line-height: 1.6;
+  color: var(--cor-texto);
+  background: var(--cor-superficie);
+  border: 1px solid var(--cor-borda-forte);
+  border-radius: var(--raio-medio);
+  padding: var(--espaco-3) var(--espaco-4);
+  resize: vertical;
+  transition: border-color var(--transicao-rapida), box-shadow var(--transicao-rapida);
+}
+
+.campo-de-resposta__area:focus {
+  outline: none;
+  border-color: var(--cor-destaque-borda);
+  box-shadow: 0 0 0 3px var(--cor-destaque-suave);
+}
+
+.campo-de-resposta__area:disabled {
+  background: var(--cor-superficie-sutil);
+  color: var(--cor-texto-secundario);
+}
+
+.campo-de-resposta__indisponivel {
+  padding: var(--espaco-4);
+  border: 1px dashed var(--cor-borda-forte);
+  border-radius: var(--raio-medio);
+  color: var(--cor-texto-secundario);
+  font-size: 0.9375rem;
+}
