@@ -1,8 +1,9 @@
 package br.com.agenteingles.usuario;
 
-import br.com.agenteingles.agente.PropriedadesDoAgente;
-import br.com.agenteingles.comum.RecursoNaoEncontradoException;
 import br.com.agenteingles.modulo.NivelCefr;
+import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -10,23 +11,35 @@ import org.springframework.transaction.annotation.Transactional;
 public class ServicoDeUsuario {
 
     private final UsuarioRepositorio usuarioRepositorio;
-    private final PropriedadesDoAgente propriedades;
 
-    public ServicoDeUsuario(UsuarioRepositorio usuarioRepositorio, PropriedadesDoAgente propriedades) {
+    public ServicoDeUsuario(UsuarioRepositorio usuarioRepositorio) {
         this.usuarioRepositorio = usuarioRepositorio;
-        this.propriedades = propriedades;
     }
 
     /**
-     * Usuario da sessao atual. Enquanto a autenticacao nao entra, resolve o usuario de
-     * desenvolvimento semeado nas migrations — os servicos ja recebem o usuario resolvido,
-     * entao ligar login depois nao muda a assinatura de nada abaixo daqui.
+     * Usuario da sessao atual, resolvido a partir da autenticacao.
+     *
+     * <p>Esta e a unica porta de entrada para "de quem sao estes dados". Nenhum
+     * endpoint recebe identificador de usuario do cliente: todo servico abaixo daqui
+     * recebe o usuario ja resolvido. E o que impede o ataque mais banal de todos —
+     * trocar o id na URL e ler o progresso de outra pessoa.
+     *
+     * <p>A conta e reconferida no banco a cada requisicao, e nao lida da sessao. Uma
+     * conta desativada perde o acesso na requisicao seguinte, sem esperar a sessao
+     * expirar.
      */
     @Transactional(readOnly = true)
     public Usuario usuarioAtual() {
-        return usuarioRepositorio.buscarPorEmail(propriedades.emailDoUsuarioPadrao())
-                .orElseThrow(() -> new RecursoNaoEncontradoException(
-                        "Usuario de desenvolvimento nao encontrado: " + propriedades.emailDoUsuarioPadrao()));
+        Authentication autenticacao = SecurityContextHolder.getContext().getAuthentication();
+
+        if (autenticacao == null || !autenticacao.isAuthenticated()) {
+            throw new AuthenticationCredentialsNotFoundException("Nenhum usuario autenticado.");
+        }
+
+        return usuarioRepositorio.buscarPorEmail(autenticacao.getName())
+                .filter(Usuario::podeAutenticar)
+                .orElseThrow(() -> new AuthenticationCredentialsNotFoundException(
+                        "Sessao valida para uma conta que nao pode mais autenticar."));
     }
 
     @Transactional

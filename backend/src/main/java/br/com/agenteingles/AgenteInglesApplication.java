@@ -6,7 +6,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 
 @SpringBootApplication
-@EnableConfigurationProperties(PropriedadesDoAgente.class)
+@EnableConfigurationProperties({PropriedadesDoAgente.class, br.com.agenteingles.seguranca.PropriedadesDeSeguranca.class})
 public class AgenteInglesApplication {
 
     public static void main(String[] args) {

@@ -56,6 +56,69 @@ coisa e ser cobrado em outra é o caminho mais curto para o aluno desistir. Se h
 em aberto de outro módulo, ele é **descartado**: como nunca foi respondido, não existe avaliação
 e a média de nenhum módulo se altera.
 
+## Segurança
+
+Até a V6 a API respondia para qualquer um que alcançasse a porta, com um usuário fixo.
+A V7 fecha isso. As decisões e o porquê de cada uma:
+
+| Decisão | Por quê |
+|---|---|
+| **Sessão em cookie `HttpOnly`**, não token no navegador | Token em `localStorage` é legível por qualquer script: uma falha de XSS entrega a credencial. Sessão no servidor também pode ser revogada na hora |
+| **Negar por padrão** (`anyRequest().authenticated()` por último) | Endpoint novo nasce protegido. Esquecer de proteger uma rota deixa de ser possível por omissão |
+| **BCrypt custo 12**, hash com prefixo `{bcrypt}` | ~250 ms por verificação: imperceptível no login, proibitivo em escala. O prefixo permite trocar de algoritmo sem invalidar senha já cadastrada |
+| **CSRF ligado** | Com credencial em cookie, o navegador a envia sozinho até em requisição disparada por outro site. O token quebra isso porque o site atacante não consegue lê-lo |
+| **Mesma resposta para conta inexistente e senha errada** | Distinguir os casos entrega uma lista de e-mails válidos de graça |
+| **Hash falso verificado quando a conta não existe** | Sem isso, a diferença de tempo entregaria a mesma lista. Medido: 253 ms contra 261 ms |
+| **Bloqueio temporário após 5 falhas** | Permanente transformaria tentativa de invasão em negação de serviço contra o dono da conta |
+| **Trilha de auditoria** | "Quem entrou nesta conta e quando?" precisa ter resposta. Guarda o evento, nunca o segredo |
+| **Conta semeada sem senha e inativa** | Conta com credencial conhecida no repositório é porta dos fundos para quem clonar o projeto |
+
+### Três controles que estavam escritos e não funcionavam
+
+Configuração de segurança é o tipo de código que parece certo lendo e está errado
+rodando. Estes três passaram na revisão de código e só caíram ao serem exercitados:
+
+1. **O bloqueio por tentativas nunca disparava.** A recusa lança exceção, a exceção
+   desfaz a transação, e a transação desfeita levava junto o incremento do contador. A
+   conta ficava eternamente na "primeira" tentativa. Corrigido movendo contador e
+   auditoria para `RegistroDeSeguranca`, em transação própria.
+2. **A auditoria de falhas era desfeita pelo mesmo motivo** — a trilha só guardava os
+   acessos bem-sucedidos, justamente os que menos interessam numa investigação.
+   `@Transactional(REQUIRES_NEW)` **só vale em bean separado**: em chamada de um método
+   para outro da mesma classe a anotação não tem efeito nenhum.
+3. **`maximumSessions(1)` não tinha efeito.** A estratégia de concorrência do Spring
+   roda dentro do filtro de autenticação, e o login aqui acontece em endpoint próprio.
+   Marcar as sessões como expiradas pelo `SessionRegistry` também não bastou. Resolvido
+   em `SessoesAtivas`, invalidando a sessão diretamente.
+
+Cada um virou teste em `SegurancaDaApiIT`.
+
+### Isolamento entre contas
+
+`ServicoDeUsuario.usuarioAtual()` é a única porta de entrada para "de quem são estes
+dados": nenhum endpoint aceita identificador de usuário vindo do cliente. Trocar o
+número na URL para ler o progresso de outra pessoa não é possível porque não há número
+na URL para trocar. `IsolamentoEntreContasIT` prova isso em cinco frentes — desafio,
+nota, preferência, histórico e resposta de desafio alheio.
+
+A conta é reconferida no banco a cada requisição, e não lida da sessão: desativar uma
+conta tem efeito na requisição seguinte, sem esperar a sessão expirar.
+
+### Limites conhecidos
+
+- **Uma instância só.** O mapa de sessões ativas vive na memória do processo. Com mais
+  de uma instância, cada uma derruba apenas as sessões que ela abriu. A saída é sessão
+  compartilhada (Spring Session com Redis).
+- **O cadastro revela se um e-mail já existe.** Inevitável sem envio de e-mail: não dá
+  para cadastrar dois iguais. Mitigar exige confirmação por e-mail.
+- **`COOKIE_SEGURO` precisa ser `true` em produção.** Falso no local porque o navegador
+  descarta cookie `secure` servido por `http://localhost`.
+- **Atrás de proxy reverso**, configure `ForwardedHeaderFilter` com a lista de proxies
+  confiáveis. A auditoria usa o endereço da conexão e ignora `X-Forwarded-For` de
+  propósito: esse cabeçalho é escrito pelo cliente e pode ser forjado.
+- **`/api/diagnostico` exige papel de administrador** e ainda não há como criar um. A
+  promoção é por SQL, deliberadamente: é um endpoint que expõe configuração.
+
 ## A trilha em fases
 
 O nível CEFR é a verdade técnica do conteúdo, mas "A2" não diz nada para quem está
@@ -228,7 +291,7 @@ não usar markdown.
 ./mvnw test
 ```
 
-46 testes. Os de integração exigem o Postgres no ar e usam um **banco próprio**
+65 testes. Os de integração exigem o Postgres no ar e usam um **banco próprio**
 (`agente_ingles_teste`), porque a suíte grava de verdade pela camada HTTP e não pode sujar os
 dados locais.
 
@@ -241,6 +304,8 @@ dados locais.
 | `GeradorDeDesafioSimuladoTest` | Não repetição de enunciados e reforço dirigido |
 | `LoopDoDesafioIT` | Loop completo contra o Postgres, incluindo desbloqueio por pré-requisito |
 | `DesafioPelaApiIT` | O loop pela camada HTTP, **sem** transação de teste em volta |
+| `SegurancaDaApiIT` | Negar por padrão, CSRF, cabeçalhos, não revelar contas, bloqueio e sessão única |
+| `IsolamentoEntreContasIT` | Uma conta não alcança desafio, nota, preferência nem histórico da outra |
 
 A distinção entre as duas últimas é deliberada: com uma transação aberta pelo teste, associações
 lazy continuam carregando e um vazamento de entidade JPA para fora do serviço passa despercebido.

@@ -34,3 +34,11 @@
     padding: var(--espaco-5) var(--espaco-4) var(--espaco-6);
   }
 }
+
+.aplicacao__carregando {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--cor-texto-secundario);
+}

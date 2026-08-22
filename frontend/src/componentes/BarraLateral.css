@@ -105,3 +105,41 @@
     display: none;
   }
 }
+
+/* Empurrado para o fim da coluna: sair fica longe do que se usa o tempo todo. */
+.barra-lateral__conta {
+  margin-top: auto;
+  padding-top: var(--espaco-4);
+  border-top: 1px solid var(--cor-borda);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--espaco-2);
+}
+
+.barra-lateral__quem {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.barra-lateral__sair {
+  flex: none;
+  background: transparent;
+  border: none;
+  color: var(--cor-texto-secundario);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  min-height: var(--alvo-de-toque);
+  padding: 0 var(--espaco-2);
+}
+
+.barra-lateral__sair:hover {
+  color: var(--cor-vermelho);
+}

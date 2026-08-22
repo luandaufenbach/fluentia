@@ -23,10 +23,20 @@ import org.springframework.test.web.servlet.MockMvc;
  */
 @SpringBootTest
 @AutoConfigureMockMvc
+@org.springframework.security.test.context.support.WithMockUser(
+        username = br.com.agenteingles.ContaDeTeste.EMAIL, roles = "ALUNO")
 class ConteudoPelaApiIT {
 
     @Autowired
     private MockMvc mockMvc;
+
+    @Autowired
+    private br.com.agenteingles.ContaDeTeste conta;
+
+    @org.junit.jupiter.api.BeforeEach
+    void garantirAConta() {
+        conta.garantirQueExiste();
+    }
 
     @Test
     @DisplayName("entrega explicacao, exemplos e erros comuns do modulo")

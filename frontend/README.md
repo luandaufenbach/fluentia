@@ -34,7 +34,8 @@ npm run build
 | **Progresso** (`TelaDeProgresso`) | ✅ | Quantos módulos em cada faixa e quais conceitos precisam de atenção agora |
 | **Configurações** (`TelaDeConfiguracoes`) | ✅ | Objetivo, ritmo e tipo de correção |
 | **Barra lateral** | ✅ | Navegação e lista de temas como contexto da cena |
-| **Onboarding** | ⬜ | Cadastro/login e diagnóstico de nível ainda não existem — o backend usa um usuário de desenvolvimento fixo. Objetivo e ritmo, que são os passos 3 e 4, já estão em Configurações |
+| **Entrada** (`TelaDeAutenticacao`) | ✅ | Cadastro e login. A senha não vai para estado global nem armazenamento local: o que fica é o cookie de sessão, fora do alcance de JavaScript |
+| **Diagnóstico de nível** | ⬜ | O passo 2 do onboarding ainda não existe: todo mundo começa em A1. Objetivo e ritmo, passos 3 e 4, já estão em Configurações |
 
 ## Sistema visual de nota
 

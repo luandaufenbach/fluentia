@@ -1,10 +1,13 @@
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { BarraLateral, type Aba } from "./componentes/BarraLateral";
+import { api } from "./servicos/api";
+import { TelaDaTrilha } from "./telas/TelaDaTrilha";
+import { TelaDeAutenticacao } from "./telas/TelaDeAutenticacao";
 import { TelaDeConfiguracoes } from "./telas/TelaDeConfiguracoes";
 import { TelaDeConteudo } from "./telas/TelaDeConteudo";
 import { TelaDeDesafio } from "./telas/TelaDeDesafio";
-import { TelaDaTrilha } from "./telas/TelaDaTrilha";
 import { TelaDeProgresso } from "./telas/TelaDeProgresso";
+import type { UsuarioAutenticado } from "./tipos";
 import "./App.css";
 
 const TITULO_DA_ABA: Record<Aba, string> = {
@@ -15,8 +18,37 @@ const TITULO_DA_ABA: Record<Aba, string> = {
   configuracoes: "Configurações",
 };
 
+/** `undefined` enquanto a sessão está sendo verificada; `null` quando não há sessão. */
+type SessaoConhecida = UsuarioAutenticado | null | undefined;
+
 export default function App() {
+  const [usuario, setUsuario] = useState<SessaoConhecida>(undefined);
   const [abaAtiva, setAbaAtiva] = useState<Aba>("modulos");
+
+  /**
+   * Quem manda sobre a sessão é o servidor: o app pergunta a ele quem está logado em
+   * vez de guardar um sinalizador local. Assim uma sessão expirada ou revogada leva
+   * de volta para a entrada na primeira requisição, sem depender de o cliente ser
+   * honesto sobre o próprio estado.
+   */
+  useEffect(() => {
+    let cancelado = false;
+
+    api
+      .buscarUsuario()
+      .then((perfil) => {
+        if (!cancelado) {
+          setUsuario({ id: perfil.id, nome: perfil.nome, email: perfil.email });
+        }
+      })
+      .catch(() => {
+        if (!cancelado) setUsuario(null);
+      });
+
+    return () => {
+      cancelado = true;
+    };
+  }, []);
 
   /**
    * Qual módulo está aberto para estudo. Fica aqui e não na tela de conteúdo porque
@@ -55,9 +87,32 @@ export default function App() {
     setAbaAtiva(aba);
   }, []);
 
+  const sair = useCallback(async () => {
+    // Mesmo se a chamada falhar, o estado local volta para a entrada: manter a tela
+    // do app aberta depois de um pedido de saída é pior do que uma saída incompleta.
+    await api.sair().catch(() => undefined);
+    setUsuario(null);
+    setAbaAtiva("modulos");
+    setModuloEmEstudo(null);
+    setModuloParaPraticar(null);
+  }, []);
+
+  if (usuario === undefined) {
+    return <div className="aplicacao__carregando">Carregando...</div>;
+  }
+
+  if (usuario === null) {
+    return <TelaDeAutenticacao onEntrou={setUsuario} />;
+  }
+
   return (
     <div className="aplicacao">
-      <BarraLateral abaAtiva={abaAtiva} onTrocarAba={trocarAba} />
+      <BarraLateral
+        abaAtiva={abaAtiva}
+        onTrocarAba={trocarAba}
+        nomeDoUsuario={usuario.nome}
+        onSair={() => void sair()}
+      />
 
       <main className="aplicacao__conteudo">
         <h1 className="aplicacao__titulo">{TITULO_DA_ABA[abaAtiva]}</h1>

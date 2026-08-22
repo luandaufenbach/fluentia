@@ -2,6 +2,7 @@ package br.com.agenteingles.desafio;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import br.com.agenteingles.ContaDeTeste;
 import br.com.agenteingles.LimpezaDoBancoDeTeste;
 import br.com.agenteingles.agente.PropriedadesDoAgente;
 import br.com.agenteingles.modulo.ServicoDeModulo;
@@ -46,12 +47,21 @@ class LoopDoDesafioIT {
     @Autowired
     private PropriedadesDoAgente propriedades;
 
+    @Autowired
+    private ContaDeTeste conta;
+
     private Usuario usuario;
 
     @BeforeEach
     void prepararLinhaDeBase() {
         limpeza.limparHistoricoENotas();
+        conta.autenticar();
         usuario = servicoDeUsuario.usuarioAtual();
+    }
+
+    @org.junit.jupiter.api.AfterEach
+    void encerrarSessao() {
+        conta.limparContexto();
     }
 
     private Long idDoModulo(String codigo) {

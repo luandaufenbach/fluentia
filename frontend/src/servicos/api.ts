@@ -9,6 +9,7 @@ import type {
   Tema,
   Trilha,
   Usuario,
+  UsuarioAutenticado,
 } from "../tipos";
 
 /** O Vite faz proxy de /api para o backend em desenvolvimento (ver vite.config.ts). */
@@ -24,10 +25,41 @@ class ErroDaApi extends Error {
   }
 }
 
+/**
+ * Lê o token CSRF do cookie que o backend enviou.
+ *
+ * O token vive num cookie legível de propósito: o navegador só deixa a página da
+ * mesma origem lê-lo, então um site atacante consegue *disparar* a requisição (o
+ * cookie de sessão vai junto sozinho) mas não consegue descobrir o token para
+ * completá-la. A sessão em si continua fora do alcance de qualquer script, por ser
+ * `HttpOnly`.
+ */
+function tokenDeCsrf(): string | null {
+  const encontrado = document.cookie
+    .split("; ")
+    .find((parte) => parte.startsWith("XSRF-TOKEN="));
+  return encontrado ? decodeURIComponent(encontrado.slice("XSRF-TOKEN=".length)) : null;
+}
+
+/** Só requisição que altera estado precisa do token. */
+const METODOS_SEGUROS = new Set(["GET", "HEAD", "OPTIONS"]);
+
 async function requisitar<T>(caminho: string, opcoes?: RequestInit): Promise<T> {
+  const metodo = (opcoes?.method ?? "GET").toUpperCase();
+  const cabecalhos: Record<string, string> = { "Content-Type": "application/json" };
+
+  if (!METODOS_SEGUROS.has(metodo)) {
+    const token = tokenDeCsrf();
+    if (token) {
+      cabecalhos["X-XSRF-TOKEN"] = token;
+    }
+  }
+
   const resposta = await fetch(`${BASE}${caminho}`, {
-    headers: { "Content-Type": "application/json" },
     ...opcoes,
+    // O cookie de sessão precisa acompanhar a requisição.
+    credentials: "same-origin",
+    headers: { ...cabecalhos, ...(opcoes?.headers as Record<string, string>) },
   });
 
   if (!resposta.ok) {
@@ -35,7 +67,7 @@ async function requisitar<T>(caminho: string, opcoes?: RequestInit): Promise<T> 
     const corpo = await resposta.json().catch(() => null);
     throw new ErroDaApi(
       resposta.status,
-      corpo?.mensagem ?? `Falha na requisicao (${resposta.status})`,
+      corpo?.mensagem ?? `Falha na requisição (${resposta.status})`,
     );
   }
 
@@ -46,6 +78,20 @@ async function requisitar<T>(caminho: string, opcoes?: RequestInit): Promise<T> 
 }
 
 export const api = {
+  cadastrar: (nome: string, email: string, senha: string) =>
+    requisitar<UsuarioAutenticado>("/autenticacao/cadastro", {
+      method: "POST",
+      body: JSON.stringify({ nome, email, senha }),
+    }),
+
+  entrar: (email: string, senha: string) =>
+    requisitar<UsuarioAutenticado>("/autenticacao/login", {
+      method: "POST",
+      body: JSON.stringify({ email, senha }),
+    }),
+
+  sair: () => requisitar<void>("/autenticacao/logout", { method: "POST" }),
+
   buscarUsuario: () => requisitar<Usuario>("/usuario"),
 
   salvarPreferencias: (preferencias: Preferencias) =>

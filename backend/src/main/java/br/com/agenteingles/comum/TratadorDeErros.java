@@ -37,6 +37,53 @@ public class TratadorDeErros {
         return montar(HttpStatus.BAD_REQUEST, mensagem);
     }
 
+    /**
+     * Recusa de credencial. Responde 401 com a mensagem generica que o servico ja
+     * montou — o motivo real (conta inexistente, inativa ou senha errada) fica na
+     * trilha de auditoria, nunca na resposta.
+     */
+    @ExceptionHandler(br.com.agenteingles.seguranca.ServicoDeAutenticacao.CredencialInvalidaException.class)
+    public ResponseEntity<RespostaDeErro> tratarCredencialInvalida(
+            br.com.agenteingles.seguranca.ServicoDeAutenticacao.CredencialInvalidaException excecao) {
+        return montar(HttpStatus.UNAUTHORIZED, excecao.getMessage());
+    }
+
+    /** 429: o cliente precisa saber que deve esperar, nao tentar de novo agora. */
+    @ExceptionHandler(br.com.agenteingles.seguranca.ServicoDeAutenticacao.ContaBloqueadaException.class)
+    public ResponseEntity<RespostaDeErro> tratarContaBloqueada(
+            br.com.agenteingles.seguranca.ServicoDeAutenticacao.ContaBloqueadaException excecao) {
+        return montar(HttpStatus.TOO_MANY_REQUESTS, excecao.getMessage());
+    }
+
+    @ExceptionHandler(br.com.agenteingles.seguranca.ServicoDeAutenticacao.EmailJaCadastradoException.class)
+    public ResponseEntity<RespostaDeErro> tratarEmailDuplicado(
+            br.com.agenteingles.seguranca.ServicoDeAutenticacao.EmailJaCadastradoException excecao) {
+        return montar(HttpStatus.CONFLICT, excecao.getMessage());
+    }
+
+    /**
+     * Sessao valida para conta que nao pode mais autenticar — desativada depois do
+     * login. Responde 401 para o cliente refazer a entrada.
+     */
+    @ExceptionHandler(org.springframework.security.authentication.AuthenticationCredentialsNotFoundException.class)
+    public ResponseEntity<RespostaDeErro> tratarSemAutenticacao(
+            org.springframework.security.authentication.AuthenticationCredentialsNotFoundException excecao) {
+        return montar(HttpStatus.UNAUTHORIZED, "Autenticacao necessaria.");
+    }
+
+    /**
+     * O 403 do Spring Security precisa passar reto.
+     *
+     * <p>Sem esta excecao explicita, o tratador generico abaixo o converteria em 500 e
+     * um acesso negado viraria "erro do servidor" no log — ruido que esconde tentativa
+     * de acesso indevido em vez de evidencia-la.
+     */
+    @ExceptionHandler(org.springframework.security.access.AccessDeniedException.class)
+    public ResponseEntity<RespostaDeErro> tratarAcessoNegado(
+            org.springframework.security.access.AccessDeniedException excecao) {
+        return montar(HttpStatus.FORBIDDEN, "Sem permissao para este recurso.");
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<RespostaDeErro> tratarErroInesperado(Exception excecao) {
         log.error("Erro inesperado ao processar a requisicao", excecao);

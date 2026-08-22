@@ -2,6 +2,7 @@ package br.com.agenteingles.desafio;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -28,10 +29,15 @@ import org.springframework.test.web.servlet.MockMvc;
  */
 @SpringBootTest
 @AutoConfigureMockMvc
+@org.springframework.security.test.context.support.WithMockUser(
+        username = br.com.agenteingles.ContaDeTeste.EMAIL, roles = "ALUNO")
 class DesafioPelaApiIT {
 
     @Autowired
     private MockMvc mockMvc;
+
+    @Autowired
+    private br.com.agenteingles.ContaDeTeste conta;
 
     @Autowired
     private LimpezaDoBancoDeTeste limpeza;
@@ -39,6 +45,7 @@ class DesafioPelaApiIT {
     @BeforeEach
     @AfterEach
     void deixarOBancoNaLinhaDeBase() {
+        conta.garantirQueExiste();
         // Este teste comita de verdade: limpa nos dois lados para nao vazar estado.
         limpeza.limparHistoricoENotas();
     }
@@ -112,7 +119,8 @@ class DesafioPelaApiIT {
 
         JsonNode correcao = chamar(post("/api/desafios/" + desafioId + "/resposta")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content("{\"resposta\":\"I are wrong\"}"));
+                .content("{\"resposta\":\"I are wrong\"}")
+                .with(csrf()));
 
         assertThat(correcao.get("desafioId").asLong()).isEqualTo(desafioId);
         assertThat(correcao.get("moduloNome").asText()).isNotBlank();
@@ -128,7 +136,8 @@ class DesafioPelaApiIT {
 
         var resultado = mockMvc.perform(post("/api/desafios/" + desafio.get("id").asLong() + "/resposta")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"resposta\":\"   \"}"))
+                        .content("{\"resposta\":\"   \"}")
+                        .with(csrf()))
                 .andReturn();
 
         assertThat(resultado.getResponse().getStatus()).isEqualTo(400);
@@ -140,7 +149,8 @@ class DesafioPelaApiIT {
     void desafioInexistenteDevolve404() throws Exception {
         var resultado = mockMvc.perform(post("/api/desafios/999999/resposta")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"resposta\":\"I am here\"}"))
+                        .content("{\"resposta\":\"I am here\"}")
+                        .with(csrf()))
                 .andReturn();
 
         assertThat(resultado.getResponse().getStatus()).isEqualTo(404);

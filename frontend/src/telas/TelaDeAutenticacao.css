@@ -1,0 +1,130 @@
+.autenticacao {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--espaco-5);
+  background: var(--cor-fundo);
+}
+
+.autenticacao__cartao {
+  width: 100%;
+  max-width: 26rem;
+  background: var(--cor-superficie);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-grande);
+  box-shadow: var(--sombra-suave);
+  padding: var(--espaco-6);
+}
+
+.autenticacao__marca {
+  display: flex;
+  align-items: center;
+  gap: var(--espaco-2);
+  font-size: 1.0625rem;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  margin-bottom: var(--espaco-6);
+}
+
+.autenticacao__ponto {
+  width: 0.75rem;
+  height: 0.75rem;
+  border-radius: 50%;
+  background: var(--cor-destaque);
+  flex: none;
+}
+
+.autenticacao__titulo {
+  font-size: 1.5rem;
+  margin-bottom: var(--espaco-2);
+}
+
+.autenticacao__subtitulo {
+  font-size: 0.9375rem;
+  line-height: 1.55;
+  color: var(--cor-texto-secundario);
+  margin-bottom: var(--espaco-5);
+}
+
+.autenticacao__formulario {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-4);
+}
+
+.autenticacao__campo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-2);
+}
+
+.autenticacao__campo > span {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
+.autenticacao__campo input {
+  font: inherit;
+  color: var(--cor-texto);
+  background: var(--cor-fundo);
+  border: 1px solid var(--cor-borda-forte);
+  border-radius: var(--raio-medio);
+  padding: var(--espaco-3);
+  min-height: var(--alvo-de-toque);
+  transition: border-color var(--transicao-rapida);
+}
+
+.autenticacao__campo input:focus {
+  outline: none;
+  border-color: var(--cor-destaque);
+}
+
+.autenticacao__campo input:disabled {
+  opacity: 0.6;
+}
+
+.autenticacao__ajuda,
+.autenticacao__ajuda--alerta {
+  font-size: 0.75rem;
+  line-height: 1.5;
+  letter-spacing: 0.01em;
+  color: var(--cor-novo);
+}
+
+.autenticacao__ajuda--alerta {
+  color: var(--cor-amarelo);
+}
+
+.autenticacao__erro {
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: var(--cor-vermelho);
+  background: var(--cor-vermelho-fundo);
+  border-radius: var(--raio-pequeno);
+  padding: var(--espaco-3);
+}
+
+.autenticacao__formulario .botao-primario {
+  width: 100%;
+  margin-top: var(--espaco-1);
+}
+
+.autenticacao__troca {
+  display: block;
+  width: 100%;
+  margin-top: var(--espaco-5);
+  min-height: var(--alvo-de-toque);
+  background: transparent;
+  border: none;
+  color: var(--cor-texto-secundario);
+  font-size: 0.875rem;
+  font-weight: 500;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.autenticacao__troca:hover:not(:disabled) {
+  color: var(--cor-texto);
+}

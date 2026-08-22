@@ -8,6 +8,8 @@ export type Aba = "modulos" | "conteudo" | "desafio" | "progresso" | "configurac
 interface Props {
   abaAtiva: Aba;
   onTrocarAba: (aba: Aba) => void;
+  nomeDoUsuario: string;
+  onSair: () => void;
 }
 
 /**
@@ -25,7 +27,7 @@ const ABAS: { id: Aba; rotulo: string }[] = [
  * Navegação lateral. Os temas aparecem como contexto do desafio — são cena,
  * não a trilha: a trilha é a lista de módulos por nível.
  */
-export function BarraLateral({ abaAtiva, onTrocarAba }: Props) {
+export function BarraLateral({ abaAtiva, onTrocarAba, nomeDoUsuario, onSair }: Props) {
   const [temas, setTemas] = useState<Tema[]>([]);
 
   useEffect(() => {
@@ -70,6 +72,14 @@ export function BarraLateral({ abaAtiva, onTrocarAba }: Props) {
           </p>
         </section>
       )}
+      <div className="barra-lateral__conta">
+        <span className="barra-lateral__quem" title={nomeDoUsuario}>
+          {nomeDoUsuario}
+        </span>
+        <button type="button" className="barra-lateral__sair" onClick={onSair}>
+          Sair
+        </button>
+      </div>
     </aside>
   );
 }

@@ -145,3 +145,10 @@ export interface Trilha {
   modulosConsolidados: number;
   totalDeModulos: number;
 }
+
+/** O que o backend devolve ao entrar. Nunca traz hash, papel nem estado de bloqueio. */
+export interface UsuarioAutenticado {
+  id: number;
+  nome: string;
+  email: string;
+}

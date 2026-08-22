@@ -31,17 +31,41 @@ agente-ingles:
   modelo-simples: claude-haiku-4-5
   # Desafios pedidos por chamada. O custo fixo do pedido e dividido por este numero.
   desafios-por-lote: ${DESAFIOS_POR_LOTE:5}
-  # Identidade do usuario de desenvolvimento ate a autenticacao entrar.
-  email-do-usuario-padrao: dev@agenteingles.local
+  seguranca:
+    tentativas-ate-bloquear: ${TENTATIVAS_ATE_BLOQUEAR:5}
+    minutos-de-bloqueio: ${MINUTOS_DE_BLOQUEIO:15}
+    tamanho-minimo-da-senha: 10
+    minutos-de-sessao: ${MINUTOS_DE_SESSAO:60}
+    origens-permitidas: ${ORIGENS_PERMITIDAS:http://localhost:5173,http://127.0.0.1:5173}
 
 server:
   port: ${PORTA:8080}
+  servlet:
+    session:
+      # Expira por inatividade: sessao eterna e credencial eterna.
+      timeout: ${MINUTOS_DE_SESSAO:60}m
+      cookie:
+        # Fora do alcance de JavaScript: uma falha de XSS nao rouba a sessao.
+        http-only: true
+        # O navegador nao envia o cookie em requisicao vinda de outro site.
+        same-site: strict
+        # Em producao com HTTPS isto e obrigatorio. Falso no local porque
+        # o navegador descarta cookie "secure" servido por http://localhost.
+        secure: ${COOKIE_SEGURO:false}
+        name: SESSAO
 
+# Superficie minima: so a sonda de vida, e sem detalhe interno.
 management:
   endpoints:
     web:
       exposure:
-        include: health,info
+        include: health
+  endpoint:
+    health:
+      show-details: never
+  info:
+    env:
+      enabled: false
 
 logging:
   level:
