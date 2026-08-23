@@ -56,6 +56,7 @@ public class DesafioController {
      * A correcao so chega aqui, ao final da sessao — nunca durante a escrita da resposta.
      *
      * @param notaDoModulo nota do modulo ja recalculada com esta resposta
+     * @param reforco aviso de erro repetido; nulo quando nenhum tipo insistiu o bastante
      */
     public record CorrecaoResposta(
             Long desafioId,
@@ -64,7 +65,8 @@ public class DesafioController {
             List<ErroResposta> erros,
             BigDecimal notaDoModulo,
             FaixaDeNota faixaDoModulo,
-            String moduloNome) {
+            String moduloNome,
+            ReforcoDeErro reforco) {
     }
 
     /**
@@ -97,7 +99,8 @@ public class DesafioController {
                 erros,
                 resultado.notaDoModulo(),
                 resultado.faixaDoModulo(),
-                resultado.moduloNome());
+                resultado.moduloNome(),
+                resultado.reforco());
     }
 
     @GetMapping("/historico")

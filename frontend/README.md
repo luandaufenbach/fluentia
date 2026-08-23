@@ -30,7 +30,7 @@ npm run build
 |---|---|---|
 | **Trilha** (`TelaDaTrilha`) | ✅ | O percurso inteiro em fases, cada uma com a promessa do que destrava e o marco que a fecha. Cada nó é um módulo real: a cor vem da nota, não de um clique. Clicar abre o conteúdo |
 | **Conteúdo** (`TelaDeConteudo`) | ✅ | O material de estudo do módulo: resumo, explicação em parágrafos, exemplos com tradução e os erros comuns. Daqui sai o botão para começar os exercícios |
-| **Desafio** (`TelaDeDesafio`) | ✅ | Cena + enunciado, campo de resposta e correção resumida ao final. No desktop, o lembrete do conteúdo fica ao lado, com "voltar para o conteúdo" |
+| **Desafio** (`TelaDeDesafio`) | ✅ | Cena + enunciado, campo de resposta e correção resumida ao final. Traz o contador da sessão, o fechamento do dia e o aviso de erro repetido. No desktop, o lembrete do conteúdo fica ao lado |
 | **Progresso** (`TelaDeProgresso`) | ✅ | Quantos módulos em cada faixa e quais conceitos precisam de atenção agora |
 | **Configurações** (`TelaDeConfiguracoes`) | ✅ | Objetivo, ritmo, tipo de correção e o caminho para refazer o nivelamento |
 | **Painel do dia** (`PainelDoDia`) | ✅ | No topo da trilha: quanto falta para fechar hoje, há quantos dias seguidos você aparece e o que o tempo está derrubando. Sem pontos, sem ligas |

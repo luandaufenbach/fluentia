@@ -53,6 +53,26 @@ export interface ErroDetectado {
   explicacao: string;
 }
 
+/** Uma tentativa passada com o mesmo erro. */
+export interface OcorrenciaAnterior {
+  trechoErrado: string | null;
+  correcao: string | null;
+}
+
+/**
+ * O aviso que aparece quando o mesmo erro insiste.
+ *
+ * A correção resolve a resposta da vez; ela não resolve o padrão.
+ */
+export interface ReforcoDeErro {
+  tipo: string;
+  rotulo: string;
+  vezes: number;
+  anteriores: OcorrenciaAnterior[];
+  moduloDoConceito: string | null;
+  moduloDoConceitoNome: string | null;
+}
+
 export interface Correcao {
   desafioId: number;
   notaDaResposta: number;
@@ -61,6 +81,8 @@ export interface Correcao {
   notaDoModulo: number;
   faixaDoModulo: FaixaDeNota;
   moduloNome: string;
+  /** Nulo quando nenhum tipo de erro insistiu o bastante. */
+  reforco: ReforcoDeErro | null;
 }
 
 export interface Progresso {

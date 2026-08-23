@@ -10,6 +10,7 @@ import java.util.List;
  *
  * @param notaDaResposta nota apenas desta resposta
  * @param notaDoModulo nota do modulo ja recalculada com esta resposta incluida
+ * @param reforco aviso de erro repetido, ou nulo quando nenhum tipo bateu o limite
  */
 public record ResultadoDaResposta(
         Long desafioId,
@@ -18,5 +19,6 @@ public record ResultadoDaResposta(
         List<ErroApontado> erros,
         BigDecimal notaDoModulo,
         FaixaDeNota faixaDoModulo,
-        String moduloNome) {
+        String moduloNome,
+        ReforcoDeErro reforco) {
 }

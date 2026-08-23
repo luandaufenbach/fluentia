@@ -37,6 +37,7 @@ consolidar o que ainda não está verde, revisar o que está há mais tempo para
 | **Nivelamento de entrada** | Cinco perguntas abertas decidem por onde a trilha começa — quem já sabe inglês não é mandado para "eu sou brasileiro" |
 | **Custo à vista** | Cada chamada grava tokens e custo; `GET /api/consumo` mostra o gasto da conta dentro do produto |
 | **Ritmo diário** | Meta do dia derivada do ritmo escolhido, sequência de dias (um desafio conta) e aviso do que está caindo por tempo parado |
+| **Erro que insiste** | Na terceira vez do mesmo tipo, a correção mostra o padrão, as tentativas anteriores e onde o conceito é ensinado |
 
 ## Como rodar
 
@@ -59,7 +60,7 @@ Detalhes de cada lado em [`backend/README.md`](backend/README.md) e
 ## Stack
 
 Java 21 + Spring Boot 4 + Postgres no backend, React + TypeScript + Vite no frontend,
-Docker para empacotar. Migrations com Flyway, 104 testes incluindo integração contra o banco de verdade e a política de acesso.
+Docker para empacotar. Migrations com Flyway, 117 testes incluindo integração contra o banco de verdade e a política de acesso.
 
 ## Convenções
 

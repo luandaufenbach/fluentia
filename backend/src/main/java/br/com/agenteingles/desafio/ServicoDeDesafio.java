@@ -11,6 +11,7 @@ import br.com.agenteingles.agente.ResultadoDaAvaliacao;
 import br.com.agenteingles.comum.RecursoNaoEncontradoException;
 import br.com.agenteingles.comum.RegraDeNegocioException;
 import br.com.agenteingles.modulo.Modulo;
+import br.com.agenteingles.modulo.ModuloRepositorio;
 import br.com.agenteingles.nota.NotaDoModulo;
 import br.com.agenteingles.nota.NotaDoModuloRepositorio;
 import br.com.agenteingles.nota.ServicoDeNota;
@@ -55,6 +56,17 @@ public class ServicoDeDesafio {
     /** Quantos tipos de erro recentes alimentam o reforco dirigido. */
     private static final Limit ERROS_PARA_REFORCO = Limit.of(5);
 
+    /**
+     * Repeticoes do mesmo tipo de erro antes de o app parar para explicar.
+     *
+     * <p>Tres, e nao duas: errar duas vezes ainda cabe em distracao, e um aviso ali soaria
+     * como implicancia. Na terceira o padrao esta estabelecido.
+     */
+    private static final int VEZES_PARA_AVISAR_REPETICAO = 3;
+
+    /** Quantas tentativas anteriores o aviso mostra. Mais que isso vira parede de texto. */
+    private static final Limit OCORRENCIAS_NO_AVISO = Limit.of(3);
+
     private final Orquestrador orquestrador;
     private final AgenteGeradorDeDesafio agenteGerador;
     private final AgenteAvaliador agenteAvaliador;
@@ -62,6 +74,8 @@ public class ServicoDeDesafio {
     private final DesafioRepositorio desafioRepositorio;
     private final AvaliacaoDoDesafioRepositorio avaliacaoRepositorio;
     private final NotaDoModuloRepositorio notaRepositorio;
+    private final ErroDetectadoRepositorio erroRepositorio;
+    private final ModuloRepositorio moduloRepositorio;
     private final PropriedadesDoAgente propriedades;
 
     public ServicoDeDesafio(Orquestrador orquestrador,
@@ -71,6 +85,8 @@ public class ServicoDeDesafio {
                             DesafioRepositorio desafioRepositorio,
                             AvaliacaoDoDesafioRepositorio avaliacaoRepositorio,
                             NotaDoModuloRepositorio notaRepositorio,
+                            ErroDetectadoRepositorio erroRepositorio,
+                            ModuloRepositorio moduloRepositorio,
                             PropriedadesDoAgente propriedades) {
         this.orquestrador = orquestrador;
         this.agenteGerador = agenteGerador;
@@ -79,6 +95,8 @@ public class ServicoDeDesafio {
         this.desafioRepositorio = desafioRepositorio;
         this.avaliacaoRepositorio = avaliacaoRepositorio;
         this.notaRepositorio = notaRepositorio;
+        this.erroRepositorio = erroRepositorio;
+        this.moduloRepositorio = moduloRepositorio;
         this.propriedades = propriedades;
     }
 
@@ -252,8 +270,11 @@ public class ServicoDeDesafio {
                 desafio, resposta, resultado.notaObtida(), resultado.feedback());
         if (resultado.erros() != null) {
             for (ErroApontado erro : resultado.erros()) {
+                // Normaliza antes de gravar: a contagem de repeticao depende do nome bater,
+                // e acento ou maiuscula na chave faria o mesmo erro virar dois.
                 avaliacao.adicionarErro(new ErroDetectado(
-                        erro.tipo(), erro.trechoErrado(), erro.correcao(), erro.explicacao()));
+                        CatalogoDeTiposDeErro.normalizar(erro.tipo()),
+                        erro.trechoErrado(), erro.correcao(), erro.explicacao()));
             }
         }
         avaliacaoRepositorio.save(avaliacao);
@@ -271,7 +292,68 @@ public class ServicoDeDesafio {
                 resultado.erros() == null ? List.of() : resultado.erros(),
                 notaDoModulo,
                 servicoDeNota.faixaDa(notaDoModulo),
-                modulo.getNome());
+                modulo.getNome(),
+                montarReforco(usuario, avaliacao));
+    }
+
+    /**
+     * Monta o aviso de erro repetido, se houver algum tipo insistindo.
+     *
+     * <p>A correcao resolve a resposta da vez, nao o padrao: errar a mesma coisa pela
+     * terceira vez nao e distracao, e um conceito que nao entrou. Corrigir de novo, do
+     * mesmo jeito, ja se mostrou insuficiente duas vezes.
+     *
+     * <p>Quando mais de um tipo bate o limite na mesma resposta, so o mais recorrente
+     * aparece. Dois avisos de uma vez viram parede de texto na hora em que a pessoa
+     * acabou de errar — que e o pior momento possivel para pedir leitura.
+     */
+    private ReforcoDeErro montarReforco(Usuario usuario, AvaliacaoDoDesafio avaliacao) {
+        ReforcoDeErro maisRecorrente = null;
+
+        for (ErroDetectado erro : avaliacao.getErrosDetectados()) {
+            long vezes = erroRepositorio.contarDoTipo(usuario.getId(), erro.getTipo());
+            if (vezes < VEZES_PARA_AVISAR_REPETICAO) {
+                continue;
+            }
+            if (maisRecorrente != null && vezes <= maisRecorrente.vezes()) {
+                continue;
+            }
+            maisRecorrente = montarReforcoDoTipo(usuario, avaliacao, erro.getTipo(), vezes);
+        }
+        return maisRecorrente;
+    }
+
+    private ReforcoDeErro montarReforcoDoTipo(Usuario usuario,
+                                              AvaliacaoDoDesafio avaliacao,
+                                              String tipo,
+                                              long vezes) {
+        List<ReforcoDeErro.OcorrenciaAnterior> anteriores = erroRepositorio
+                .listarAnteriores(usuario.getId(), tipo, avaliacao.getId(), OCORRENCIAS_NO_AVISO)
+                .stream()
+                .map(anterior -> new ReforcoDeErro.OcorrenciaAnterior(
+                        anterior.getTrechoErrado(), anterior.getCorrecao()))
+                .toList();
+
+        String codigoDoModulo = erroRepositorio
+                .modulosOndeMaisAcontece(usuario.getId(), tipo, Limit.of(1))
+                .stream()
+                .findFirst()
+                .orElse(null);
+
+        return new ReforcoDeErro(
+                tipo,
+                ReforcoDeErro.rotuloDe(tipo),
+                vezes,
+                anteriores,
+                codigoDoModulo,
+                nomeDoModulo(codigoDoModulo));
+    }
+
+    private String nomeDoModulo(String codigo) {
+        if (codigo == null) {
+            return null;
+        }
+        return moduloRepositorio.buscarPorCodigo(codigo).map(Modulo::getNome).orElse(null);
     }
 
     /**

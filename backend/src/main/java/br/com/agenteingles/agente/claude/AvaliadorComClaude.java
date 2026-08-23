@@ -5,6 +5,7 @@ import br.com.agenteingles.agente.PedidoDeAvaliacao;
 import br.com.agenteingles.agente.PropriedadesDoAgente;
 import br.com.agenteingles.agente.ResultadoDaAvaliacao;
 import br.com.agenteingles.custo.TipoDeChamada;
+import br.com.agenteingles.desafio.CatalogoDeTiposDeErro;
 import br.com.agenteingles.usuario.TipoDeCorrecao;
 import com.anthropic.models.messages.Model;
 import org.slf4j.Logger;
@@ -39,11 +40,15 @@ public class AvaliadorComClaude implements AgenteAvaliador {
             - A nota vai de 0 a 10 e se refere somente a esta resposta.
               10 = correta; 7 a 9 = correta com deslize menor; 4 a 6 = conceito parcialmente
               aplicado; 1 a 3 = conceito aplicado errado; 0 = sem resposta ou fora do pedido.
-            - Para cada erro, informe o tipo em snake_case (ex.: concordancia_do_verbo_to_be),
-              o trecho exato que esta errado, a correcao e a explicacao.
+            - Para cada erro, informe o trecho exato que esta errado, a correcao e a explicacao.
+            - O tipo do erro precisa ser UM dos valores desta lista, exatamente como escrito:
+              %s
+              Use "outro" quando nenhum servir. Nao invente nomes novos: o tipo e a chave que
+              conta quantas vezes o aluno repetiu o mesmo erro, e um nome diferente para o
+              mesmo problema quebra essa contagem.
             - Se a resposta estiver correta, devolva a lista de erros vazia.
             - O feedback e as explicacoes vao em portugues; os trechos e correcoes, em ingles.
-            """;
+            """.formatted(CatalogoDeTiposDeErro.paraOPrompt());
 
     /**
      * Instrucao de tamanho conforme a preferencia do aluno. Alem de respeitar a escolha,

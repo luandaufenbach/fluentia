@@ -154,6 +154,7 @@ export function TelaDeDesafio({
             correcao={correcao}
             onProximoDesafio={() => void carregarDesafio()}
             carregandoProximo={carregando}
+            onVerConteudo={onVerConteudo}
           />
         )}
 

@@ -7,13 +7,20 @@ interface Props {
   correcao: Correcao;
   onProximoDesafio: () => void;
   carregandoProximo: boolean;
+  /** Abre o material do conceito que vem sendo errado. */
+  onVerConteudo?: (codigoDoModulo: string) => void;
 }
 
 /**
  * Correção resumida, exibida só ao final da sessão — nunca interrompendo a resposta.
  * Mostra a nota da resposta, os erros específicos e como a nota do módulo ficou.
  */
-export function PainelDeCorrecao({ correcao, onProximoDesafio, carregandoProximo }: Props) {
+export function PainelDeCorrecao({
+  correcao,
+  onProximoDesafio,
+  carregandoProximo,
+  onVerConteudo,
+}: Props) {
   const acertou = correcao.erros.length === 0;
 
   return (
@@ -57,6 +64,50 @@ export function PainelDeCorrecao({ correcao, onProximoDesafio, carregandoProximo
             </li>
           ))}
         </ul>
+      )}
+
+      {/*
+       * Erro que insiste ganha espaço próprio, abaixo da correção da vez. Corrigir de
+       * novo, do mesmo jeito, já se mostrou insuficiente nas duas vezes anteriores —
+       * o que muda alguma coisa aqui é mostrar que existe um padrão e onde ele é ensinado.
+       */}
+      {correcao.reforco && (
+        <section className="painel-de-correcao__reforco">
+          <h3>
+            {correcao.reforco.rotulo}: {correcao.reforco.vezes}ª vez
+          </h3>
+          <p className="painel-de-correcao__reforco-texto">
+            Não é distração — é um conceito que ainda não entrou.
+            {correcao.reforco.moduloDoConceitoNome && (
+              <> Ele é ensinado em <b>{correcao.reforco.moduloDoConceitoNome}</b>.</>
+            )}
+          </p>
+
+          {correcao.reforco.anteriores.length > 0 && (
+            <>
+              <span className="painel-de-correcao__reforco-rotulo">As vezes anteriores</span>
+              <ul className="painel-de-correcao__reforco-lista">
+                {correcao.reforco.anteriores.map((anterior, indice) => (
+                  <li key={indice}>
+                    <span className="painel-de-correcao__errado">{anterior.trechoErrado}</span>
+                    <span aria-hidden="true"> → </span>
+                    <span className="painel-de-correcao__certo">{anterior.correcao}</span>
+                  </li>
+                ))}
+              </ul>
+            </>
+          )}
+
+          {correcao.reforco.moduloDoConceito && onVerConteudo && (
+            <button
+              type="button"
+              className="botao-secundario"
+              onClick={() => onVerConteudo(correcao.reforco!.moduloDoConceito!)}
+            >
+              Rever o conteúdo
+            </button>
+          )}
+        </section>
       )}
 
       <footer className="painel-de-correcao__rodape">

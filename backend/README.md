@@ -178,6 +178,39 @@ Modelo sem preço em `precos-por-milhao-de-tokens` tem os tokens gravados e o cu
 **desconhecido**, nunca como zero: o extrato traz esse modelo em `modelosSemPreco` para o total
 não ser lido como se estivesse completo.
 
+## Erro que insiste
+
+A correção resolve a resposta da vez; ela não resolve o padrão. Errar a mesma coisa pela
+terceira vez não é distração — é um conceito que não entrou, e corrigir de novo do mesmo jeito
+já se mostrou insuficiente duas vezes.
+
+Na terceira ocorrência do mesmo tipo, a correção vem com um bloco a mais: quantas vezes já
+aconteceu, **as tentativas anteriores do próprio aluno** (errado → certo de cada uma) e o módulo
+onde aquele conceito é ensinado.
+
+O módulo não é adivinhado por semelhança de texto: é o módulo onde aquele tipo de erro mais
+aparece no histórico da conta. Um erro de concordância do verbo "to be" cometido enquanto se
+pratica artigos continua sendo ensinado no módulo do verbo "to be", e é para lá que o aluno vai.
+
+Três, e não duas: errar duas vezes ainda cabe em distração, e um aviso ali soaria como
+implicância.
+
+### O vocabulário fechado de tipos de erro
+
+Contar depende de o nome bater. O tipo era texto livre saído do modelo, e
+`concordancia_do_verbo_to_be` numa resposta com `concordancia_verbal` na seguinte são, para
+qualquer contagem, dois erros diferentes — o aviso nunca chegaria a três.
+
+`CatalogoDeTiposDeErro` fixa a lista, ela vai no pedido ao avaliador, e o que volta ainda passa
+por normalização (minúsculas, sem acento, com sublinhado), porque instrução não é garantia.
+
+Tipo fora do catálogo **não** é descartado nem trocado por `outro`: fica como veio e vira aviso
+no log. Perder o que o avaliador viu seria pior do que ter uma chave que agrega mal, e o log é
+o que mostra quando a lista precisa crescer.
+
+Verificado contra a API: três respostas seguidas com o mesmo problema produziram o mesmo tipo
+nas três, e o aviso disparou na terceira.
+
 ## O dia do aluno
 
 `GET /api/hoje` junta as três coisas que dão ritmo. Nenhuma delas guarda estado próprio:
