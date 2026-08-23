@@ -18,6 +18,7 @@ class GeradorDeDesafioSimuladoTest {
 
     private PedidoDeGeracao pedido(List<String> enunciadosRecentes, List<String> errosRecentes) {
         return new PedidoDeGeracao(
+                1L,
                 "verbo_to_be",
                 "Verbo \"to be\"",
                 "Formas am/is/are no presente.",

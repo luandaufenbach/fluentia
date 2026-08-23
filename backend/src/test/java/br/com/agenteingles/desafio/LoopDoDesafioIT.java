@@ -137,8 +137,9 @@ class LoopDoDesafioIT {
         List<Desafio> naFilaDepoisDoLote = desafioRepositorio.listarNaFila(
                 usuario.getId(), idDoModulo(modulo), Limit.of(50));
 
-        // O gerador foi chamado uma vez e produziu o lote inteiro: um apresentado, o resto guardado.
-        assertThat(naFilaDepoisDoLote).hasSize(propriedades.desafiosPorLote() - 1);
+        // O gerador foi chamado uma vez e produziu o lote inteiro: um apresentado, o resto
+        // guardado. Aqui o lote e o inicial, porque o modulo nunca foi praticado por esta conta.
+        assertThat(naFilaDepoisDoLote).hasSize(propriedades.desafiosPorLoteInicial() - 1);
 
         servicoDeDesafio.responder(usuario, primeiro.id(), "resposta qualquer");
         ResumoDoDesafio segundo = servicoDeDesafio.proximoDesafio(usuario, modulo);
@@ -148,7 +149,7 @@ class LoopDoDesafioIT {
 
         // A fila encolheu em vez de um lote novo ser gerado — e isso que economiza a chamada.
         assertThat(desafioRepositorio.listarNaFila(usuario.getId(), idDoModulo(modulo), Limit.of(50)))
-                .hasSize(propriedades.desafiosPorLote() - 2);
+                .hasSize(propriedades.desafiosPorLoteInicial() - 2);
     }
 
     @Test

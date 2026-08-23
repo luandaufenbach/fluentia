@@ -22,6 +22,6 @@ public class LimpezaDoBancoDeTeste {
 
     public void limparHistoricoENotas() {
         jdbcTemplate.execute("TRUNCATE TABLE erro_detectado, avaliacao_do_desafio, desafio, nota_do_modulo, "
-                + "evento_de_autenticacao RESTART IDENTITY CASCADE");
+                + "evento_de_autenticacao, consumo_de_api RESTART IDENTITY CASCADE");
     }
 }

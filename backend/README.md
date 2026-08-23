@@ -139,27 +139,44 @@ assim dizer que este não foi vencido.
 
 ## Custo por ciclo
 
-O consumo foi medido com o endpoint de contagem de tokens, não estimado:
+Cada chamada grava tokens, modelo e custo na tabela `consumo_de_api`, e `GET /api/consumo`
+devolve o extrato da conta. Os números abaixo saíram de lá, contra a API de verdade:
 
-| | Antes | Depois |
-|---|---|---|
-| Entrada por desafio gerado | 1.609 | 176 |
-| Ciclo completo (gerar + avaliar) | US$ 0,0132 | US$ 0,0071 |
+| Chamada | Entrada | Saída | Custo |
+|---|---|---|---|
+| Geração (lote de 2) | 1.032 | 472 | US$ 0,0102 → **US$ 0,0051 por desafio** |
+| Correção **detalhada** | 1.168 | 750 | **US$ 0,0148** |
+| Correção **resumida** | 1.175 | 150 | **US$ 0,0058** |
 
-Três mudanças produziram isso:
+Um desafio respondido custa cerca de **US$ 0,020** com correção detalhada e **US$ 0,011** com
+correção resumida — a preferência do aluno derruba 61% da conta, porque o peso está na saída e
+o token de saída custa cinco vezes o de entrada.
 
-1. **Lote de 5 desafios por chamada** (`desafios-por-lote`). Dos 1.609 tokens, 666 eram custo
-   fixo — instrução de sistema, dados do módulo e esquema do JSON — que se repetia a cada
-   desafio. Os quatro excedentes ficam com status `NA_FILA` e chegam ao aluno sem chamada
-   nenhuma: 58 ms contra 8 s.
-2. **Lista anti-repetição de 20 para 6 enunciados**, truncados em 90 caracteres. Ela sozinha
-   custava 943 tokens, 58% da chamada. O que garante a não repetição é o histórico gravado no
-   banco, não o tamanho desta lista.
-3. **A preferência "tipo de correção"** passou a ser usada. É o maior controle de custo do
-   avaliador, porque lá o peso está na saída — o token de saída custa cinco vezes o de entrada.
+> Uma medição anterior estimava US$ 0,0071 por ciclo. Estava errada: ela contou a entrada com o
+> endpoint de contagem de tokens e supôs a saída. O avaliador roda com raciocínio adaptativo, e
+> o raciocínio é cobrado como saída — 750 tokens onde a estimativa supunha 250. Medir a entrada
+> e supor a saída subestima justamente a metade cara.
+
+### O que reduz o custo
+
+1. **Lote de desafios por chamada.** Dos tokens de entrada da geração, 666 são custo fixo —
+   instrução, dados do módulo e esquema do JSON — que se repetiria a cada desafio. Os
+   excedentes ficam com status `NA_FILA` e chegam ao aluno sem chamada nenhuma: 58 ms contra 8 s.
+2. **Lote menor na primeira visita ao módulo** (`desafios-por-lote-inicial`). O lote só se paga
+   se o aluno voltar àquele conceito. No pior caso — alguém que passa uma vez por cada um dos
+   16 módulos — o lote cheio geraria 80 desafios para usar 16. Começar por dois corta esse
+   desperdício e mantém a divisão do custo fixo para quem fica.
+3. **Lista anti-repetição de 20 para 6 enunciados**, truncados em 90 caracteres. Ela sozinha
+   custava 943 tokens. O que garante a não repetição é o histórico gravado no banco, não o
+   tamanho desta lista.
+4. **A preferência "tipo de correção"**, que é o maior controle isolado, como a tabela mostra.
 
 `modelo-de-geracao` é separado de `modelo-de-raciocinio` para permitir baixar só o gerador de
 nível (`MODELO_DE_GERACAO=claude-haiku-4-5`) sem tocar na qualidade da correção.
+
+Modelo sem preço em `precos-por-milhao-de-tokens` tem os tokens gravados e o custo marcado como
+**desconhecido**, nunca como zero: o extrato traz esse modelo em `modelosSemPreco` para o total
+não ser lido como se estivesse completo.
 
 ## Cálculo da nota
 
@@ -210,22 +227,53 @@ para tarefas simples (configurado em `modelo-simples`, ainda sem uso).
 
 **Pré-requisitos:** JDK 21 e Docker.
 
+Há dois modos, e a diferença entre eles importa para quem for mexer no código.
+
+### Modo 1 — tudo em container
+
+Sobe banco e aplicação juntos. É o modo de "só quero usar":
+
+```bash
+docker compose --profile completo up -d --build
+```
+
+O `--build` é obrigatório depois de qualquer mudança em código: sem ele o compose reaproveita a
+imagem antiga e a alteração simplesmente não aparece.
+
+### Modo 2 — banco em container, aplicação na IDE
+
+É o modo de desenvolvimento. Só o Postgres sobe em container:
+
 ```bash
 docker compose up -d banco
 ```
 
+A aplicação roda pela IDE ou pelo Maven, com as variáveis do `.env` exportadas antes:
+
 ```bash
-./mvnw spring-boot:run
+set -a; . ./.env; set +a; ./mvnw spring-boot:run
 ```
 
-A API sobe em `http://localhost:8080`. O usuário de desenvolvimento (`dev@agenteingles.local`)
-já vem semeado pelas migrations — a autenticação ainda não existe, e os serviços já recebem o
-usuário resolvido, então ligar login depois não muda a assinatura de nada abaixo disso.
+**No IntelliJ:** abra a pasta `backend` (a que tem o `pom.xml`, não a raiz do repositório) e rode
+`AgenteInglesApplication`. Como a IDE não lê o `.env` sozinha, aponte o arquivo em *Run →
+Edit Configurations → Environment variables → Environment file*, ou cole as variáveis ali à mão.
 
-### Rodando tudo em container
+**No VS Code:** com as extensões *Extension Pack for Java* e *Spring Boot Extension Pack*, o botão
+Run aparece sobre `AgenteInglesApplication`. O `.env` entra pelo `launch.json`:
+
+```json
+{ "type": "java", "name": "Fluentia backend",
+  "request": "launch", "mainClass": "br.com.agenteingles.AgenteInglesApplication",
+  "projectName": "agente-ingles", "envFile": "${workspaceFolder}/backend/.env" }
+```
+
+A API sobe em `http://localhost:8080` nos dois modos. O usuário semeado pelas migrations nasce
+**inativo e sem senha**: para usar o app, cadastre-se pela tela.
+
+O frontend é independente e não precisa ser reiniciado por causa do backend:
 
 ```bash
-docker compose --profile completo up -d --build
+cd ../frontend && npm run dev
 ```
 
 ### Ligando os agentes reais
@@ -237,23 +285,31 @@ A chave **nunca** vai para o repositório. Copie o exemplo e preencha o `.env`, 
 cp .env.exemplo .env
 ```
 
-> Preencha o `.env`, não o `.env.exemplo` — o arquivo de exemplo é versionado, então uma chave
-> colada nele vaza para o repositório no próximo commit.
+> Preencha o `.env`, não o `.env.exemplo` nem o `docker-compose.yml` — o exemplo é versionado
+> (uma chave colada nele vaza no próximo commit) e o valor do compose é só o padrão de quando a
+> variável **não existe**: `USAR_CLAUDE=false` no `.env` vence `${USAR_CLAUDE:-true}` no compose.
 
-Depois suba normalmente. Para conferir qual implementação está no ar:
-
-```bash
-curl http://localhost:8080/api/diagnostico
-```
-
-Deve responder `GeradorDeDesafioComClaude` e `AvaliadorComClaude`. O endpoint informa apenas
-**se** a chave foi lida, nunca o valor dela.
-
-Rodando pelo Maven em vez do container, exporte as variáveis antes:
+Depois de mudar `USAR_CLAUDE` ou a chave, a aplicação **precisa ser reiniciada**: as variáveis são
+lidas uma vez, na subida, e a escolha entre agente simulado e agente real é feita na montagem do
+contexto do Spring.
 
 ```bash
-set -a; . ./.env; set +a; ./mvnw spring-boot:run
+docker compose --profile completo up -d
 ```
+
+Sem `--build`, porque só o ambiente mudou; o compose recria o container com as variáveis novas.
+Rodando pela IDE, basta parar e rodar de novo. Reiniciar **não apaga nada**: o banco vive num
+volume separado, com o histórico e as notas intactos.
+
+Para conferir o que está no ar:
+
+```bash
+docker exec agente-ingles-aplicacao printenv USAR_CLAUDE
+```
+
+`GET /api/diagnostico` responde qual implementação de agente está ativa — deve trazer
+`GeradorDeDesafioComClaude` e `AvaliadorComClaude`. Ele exige perfil de administrador e informa
+apenas **se** a chave foi lida, nunca o valor dela.
 
 Para pegar a chave: console.anthropic.com → Settings → API keys → Create Key. É preciso adicionar
 créditos em Plans & Billing (a API é pré-paga e separada da assinatura do Claude.ai).

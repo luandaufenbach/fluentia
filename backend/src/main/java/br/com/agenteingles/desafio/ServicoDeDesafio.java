@@ -158,6 +158,7 @@ public class ServicoDeDesafio {
                 usuario.getId(), modulo.getId(), ERROS_PARA_REFORCO);
 
         PedidoDeGeracao pedido = new PedidoDeGeracao(
+                usuario.getId(),
                 modulo.getCodigo(),
                 modulo.getNome(),
                 modulo.getDescricao(),
@@ -169,7 +170,8 @@ public class ServicoDeDesafio {
                 errosRecentes,
                 enunciadosRecentes);
 
-        List<DesafioGerado> gerados = agenteGerador.gerar(pedido, propriedades.desafiosPorLote());
+        int tamanhoDoLote = tamanhoDoLotePara(usuario, modulo);
+        List<DesafioGerado> gerados = agenteGerador.gerar(pedido, tamanhoDoLote);
         log.debug("Lote de {} desafio(s) gerado para o modulo {}", gerados.size(), modulo.getCodigo());
 
         Desafio primeiro = null;
@@ -195,6 +197,20 @@ public class ServicoDeDesafio {
         return ResumoDoDesafio.de(primeiro);
     }
 
+    /**
+     * Lote pequeno na primeira visita ao modulo, cheio depois.
+     *
+     * <p>O lote existe para dividir o custo fixo do pedido, mas ele so se paga se o
+     * aluno voltar aquele modulo. Quem nunca praticou ali pode nao voltar: no pior
+     * caso, alguem que passa uma vez por cada um dos 16 conceitos pagaria 80 desafios
+     * para usar 16. Comecar por dois derruba esse desperdicio e mantem a divisao do
+     * custo fixo para quem fica.
+     */
+    private int tamanhoDoLotePara(Usuario usuario, Modulo modulo) {
+        boolean jaPraticou = avaliacaoRepositorio.contarDoModulo(usuario.getId(), modulo.getId()) > 0;
+        return jaPraticou ? propriedades.desafiosPorLote() : propriedades.desafiosPorLoteInicial();
+    }
+
     private String encurtar(String enunciado) {
         return enunciado.length() <= TAMANHO_DO_ENUNCIADO_NA_LISTA
                 ? enunciado
@@ -217,6 +233,7 @@ public class ServicoDeDesafio {
 
         Modulo modulo = desafio.getModulo();
         PedidoDeAvaliacao pedido = new PedidoDeAvaliacao(
+                usuario.getId(),
                 modulo.getCodigo(),
                 modulo.getNome(),
                 modulo.getDescricao(),

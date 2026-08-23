@@ -5,6 +5,7 @@ import br.com.agenteingles.agente.DesafioGerado;
 import br.com.agenteingles.agente.LoteDeDesafios;
 import br.com.agenteingles.agente.PedidoDeGeracao;
 import br.com.agenteingles.agente.PropriedadesDoAgente;
+import br.com.agenteingles.custo.TipoDeChamada;
 import com.anthropic.models.messages.Model;
 import java.util.List;
 import org.slf4j.Logger;
@@ -12,6 +13,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.ai.anthropic.AnthropicChatModel;
 import org.springframework.ai.anthropic.AnthropicChatOptions;
 import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.ai.chat.model.ChatResponse;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
@@ -56,12 +58,16 @@ public class GeradorDeDesafioComClaude implements AgenteGeradorDeDesafio {
 
     private final ChatClient clienteDeChat;
     private final PropriedadesDoAgente propriedades;
+    private final MedidorDeChamada medidor;
     private final LeitorDeRespostaEstruturada<LoteDeDesafios> leitor =
             new LeitorDeRespostaEstruturada<>(LoteDeDesafios.class);
 
-    public GeradorDeDesafioComClaude(AnthropicChatModel modeloDeChat, PropriedadesDoAgente propriedades) {
+    public GeradorDeDesafioComClaude(AnthropicChatModel modeloDeChat,
+                                     PropriedadesDoAgente propriedades,
+                                     MedidorDeChamada medidor) {
         this.clienteDeChat = ChatClient.create(modeloDeChat);
         this.propriedades = propriedades;
+        this.medidor = medidor;
     }
 
     @Override
@@ -78,11 +84,27 @@ public class GeradorDeDesafioComClaude implements AgenteGeradorDeDesafio {
                 .call()
                 .chatResponse();
 
-        List<DesafioGerado> desafios = leitor.converter(resposta).desafios();
+        List<DesafioGerado> desafios;
+        try {
+            desafios = leitor.converter(resposta).desafios();
+        } catch (RuntimeException respostaIlegivel) {
+            // Resposta ilegivel tambem foi cobrada, e sem itens produzidos: registrar
+            // zero aqui e o que faz o custo por desafio refletir a chamada perdida.
+            medir(resposta, pedido, 0);
+            throw respostaIlegivel;
+        }
+
+        medir(resposta, pedido, desafios == null ? 0 : desafios.size());
+
         if (desafios == null || desafios.isEmpty()) {
             throw new IllegalStateException("A Claude devolveu um lote de desafios vazio.");
         }
         return desafios;
+    }
+
+    private void medir(ChatResponse resposta, PedidoDeGeracao pedido, int desafiosProduzidos) {
+        medidor.medir(resposta, pedido.usuarioId(), TipoDeChamada.GERACAO_DE_DESAFIO,
+                propriedades.modeloDeGeracao(), desafiosProduzidos);
     }
 
     private String montarPedido(PedidoDeGeracao pedido, int quantidade) {

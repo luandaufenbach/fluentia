@@ -51,6 +51,19 @@ public interface DesafioRepositorio extends JpaRepository<Desafio, Long> {
             """)
     List<Desafio> listarHistorico(@Param("usuarioId") Long usuarioId, Limit limite);
 
+    /**
+     * Quantos desafios da conta estao em cada status.
+     *
+     * <p>Serve ao medidor de custo: muitos desafios parados em NA_FILA significa lote
+     * gerado e nao aproveitado, ou seja, dinheiro adiantado que pode nunca virar pratica.
+     */
+    @Query("""
+            select d.status, count(d) from Desafio d
+            where d.usuario.id = :usuarioId
+            group by d.status
+            """)
+    List<Object[]> contarPorStatus(@Param("usuarioId") Long usuarioId);
+
     @Query("select d from Desafio d where d.id = :desafioId and d.usuario.id = :usuarioId")
     Optional<Desafio> buscarDoUsuario(@Param("desafioId") Long desafioId,
                                       @Param("usuarioId") Long usuarioId);

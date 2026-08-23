@@ -1,5 +1,7 @@
 package br.com.agenteingles.agente;
 
+import br.com.agenteingles.custo.PrecoDoModelo;
+import java.util.Map;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 /**
@@ -15,6 +17,11 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
  * @param desafiosPorLote quantos desafios sao pedidos de uma vez ao gerador. O custo fixo
  *                        do pedido (instrucao, dados do modulo e esquema) e dividido por
  *                        este numero
+ * @param desafiosPorLoteInicial lote da primeira visita a um modulo. Quem nunca praticou
+ *                               ali pode nao voltar, e o lote cheio deixaria quatro
+ *                               desafios pagos parados na fila
+ * @param precosPorMilhaoDeTokens preco em dolar por modelo. Fica em configuracao porque
+ *                                tabela de preco muda sem aviso
  * @param emailDoUsuarioPadrao usuario de desenvolvimento usado ate a autenticacao entrar
  */
 @ConfigurationProperties(prefix = "agente-ingles")
@@ -24,6 +31,8 @@ public record PropriedadesDoAgente(
         String modeloDeGeracao,
         String modeloSimples,
         int desafiosPorLote,
+        int desafiosPorLoteInicial,
+        Map<String, PrecoDoModelo> precosPorMilhaoDeTokens,
         String emailDoUsuarioPadrao) {
 
     public PropriedadesDoAgente {
@@ -38,6 +47,12 @@ public record PropriedadesDoAgente(
         }
         if (desafiosPorLote < 1) {
             desafiosPorLote = 5;
+        }
+        if (desafiosPorLoteInicial < 1 || desafiosPorLoteInicial > desafiosPorLote) {
+            desafiosPorLoteInicial = Math.min(2, desafiosPorLote);
+        }
+        if (precosPorMilhaoDeTokens == null) {
+            precosPorMilhaoDeTokens = Map.of();
         }
         if (emailDoUsuarioPadrao == null || emailDoUsuarioPadrao.isBlank()) {
             emailDoUsuarioPadrao = "dev@agenteingles.local";

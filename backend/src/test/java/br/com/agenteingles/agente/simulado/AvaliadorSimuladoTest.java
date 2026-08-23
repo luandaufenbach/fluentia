@@ -16,6 +16,7 @@ class AvaliadorSimuladoTest {
 
     private PedidoDeAvaliacao pedidoComResposta(String resposta) {
         return new PedidoDeAvaliacao(
+                1L,
                 "verbo_to_be",
                 "Verbo \"to be\"",
                 "Formas am/is/are no presente.",

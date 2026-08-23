@@ -4,6 +4,7 @@ import br.com.agenteingles.agente.AgenteAvaliador;
 import br.com.agenteingles.agente.PedidoDeAvaliacao;
 import br.com.agenteingles.agente.PropriedadesDoAgente;
 import br.com.agenteingles.agente.ResultadoDaAvaliacao;
+import br.com.agenteingles.custo.TipoDeChamada;
 import br.com.agenteingles.usuario.TipoDeCorrecao;
 import com.anthropic.models.messages.Model;
 import org.slf4j.Logger;
@@ -66,12 +67,16 @@ public class AvaliadorComClaude implements AgenteAvaliador {
 
     private final ChatClient clienteDeChat;
     private final PropriedadesDoAgente propriedades;
+    private final MedidorDeChamada medidor;
     private final LeitorDeRespostaEstruturada<ResultadoDaAvaliacao> leitor =
             new LeitorDeRespostaEstruturada<>(ResultadoDaAvaliacao.class);
 
-    public AvaliadorComClaude(AnthropicChatModel modeloDeChat, PropriedadesDoAgente propriedades) {
+    public AvaliadorComClaude(AnthropicChatModel modeloDeChat,
+                              PropriedadesDoAgente propriedades,
+                              MedidorDeChamada medidor) {
         this.clienteDeChat = ChatClient.create(modeloDeChat);
         this.propriedades = propriedades;
+        this.medidor = medidor;
     }
 
     @Override
@@ -87,6 +92,11 @@ public class AvaliadorComClaude implements AgenteAvaliador {
                         .thinkingAdaptive())
                 .call()
                 .chatResponse();
+
+        // Uma chamada, uma correcao — mesmo quando a resposta vem ilegivel e a
+        // avaliacao se perde, a chamada ja foi cobrada e precisa aparecer no total.
+        medidor.medir(resposta, pedido.usuarioId(), TipoDeChamada.AVALIACAO_DE_RESPOSTA,
+                propriedades.modeloDeRaciocinio(), 1);
 
         return leitor.converter(resposta);
     }

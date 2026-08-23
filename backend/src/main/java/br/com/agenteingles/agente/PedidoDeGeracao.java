@@ -8,10 +8,12 @@ import java.util.List;
 /**
  * Tudo que o gerador precisa para criar um desafio sob medida.
  *
+ * @param usuarioId conta que provocou a chamada, para o consumo ser atribuido a ela
  * @param enunciadosRecentes enunciados ja usados neste modulo — o novo desafio nao pode repeti-los
  * @param errosRecentes tipos de erro que o usuario vem cometendo neste conceito
  */
 public record PedidoDeGeracao(
+        Long usuarioId,
         String codigoDoModulo,
         String nomeDoModulo,
         String descricaoDoModulo,

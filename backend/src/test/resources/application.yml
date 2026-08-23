@@ -12,3 +12,9 @@ spring:
 
 agente-ingles:
   usar-claude: false
+  # O teste do medidor confere o calculo do custo, entao os precos precisam existir aqui:
+  # sem eles o custo sairia nulo e a asercao passaria a medir a ausencia de configuracao.
+  precos-por-milhao-de-tokens:
+    claude-sonnet-5:
+      entrada: 3.00
+      saida: 15.00

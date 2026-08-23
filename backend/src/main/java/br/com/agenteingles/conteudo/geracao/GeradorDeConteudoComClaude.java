@@ -8,6 +8,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.ai.anthropic.AnthropicChatModel;
 import org.springframework.ai.anthropic.AnthropicChatOptions;
+import br.com.agenteingles.agente.claude.MedidorDeChamada;
+import br.com.agenteingles.custo.TipoDeChamada;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
@@ -65,8 +67,13 @@ public class GeradorDeConteudoComClaude {
     private final LeitorDeRespostaEstruturada<ConteudoGerado> leitor =
             new LeitorDeRespostaEstruturada<>(ConteudoGerado.class);
 
-    public GeradorDeConteudoComClaude(AnthropicChatModel modeloDeChat, PropriedadesDoAgente propriedades) {
+    private final MedidorDeChamada medidor;
+
+    public GeradorDeConteudoComClaude(AnthropicChatModel modeloDeChat,
+                                      PropriedadesDoAgente propriedades,
+                                      MedidorDeChamada medidor) {
         this.clienteDeChat = ChatClient.create(modeloDeChat);
+        this.medidor = medidor;
         this.propriedades = propriedades;
     }
 
@@ -96,6 +103,9 @@ public class GeradorDeConteudoComClaude {
                         .thinkingAdaptive())
                 .call()
                 .chatResponse();
+
+        // Rotina avulsa, sem dono: o custo entra no total do sistema, nao no de uma conta.
+        medidor.medir(resposta, null, TipoDeChamada.GERACAO_DE_CONTEUDO, propriedades.modeloDeRaciocinio(), 1);
 
         return leitor.converter(resposta);
     }

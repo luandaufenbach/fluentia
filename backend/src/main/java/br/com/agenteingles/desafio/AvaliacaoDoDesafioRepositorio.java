@@ -21,6 +21,13 @@ public interface AvaliacaoDoDesafioRepositorio extends JpaRepository<AvaliacaoDo
                                                     @Param("moduloId") Long moduloId,
                                                     Limit limite);
 
+    /** Se ja houve pratica neste modulo. Decide o tamanho do lote a gerar. */
+    @Query("""
+            select count(a) from AvaliacaoDoDesafio a
+            where a.desafio.usuario.id = :usuarioId and a.desafio.modulo.id = :moduloId
+            """)
+    long contarDoModulo(@Param("usuarioId") Long usuarioId, @Param("moduloId") Long moduloId);
+
     @Query("""
             select e.tipo from AvaliacaoDoDesafio a join a.errosDetectados e
             where a.desafio.usuario.id = :usuarioId and a.desafio.modulo.id = :moduloId

@@ -31,6 +31,21 @@ agente-ingles:
   modelo-simples: claude-haiku-4-5
   # Desafios pedidos por chamada. O custo fixo do pedido e dividido por este numero.
   desafios-por-lote: ${DESAFIOS_POR_LOTE:5}
+  # Lote da primeira visita a um modulo: quem nunca praticou ali pode nao voltar,
+  # e o lote cheio deixaria quatro desafios ja pagos parados na fila.
+  desafios-por-lote-inicial: ${DESAFIOS_POR_LOTE_INICIAL:2}
+  # Dolar por milhao de tokens. Confira em anthropic.com/pricing: modelo sem preco
+  # aqui tem os tokens gravados e o custo marcado como desconhecido, nunca como zero.
+  precos-por-milhao-de-tokens:
+    claude-sonnet-5:
+      entrada: 3.00
+      saida: 15.00
+    claude-opus-5:
+      entrada: 5.00
+      saida: 25.00
+    claude-haiku-4-5:
+      entrada: 1.00
+      saida: 5.00
   seguranca:
     tentativas-ate-bloquear: ${TENTATIVAS_ATE_BLOQUEAR:5}
     minutos-de-bloqueio: ${MINUTOS_DE_BLOQUEIO:15}
