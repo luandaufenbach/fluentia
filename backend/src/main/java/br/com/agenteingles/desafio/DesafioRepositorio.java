@@ -51,6 +51,13 @@ public interface DesafioRepositorio extends JpaRepository<Desafio, Long> {
             """)
     List<Desafio> listarHistorico(@Param("usuarioId") Long usuarioId, Limit limite);
 
+    /** Quantos desafios a conta ja recebeu neste conceito. Gira a cena entre os temas. */
+    @Query("""
+            select count(d) from Desafio d
+            where d.usuario.id = :usuarioId and d.modulo.id = :moduloId
+            """)
+    long contarDoModulo(@Param("usuarioId") Long usuarioId, @Param("moduloId") Long moduloId);
+
     /**
      * Quantos desafios da conta estao em cada status.
      *

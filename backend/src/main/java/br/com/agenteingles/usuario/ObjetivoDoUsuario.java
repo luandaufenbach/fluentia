@@ -1,11 +1,16 @@
 package br.com.agenteingles.usuario;
 
-/** Objetivo declarado no onboarding. Influencia a escolha do tema pelo orquestrador. */
+/**
+ * Objetivo declarado no onboarding. Influencia a escolha do tema pelo orquestrador.
+ *
+ * <p>DEV saiu: era um nicho dentro de um app que ensina a lingua, e quem esta
+ * aprendendo precisa pedir comida e marcar consulta muito antes de escrever code
+ * review. A variedade de cena agora vem dos temas, que sao nove.
+ */
 public enum ObjetivoDoUsuario {
 
     VIAGEM("viagem"),
     TRABALHO("trabalho"),
-    DEV("inglês para dev"),
     CONVERSACAO_GERAL("conversação geral");
 
     /**

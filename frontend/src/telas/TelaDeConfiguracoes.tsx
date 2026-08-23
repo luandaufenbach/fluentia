@@ -14,7 +14,6 @@ const OBJETIVOS: { valor: ObjetivoDoUsuario; rotulo: string }[] = [
   { valor: "CONVERSACAO_GERAL", rotulo: "Conversação geral" },
   { valor: "VIAGEM", rotulo: "Viagem" },
   { valor: "TRABALHO", rotulo: "Trabalho" },
-  { valor: "DEV", rotulo: "Inglês para dev" },
 ];
 
 const TIPOS_DE_CORRECAO: { valor: TipoDeCorrecao; rotulo: string }[] = [
@@ -167,9 +166,9 @@ export function TelaDeConfiguracoes({
       <section className="tela-de-configuracoes__nivelamento">
         <h2>Ponto de partida</h2>
         <p>
-          Se a trilha comecou no lugar errado — cedo demais ou adiantado demais
-          — refaca o nivelamento. As notas que voce ja conquistou praticando nao
-          sao apagadas.
+          Se a trilha começou no lugar errado — cedo demais ou adiantado demais
+          — refaça o nivelamento. As notas que você já conquistou praticando não
+          são apagadas.
         </p>
         <button
           type="button"

@@ -40,7 +40,6 @@ public class Orquestrador {
     private static final Map<ObjetivoDoUsuario, String> TEMA_PREFERIDO_POR_OBJETIVO = Map.of(
             ObjetivoDoUsuario.VIAGEM, "viagem",
             ObjetivoDoUsuario.TRABALHO, "trabalho",
-            ObjetivoDoUsuario.DEV, "ingles_para_dev",
             ObjetivoDoUsuario.CONVERSACAO_GERAL, "conversacao_livre");
 
     private static final String TEMA_PADRAO = "conversacao_livre";
@@ -129,10 +128,31 @@ public class Orquestrador {
             return preferido;
         }
 
-        return temaRepositorio.listarOrdenadosPorNome().stream()
+        return proximaCenaDiferente(usuario, escolhido, preferido);
+    }
+
+    /**
+     * Uma cena diferente da anterior, girando por toda a lista de temas.
+     *
+     * <p>Antes isto era {@code findFirst()} na lista ordenada por nome: com dois temas
+     * funcionava, mas o app tem nove, e a alternativa caia sempre no mesmo — sete cenas
+     * nunca apareceriam. O aluno via o mesmo par de cenários se revezando para sempre.
+     *
+     * <p>O giro usa quantos desafios ele ja fez naquele conceito. E deterministico de
+     * proposito: sorteio pode repetir a mesma cena tres vezes seguidas, que e exatamente
+     * o que este metodo existe para evitar.
+     */
+    private Tema proximaCenaDiferente(Usuario usuario, SituacaoDoModulo escolhido, Tema preferido) {
+        List<Tema> outros = temaRepositorio.listarOrdenadosPorNome().stream()
                 .filter(tema -> !tema.getId().equals(preferido.getId()))
-                .findFirst()
-                .orElse(preferido);
+                .toList();
+
+        if (outros.isEmpty()) {
+            return preferido;
+        }
+
+        long jaFeitos = desafioRepositorio.contarDoModulo(usuario.getId(), escolhido.modulo().getId());
+        return outros.get((int) (jaFeitos % outros.size()));
     }
 
     /**
