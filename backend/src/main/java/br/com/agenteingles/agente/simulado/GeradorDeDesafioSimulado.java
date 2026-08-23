@@ -48,26 +48,6 @@ public class GeradorDeDesafioSimulado implements AgenteGeradorDeDesafio {
             "Voce esta numa conversa do dia a dia.",
             "Voce esta explicando uma situacao para alguem.");
 
-    /** Alvos do modulo "verbo to be": frase em portugues e a versao correta em ingles. */
-    private static final List<String[]> ALVOS_DO_VERBO_TO_BE = List.of(
-            new String[] {"Eu sou brasileiro.", "I am Brazilian."},
-            new String[] {"Ela e a minha gerente.", "She is my manager."},
-            new String[] {"Nos estamos atrasados.", "We are late."},
-            new String[] {"Eles nao estao prontos.", "They are not ready."},
-            new String[] {"Voce e o novo desenvolvedor?", "Are you the new developer?"},
-            new String[] {"O quarto nao esta limpo.", "The room is not clean."},
-            new String[] {"Eu nao estou com fome.", "I am not hungry."},
-            new String[] {"Ele esta no aeroporto.", "He is at the airport."},
-            new String[] {"Nos somos do Brasil.", "We are from Brazil."},
-            new String[] {"O teste esta quebrado.", "The test is broken."},
-            new String[] {"Elas sao engenheiras.", "They are engineers."},
-            new String[] {"Esta e a minha primeira vez aqui.", "This is my first time here."},
-            new String[] {"O deploy nao esta pronto.", "The deploy is not ready."},
-            new String[] {"Voces estao na reuniao?", "Are you in the meeting?"},
-            new String[] {"Eu estou aprendendo ingles.", "I am learning English."});
-
-    private static final String CODIGO_DO_MODULO_COM_BANCO_PROPRIO = "verbo_to_be";
-
     @Override
     public List<DesafioGerado> gerar(PedidoDeGeracao pedido, int quantidade) {
         List<DesafioGerado> gerados = new ArrayList<>();
@@ -88,30 +68,33 @@ public class GeradorDeDesafioSimulado implements AgenteGeradorDeDesafio {
         List<String> cenas = CENAS_POR_TEMA.getOrDefault(pedido.nomeDoTema(), CENAS_PADRAO);
         String cena = sortear(cenas) + montarReforco(pedido.errosRecentes());
 
-        if (!CODIGO_DO_MODULO_COM_BANCO_PROPRIO.equals(pedido.codigoDoModulo())) {
-            // Demais modulos ainda nao tem banco proprio no simulado: o desafio sai generico mas correto.
+        BancoDeAlvos banco = BancoDeAlvos.doModulo(pedido.codigoDoModulo());
+        if (banco == null) {
+            // Modulo sem banco proprio: o desafio sai correto, mas sem gabarito — e sem
+            // gabarito o avaliador simulado nao tem como dar uma nota que signifique algo.
             return new DesafioGerado(
                     "Escreva uma frase em ingles usando " + pedido.nomeDoModulo().toLowerCase(Locale.ROOT) + ".",
                     cena,
                     null,
-                    "Verificar o uso correto de " + pedido.nomeDoModulo() + " conforme: " + pedido.descricaoDoModulo());
+                    "Verificar o uso correto de " + pedido.nomeDoModulo() + " conforme: "
+                            + pedido.descricaoDoModulo());
         }
 
-        // Filtra os alvos ainda nao usados em vez de sortear as cegas: com sorteio puro o ultimo
-        // alvo disponivel pode nunca ser encontrado, e o desafio sairia repetido.
-        List<String[]> disponiveis = new ArrayList<>();
-        for (String[] alvo : ALVOS_DO_VERBO_TO_BE) {
+        // Filtra os alvos ainda nao usados em vez de sortear as cegas: com sorteio puro o
+        // ultimo alvo disponivel pode nunca ser encontrado, e o desafio sairia repetido.
+        List<BancoDeAlvos.Alvo> disponiveis = new ArrayList<>();
+        for (BancoDeAlvos.Alvo alvo : banco.alvos()) {
             if (!jaUsados.contains(montarEnunciado(alvo))) {
                 disponiveis.add(alvo);
             }
         }
         if (!disponiveis.isEmpty()) {
-            return montarDesafio(sortear(disponiveis), cena);
+            return montarDesafio(sortear(disponiveis), cena, pedido);
         }
 
         // Banco esgotado: marca a rodada para o enunciado continuar inedito.
-        DesafioGerado desafio = montarDesafio(sortear(ALVOS_DO_VERBO_TO_BE), cena);
-        int rodada = jaUsados.size() / ALVOS_DO_VERBO_TO_BE.size() + 1;
+        DesafioGerado desafio = montarDesafio(sortear(banco.alvos()), cena, pedido);
+        int rodada = jaUsados.size() / banco.alvos().size() + 1;
         return new DesafioGerado(
                 desafio.enunciado() + " (rodada " + rodada + ")",
                 desafio.contextoDaCena(),
@@ -119,17 +102,17 @@ public class GeradorDeDesafioSimulado implements AgenteGeradorDeDesafio {
                 desafio.criterioDeAvaliacao());
     }
 
-    private String montarEnunciado(String[] alvo) {
-        return "Traduza para o ingles: \"" + alvo[0] + "\"";
+    private String montarEnunciado(BancoDeAlvos.Alvo alvo) {
+        return "Traduza para o ingles: \"" + alvo.emPortugues() + "\"";
     }
 
-    private DesafioGerado montarDesafio(String[] alvo, String cena) {
+    private DesafioGerado montarDesafio(BancoDeAlvos.Alvo alvo, String cena, PedidoDeGeracao pedido) {
         return new DesafioGerado(
                 montarEnunciado(alvo),
                 cena,
-                alvo[1],
-                "Verificar a forma correta do verbo \"to be\" (am/is/are), a concordancia com o sujeito "
-                        + "e a estrutura de negativa ou pergunta quando a frase pedir.");
+                alvo.emIngles(),
+                "Verificar o uso correto de " + pedido.nomeDoModulo()
+                        + ", comparando com a resposta de referencia.");
     }
 
     /** Se o usuario vem errando algo especifico, a cena avisa o que sera cobrado. */

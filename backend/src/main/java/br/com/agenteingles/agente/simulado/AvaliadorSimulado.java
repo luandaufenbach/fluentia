@@ -16,9 +16,12 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
 /**
- * Avaliador simulado: compara a resposta com a referencia e aplica heuristicas de concordancia
- * do verbo "to be". Nao substitui o avaliador real, mas produz nota e erro especifico de verdade,
- * o suficiente para o loop de reforco funcionar sem consumir a API.
+ * Avaliador simulado: compara a resposta com a referencia do banco de alvos e aplica uma
+ * heuristica de concordancia do verbo "to be", que vale em qualquer modulo.
+ *
+ * <p>Nao substitui o avaliador real — ele nao entende parafrase, entao uma resposta correta
+ * escrita de outro jeito perde nota. O que ele da e um loop que roda de ponta a ponta com
+ * nota e tipo de erro de verdade, sem consumir a API.
  */
 @Component
 @ConditionalOnProperty(name = "agente-ingles.usar-claude", havingValue = "false", matchIfMissing = true)
@@ -44,6 +47,18 @@ public class AvaliadorSimulado implements AgenteAvaliador {
     private static final BigDecimal NOTA_ESTRUTURA_ERRADA = new BigDecimal("2.00");
     private static final BigDecimal NOTA_RESPOSTA_VAZIA = new BigDecimal("0.00");
 
+    /** Acima disto o conceito esta certo e so ha diferenca de detalhe. */
+    private static final double SEMELHANCA_DE_QUASE_CERTO = 0.7;
+
+    /**
+     * Abaixo disto a resposta nao tem quase nada em comum com o esperado.
+     *
+     * <p>Ai o veredito honesto e "fora do pedido", e nao um erro do conceito: o tipo e a
+     * chave que conta a repeticao, e rotular errado acusaria o aluno de insistir num erro
+     * que ele nem cometeu.
+     */
+    private static final double SEMELHANCA_MINIMA_PARA_TENTATIVA = 0.3;
+
     @Override
     public ResultadoDaAvaliacao avaliar(PedidoDeAvaliacao pedido) {
         String resposta = pedido.respostaDoUsuario() == null ? "" : pedido.respostaDoUsuario().trim();
@@ -61,7 +76,7 @@ public class AvaliadorSimulado implements AgenteAvaliador {
         if (!referenciaNormalizada.isEmpty() && respostaNormalizada.equals(referenciaNormalizada)) {
             return new ResultadoDaAvaliacao(
                     NOTA_RESPOSTA_CORRETA,
-                    "Resposta correta. A forma do verbo \"to be\" e a estrutura da frase estao certas.",
+                    "Resposta correta: a frase corresponde ao que o desafio pedia.",
                     List.of());
         }
 
@@ -85,22 +100,48 @@ public class AvaliadorSimulado implements AgenteAvaliador {
         }
 
         double semelhanca = calcularSemelhanca(respostaNormalizada, referenciaNormalizada);
-        if (semelhanca >= 0.7) {
+
+        if (semelhanca >= SEMELHANCA_DE_QUASE_CERTO) {
             return new ResultadoDaAvaliacao(
                     NOTA_QUASE_CORRETA,
-                    "Quase la. O verbo \"to be\" esta certo, mas ha diferencas em relacao a resposta esperada: \""
-                            + pedido.respostaDeReferencia() + "\".",
-                    List.of(new ErroApontado("detalhe_de_forma", resposta, pedido.respostaDeReferencia(),
+                    "Quase la. A construcao principal esta certa, mas ha diferencas em relacao a "
+                            + "resposta esperada: \"" + pedido.respostaDeReferencia() + "\".",
+                    List.of(new ErroApontado("vocabulario", resposta, pedido.respostaDeReferencia(),
                             "A estrutura principal esta correta, mas algum detalhe de vocabulario ou ordem "
                                     + "esta diferente do esperado.")));
+        }
+
+        if (semelhanca < SEMELHANCA_MINIMA_PARA_TENTATIVA) {
+            // Quase nada em comum com o esperado: chamar isso de erro do conceito seria
+            // rotular errado, e o tipo e a chave que conta a repeticao — um rotulo errado
+            // acusaria o aluno de insistir num erro que ele nem cometeu.
+            return new ResultadoDaAvaliacao(
+                    NOTA_ESTRUTURA_ERRADA,
+                    "A resposta nao corresponde ao que o desafio pediu. O esperado era algo como: \""
+                            + pedido.respostaDeReferencia() + "\".",
+                    List.of(new ErroApontado("resposta_fora_do_pedido", resposta,
+                            pedido.respostaDeReferencia(),
+                            "A resposta trata de outra coisa, entao nao da para avaliar o conceito.")));
         }
 
         return new ResultadoDaAvaliacao(
                 NOTA_ESTRUTURA_ERRADA,
                 "A frase esta distante do esperado. Uma resposta correta seria: \""
                         + pedido.respostaDeReferencia() + "\".",
-                List.of(new ErroApontado("estrutura_da_frase", resposta, pedido.respostaDeReferencia(),
+                List.of(new ErroApontado(tipoTipicoDe(pedido), resposta, pedido.respostaDeReferencia(),
                         "A construcao da frase nao corresponde ao que o desafio pedia.")));
+    }
+
+    /**
+     * O tipo de erro que o modulo costuma produzir.
+     *
+     * <p>Sai do catalogo em vez de um rotulo generico: o tipo e a chave que conta quantas
+     * vezes o aluno repetiu o mesmo erro, entao o modo simulado exercita tambem o aviso de
+     * repeticao — que ficaria sem teste se todo erro daqui saisse como "estrutura da frase".
+     */
+    private String tipoTipicoDe(PedidoDeAvaliacao pedido) {
+        BancoDeAlvos banco = BancoDeAlvos.doModulo(pedido.codigoDoModulo());
+        return banco == null ? "outro" : banco.tipoDeErroTipico();
     }
 
     /** Procura pares sujeito + verbo incompativeis, como "I are" ou "he are". */

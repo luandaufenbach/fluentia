@@ -68,7 +68,7 @@ class AvaliadorSimuladoTest {
 
         assertThat(resultado.notaObtida()).isEqualByComparingTo("7.00");
         assertThat(resultado.erros()).hasSize(1);
-        assertThat(resultado.erros().get(0).tipo()).isEqualTo("detalhe_de_forma");
+        assertThat(resultado.erros().get(0).tipo()).isEqualTo("vocabulario");
     }
 
     @Test
@@ -77,7 +77,9 @@ class AvaliadorSimuladoTest {
         ResultadoDaAvaliacao resultado = avaliador.avaliar(pedidoComResposta("The weather looks nice today"));
 
         assertThat(resultado.notaObtida()).isEqualByComparingTo("2.00");
-        assertThat(resultado.erros().get(0).tipo()).isEqualTo("estrutura_da_frase");
+        // Fora do pedido nao e erro do conceito: rotular como tal acusaria o aluno de
+        // insistir num erro que ele nem cometeu, e o tipo e a chave que conta a repeticao.
+        assertThat(resultado.erros().get(0).tipo()).isEqualTo("resposta_fora_do_pedido");
     }
 
     @Test
@@ -87,5 +89,46 @@ class AvaliadorSimuladoTest {
 
         assertThat(resultado.notaObtida()).isEqualByComparingTo("0.00");
         assertThat(resultado.erros().get(0).tipo()).isEqualTo("resposta_em_branco");
+    }
+
+    /** Pedido de outro modulo, com a referencia que o banco de alvos daquele modulo daria. */
+    private PedidoDeAvaliacao pedidoDeOutroModulo(String resposta) {
+        return new PedidoDeAvaliacao(
+                1L,
+                "passado_simples",
+                "Passado simples",
+                "Verbos regulares e irregulares no passado.",
+                NivelCefr.A2,
+                "Traduza para o ingles: \"Eu comprei um livro ontem.\"",
+                "Voce esta contando como foi o seu dia.",
+                "I bought a book yesterday.",
+                "Verificar o uso correto de Passado simples.",
+                resposta,
+                TipoDeCorrecao.DETALHADA);
+    }
+
+    @Test
+    @DisplayName("modulo fora do verbo to be tambem recebe nota de verdade")
+    void outroModuloRecebeNotaDeVerdade() {
+        // Antes do banco de alvos, os outros quinze modulos vinham sem gabarito e a nota
+        // saia fixa em 7 — a trilha inteira ficava amarela independentemente da resposta.
+        ResultadoDaAvaliacao certa = avaliador.avaliar(
+                pedidoDeOutroModulo("I bought a book yesterday."));
+        ResultadoDaAvaliacao errada = avaliador.avaliar(
+                pedidoDeOutroModulo("I buy a book tomorrow morning."));
+
+        assertThat(certa.notaObtida()).isEqualByComparingTo("10.00");
+        assertThat(errada.notaObtida()).isLessThan(certa.notaObtida());
+    }
+
+    @Test
+    @DisplayName("o erro aponta o tipo tipico do modulo, nao um rotulo generico")
+    void erroApontaOTipoTipicoDoModulo() {
+        ResultadoDaAvaliacao resultado = avaliador.avaliar(
+                pedidoDeOutroModulo("I buy a book tomorrow morning."));
+
+        assertThat(resultado.erros())
+                .extracting(ErroApontado::tipo)
+                .containsExactly("verbo_irregular");
     }
 }

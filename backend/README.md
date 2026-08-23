@@ -317,6 +317,20 @@ Dois contratos, duas implementações cada, escolhidas pela propriedade `agente-
 O simulado roda o **loop inteiro sem custo de API** e produz nota e erro específico de verdade —
 o suficiente para validar a mecânica antes de ligar a chave.
 
+`BancoDeAlvos` dá frases-alvo com gabarito aos **16 módulos**. Antes só o verbo *to be* tinha
+banco próprio: nos outros quinze o desafio saía genérico e **sem gabarito**, e sem gabarito o
+avaliador devolvia nota fixa — a trilha inteira ficava amarela independentemente do que o aluno
+escrevesse, e o orquestrador, que decide pelo erro detectado, não recebia erro nenhum para ler.
+O loop adaptativo girava em falso em 15 dos 16 módulos.
+
+Cada banco declara também o **tipo de erro típico** daquele módulo, tirado do catálogo. Com
+isso o modo simulado exercita o aviso de erro repetido, que ficaria sem cobertura se todo erro
+daqui saísse com o mesmo rótulo genérico.
+
+O que ele continua **não** fazendo: entender paráfrase. Uma resposta correta escrita de outro
+jeito perde nota, porque a comparação é por sobreposição de palavras. É a razão de o modo real
+existir, e o README não deve dar a entender o contrário.
+
 O modelo mais capaz vai no gerador e no avaliador porque a qualidade da correção é o coração do
 produto: a nota que sai do avaliador alimenta a média do módulo e a decisão do orquestrador, então
 um erro de correção se propaga por todo o currículo do usuário. `claude-haiku-4-5` fica reservado
