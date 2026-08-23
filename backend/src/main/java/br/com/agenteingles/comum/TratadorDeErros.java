@@ -84,6 +84,32 @@ public class TratadorDeErros {
         return montar(HttpStatus.FORBIDDEN, "Sem permissao para este recurso.");
     }
 
+    /**
+     * Metodo HTTP errado e erro de quem chamou, nao do servidor.
+     *
+     * <p>Sem esta entrada o tratador generico devolvia 500 para um simples POST numa
+     * rota de GET, escondendo a causa e enchendo o log de "erro inesperado".
+     */
+    @ExceptionHandler(org.springframework.web.HttpRequestMethodNotSupportedException.class)
+    public ResponseEntity<RespostaDeErro> tratarMetodoNaoSuportado(
+            org.springframework.web.HttpRequestMethodNotSupportedException excecao) {
+        return montar(HttpStatus.METHOD_NOT_ALLOWED,
+                "Metodo %s nao e aceito neste endereco.".formatted(excecao.getMethod()));
+    }
+
+    /**
+     * Restricao do banco violada: duas requisicoes correram para criar a mesma coisa.
+     *
+     * <p>O detalhe da restricao fica so no log — nome de indice e de coluna descrevem o
+     * esquema, e esquema nao vai para a resposta.
+     */
+    @ExceptionHandler(org.springframework.dao.DataIntegrityViolationException.class)
+    public ResponseEntity<RespostaDeErro> tratarConflitoDeDados(
+            org.springframework.dao.DataIntegrityViolationException excecao) {
+        log.warn("Restricao de integridade violada", excecao);
+        return montar(HttpStatus.CONFLICT, "Este recurso ja existe ou acabou de ser criado.");
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<RespostaDeErro> tratarErroInesperado(Exception excecao) {
         log.error("Erro inesperado ao processar a requisicao", excecao);

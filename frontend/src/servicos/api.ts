@@ -2,6 +2,7 @@ import type {
   ConteudoDoModulo,
   Correcao,
   Desafio,
+  EtapaDoNivelamento,
   NivelComModulos,
   Preferencias,
   Progresso,
@@ -129,6 +130,22 @@ export const api = {
 
   historicoDeDesafios: (quantidade = 20) =>
     requisitar<Desafio[]>(`/desafios/historico?quantidade=${quantidade}`),
+
+  situacaoDoNivelamento: () => requisitar<{ jaFez: boolean }>("/nivelamento"),
+
+  /** Retoma o nivelamento aberto ou comeca um novo. */
+  iniciarNivelamento: () =>
+    requisitar<EtapaDoNivelamento>("/nivelamento", { method: "POST" }),
+
+  /** Resposta em branco significa pular, que e um sinal legitimo de teto. */
+  responderNivelamento: (nivelamentoId: number, ordem: number, resposta: string) =>
+    requisitar<EtapaDoNivelamento>(`/nivelamento/${nivelamentoId}/resposta`, {
+      method: "POST",
+      body: JSON.stringify({ ordem, resposta }),
+    }),
+
+  abandonarNivelamento: (nivelamentoId: number) =>
+    requisitar<void>(`/nivelamento/${nivelamentoId}`, { method: "DELETE" }),
 };
 
 export { ErroDaApi };

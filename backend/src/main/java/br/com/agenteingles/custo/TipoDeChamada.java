@@ -10,7 +10,10 @@ public enum TipoDeChamada {
     AVALIACAO_DE_RESPOSTA("avaliacao de resposta"),
 
     /** Material de estudo dos modulos. Rotina avulsa, roda uma vez. */
-    GERACAO_DE_CONTEUDO("geracao de conteudo");
+    GERACAO_DE_CONTEUDO("geracao de conteudo"),
+
+    /** Estimativa de nivel na entrada. Uma chamada por conta, no cadastro. */
+    NIVELAMENTO("nivelamento");
 
     private final String descricao;
 

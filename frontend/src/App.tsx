@@ -6,6 +6,7 @@ import { TelaDeAutenticacao } from "./telas/TelaDeAutenticacao";
 import { TelaDeConfiguracoes } from "./telas/TelaDeConfiguracoes";
 import { TelaDeConteudo } from "./telas/TelaDeConteudo";
 import { TelaDeDesafio } from "./telas/TelaDeDesafio";
+import { TelaDeNivelamento } from "./telas/TelaDeNivelamento";
 import { TelaDeProgresso } from "./telas/TelaDeProgresso";
 import type { UsuarioAutenticado } from "./tipos";
 import "./App.css";
@@ -49,6 +50,33 @@ export default function App() {
       cancelado = true;
     };
   }, []);
+
+  /**
+   * Se a conta ainda precisa passar pelo nivelamento. `undefined` enquanto não se sabe.
+   *
+   * Quem pergunta é o servidor, como na sessão: um sinalizador local seria contornável
+   * e, pior, mandaria de novo para o nivelamento quem já o fez em outro dispositivo.
+   */
+  const [precisaNivelar, setPrecisaNivelar] = useState<boolean | undefined>(undefined);
+
+  useEffect(() => {
+    if (!usuario) {
+      setPrecisaNivelar(undefined);
+      return;
+    }
+
+    let cancelado = false;
+    api
+      .situacaoDoNivelamento()
+      // Falha aqui não pode bloquear a entrada: na dúvida o app segue para a trilha,
+      // que é onde a pessoa consegue usar o produto de qualquer jeito.
+      .then((situacao) => !cancelado && setPrecisaNivelar(!situacao.jaFez))
+      .catch(() => !cancelado && setPrecisaNivelar(false));
+
+    return () => {
+      cancelado = true;
+    };
+  }, [usuario]);
 
   /**
    * Qual módulo está aberto para estudo. Fica aqui e não na tela de conteúdo porque
@@ -103,6 +131,24 @@ export default function App() {
 
   if (usuario === null) {
     return <TelaDeAutenticacao onEntrou={setUsuario} />;
+  }
+
+  if (precisaNivelar === undefined) {
+    return <div className="aplicacao__carregando">Carregando...</div>;
+  }
+
+  // O nivelamento ocupa a tela inteira: é a primeira coisa que acontece depois do
+  // cadastro, e mostrar a trilha por trás convidaria a ignorá-lo — que é justamente
+  // como todo mundo acabava começando em A1.
+  if (precisaNivelar) {
+    return (
+      <TelaDeNivelamento
+        onConcluido={() => {
+          setPrecisaNivelar(false);
+          invalidarDados();
+        }}
+      />
+    );
   }
 
   return (

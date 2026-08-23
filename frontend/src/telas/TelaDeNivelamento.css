@@ -1,0 +1,211 @@
+.nivelamento {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--espaco-5);
+  background: var(--cor-fundo);
+}
+
+.nivelamento--carregando {
+  color: var(--cor-texto-secundario);
+  font-size: 0.9375rem;
+}
+
+.nivelamento__cartao {
+  width: 100%;
+  max-width: 34rem;
+  background: var(--cor-superficie);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-grande);
+  box-shadow: var(--sombra-suave);
+  padding: var(--espaco-6);
+}
+
+.nivelamento__topo {
+  margin-bottom: var(--espaco-5);
+}
+
+.nivelamento__passo {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--cor-texto-secundario);
+  margin-bottom: var(--espaco-3);
+}
+
+.nivelamento__barra {
+  height: 0.25rem;
+  border-radius: 999px;
+  background: var(--cor-superficie-sutil);
+  overflow: hidden;
+}
+
+.nivelamento__barra span {
+  display: block;
+  height: 100%;
+  background: var(--cor-destaque);
+  border-radius: 999px;
+  transition: width 0.3s ease;
+}
+
+/* A pergunta é o elemento principal da tela: tamanho grande e respiro em volta. */
+.nivelamento__pergunta {
+  font-size: 1.375rem;
+  line-height: 1.35;
+  letter-spacing: -0.015em;
+  margin-bottom: var(--espaco-3);
+}
+
+.nivelamento__apoio {
+  font-size: 0.9375rem;
+  line-height: 1.55;
+  color: var(--cor-texto-secundario);
+  margin-bottom: var(--espaco-5);
+}
+
+.nivelamento__campo {
+  width: 100%;
+  font: inherit;
+  font-size: 1rem;
+  line-height: 1.6;
+  color: var(--cor-texto);
+  padding: var(--espaco-4);
+  border: 1px solid var(--cor-borda-forte);
+  border-radius: var(--raio-medio);
+  background: var(--cor-superficie);
+  resize: vertical;
+}
+
+.nivelamento__campo:focus-visible {
+  outline: 2px solid var(--cor-destaque-borda);
+  outline-offset: 1px;
+}
+
+.nivelamento__erro {
+  margin-top: var(--espaco-3);
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: var(--cor-vermelho);
+}
+
+.nivelamento__acoes {
+  display: flex;
+  gap: var(--espaco-3);
+  margin-top: var(--espaco-5);
+}
+
+.nivelamento__primario,
+.nivelamento__secundario {
+  min-height: var(--alvo-de-toque);
+  padding: 0 var(--espaco-5);
+  font: inherit;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  border-radius: var(--raio-medio);
+  cursor: pointer;
+  transition: transform 0.08s ease, background 0.15s ease;
+}
+
+.nivelamento__primario {
+  flex: 1;
+  background: var(--cor-destaque);
+  border: 1px solid var(--cor-destaque-borda);
+  color: var(--cor-texto);
+}
+
+/* Pular tem o mesmo peso visual de um botão de verdade: parar é o dado, não uma falha. */
+.nivelamento__secundario {
+  background: var(--cor-superficie);
+  border: 1px solid var(--cor-borda-forte);
+  color: var(--cor-texto-secundario);
+}
+
+.nivelamento__primario:active:not(:disabled),
+.nivelamento__secundario:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+.nivelamento__primario:disabled,
+.nivelamento__secundario:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.nivelamento__sair {
+  display: block;
+  margin: var(--espaco-5) auto 0;
+  padding: var(--espaco-2);
+  font: inherit;
+  font-size: 0.875rem;
+  color: var(--cor-texto-secundario);
+  background: none;
+  border: none;
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+  cursor: pointer;
+}
+
+/* Resultado */
+
+.nivelamento__nivel {
+  font-size: 3.5rem;
+  line-height: 1;
+  letter-spacing: -0.03em;
+  margin: var(--espaco-2) 0 var(--espaco-4);
+}
+
+.nivelamento__resumo {
+  font-size: 1rem;
+  line-height: 1.6;
+  margin-bottom: var(--espaco-5);
+}
+
+.nivelamento__leitura {
+  display: grid;
+  gap: var(--espaco-4);
+  padding: var(--espaco-4);
+  background: var(--cor-superficie-sutil);
+  border-radius: var(--raio-medio);
+  margin-bottom: var(--espaco-4);
+}
+
+.nivelamento__leitura dt {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--cor-texto-secundario);
+  margin-bottom: var(--espaco-1);
+}
+
+.nivelamento__leitura dd {
+  font-size: 0.9375rem;
+  line-height: 1.55;
+}
+
+.nivelamento__nota {
+  font-size: 0.875rem;
+  line-height: 1.6;
+  color: var(--cor-texto-secundario);
+  padding: var(--espaco-4);
+  background: var(--cor-amarelo-fundo);
+  border-radius: var(--raio-medio);
+  margin-bottom: var(--espaco-5);
+}
+
+.nivelamento__nota strong {
+  color: var(--cor-amarelo);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nivelamento__barra span {
+    transition: none;
+  }
+
+  .nivelamento__primario,
+  .nivelamento__secundario {
+    transition: none;
+  }
+}

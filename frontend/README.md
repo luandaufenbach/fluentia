@@ -35,7 +35,7 @@ npm run build
 | **Configurações** (`TelaDeConfiguracoes`) | ✅ | Objetivo, ritmo e tipo de correção |
 | **Barra lateral** | ✅ | Navegação e lista de temas como contexto da cena |
 | **Entrada** (`TelaDeAutenticacao`) | ✅ | Cadastro e login. A senha não vai para estado global nem armazenamento local: o que fica é o cookie de sessão, fora do alcance de JavaScript |
-| **Diagnóstico de nível** | ⬜ | O passo 2 do onboarding ainda não existe: todo mundo começa em A1. Objetivo e ritmo, passos 3 e 4, já estão em Configurações |
+| **Nivelamento** (`TelaDeNivelamento`) | ✅ | A conversa curta de entrada: cinco perguntas abertas em ordem crescente, com "não sei esta" como botão de primeira classe. O resultado abre a trilha no nível certo, em vez de mandar todo mundo para A1. Objetivo e ritmo, passos 3 e 4 do onboarding, estão em Configurações |
 
 ## Sistema visual de nota
 

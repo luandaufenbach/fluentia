@@ -34,6 +34,8 @@ consolidar o que ainda não está verde, revisar o que está há mais tempo para
 | **Pré-requisitos** | Um conceito só abre quando os anteriores saem do vermelho |
 | **Dois modos** | Simulado (custo zero) e com IA, atrás da mesma interface |
 | **Conta por usuário** | Sessão em cookie HttpOnly, senha com BCrypt, bloqueio por tentativas, trilha de auditoria e isolamento entre contas testado |
+| **Nivelamento de entrada** | Cinco perguntas abertas decidem por onde a trilha começa — quem já sabe inglês não é mandado para "eu sou brasileiro" |
+| **Custo à vista** | Cada chamada grava tokens e custo; `GET /api/consumo` mostra o gasto da conta dentro do produto |
 
 ## Como rodar
 
@@ -56,7 +58,7 @@ Detalhes de cada lado em [`backend/README.md`](backend/README.md) e
 ## Stack
 
 Java 21 + Spring Boot 4 + Postgres no backend, React + TypeScript + Vite no frontend,
-Docker para empacotar. Migrations com Flyway, 65 testes incluindo integração contra o banco de verdade e a política de acesso.
+Docker para empacotar. Migrations com Flyway, 85 testes incluindo integração contra o banco de verdade e a política de acesso.
 
 ## Convenções
 

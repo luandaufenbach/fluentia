@@ -1,7 +1,9 @@
 package br.com.agenteingles.usuario;
 
+import jakarta.persistence.LockModeType;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -24,4 +26,20 @@ public interface UsuarioRepositorio extends JpaRepository<Usuario, Long> {
 
     @Query("select count(u) > 0 from Usuario u where lower(u.email) = lower(:email)")
     boolean existeComEmail(@Param("email") String email);
+
+    /**
+     * Trava a linha da conta ate o fim da transacao.
+     *
+     * <p>Serve para serializar operacoes que so podem existir uma vez por conta. Sem a
+     * trava, duas requisicoes simultaneas — duas abas, um duplo clique, o modo estrito
+     * do React chamando o efeito duas vezes — passam juntas pela verificacao de "ja
+     * existe?" e as duas tentam inserir; a segunda morre no indice unico e vira erro
+     * na cara de quem so clicou uma vez.
+     *
+     * <p>Com a trava a segunda requisicao espera a primeira terminar e simplesmente
+     * encontra o que a primeira criou.
+     */
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("select u from Usuario u where u.id = :id")
+    Optional<Usuario> travar(@Param("id") Long id);
 }

@@ -152,3 +152,31 @@ export interface UsuarioAutenticado {
   nome: string;
   email: string;
 }
+
+/** Uma pergunta da escada do nivelamento. */
+export interface PerguntaDoNivelamento {
+  nivelAlvo: NivelCefr;
+  /** Em inglês: ler a pergunta já faz parte da medida. */
+  pergunta: string;
+  /** Uma linha em português, para quem trava antes de começar não desistir. */
+  apoio: string;
+}
+
+export interface ResultadoDoNivelamento {
+  nivel: NivelCefr;
+  resumo: string;
+  pontoForte: string;
+  pontoAFortalecer: string;
+  /** Quantos conceitos a estimativa já abriu na trilha. */
+  modulosLiberados: number;
+  primeiroModulo: string | null;
+}
+
+/** Um passo da conversa: ou vem pergunta, ou vem resultado — nunca os dois. */
+export interface EtapaDoNivelamento {
+  id: number;
+  ordem: number;
+  total: number;
+  perguntaAtual: PerguntaDoNivelamento | null;
+  resultado: ResultadoDoNivelamento | null;
+}

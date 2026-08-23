@@ -63,7 +63,7 @@ class SegurancaDaApiIT {
         for (String rota : new String[] {
                 "/api/trilha", "/api/modulos", "/api/desafios/proximo", "/api/desafios/historico",
                 "/api/progresso", "/api/dashboard/sugestao", "/api/temas", "/api/usuario",
-                "/api/modulos/verbo_to_be/conteudo", "/api/consumo"}) {
+                "/api/modulos/verbo_to_be/conteudo", "/api/consumo", "/api/nivelamento"}) {
             mockMvc.perform(get(rota))
                     .andExpect(status().isUnauthorized());
         }

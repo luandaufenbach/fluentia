@@ -178,6 +178,45 @@ Modelo sem preço em `precos-por-milhao-de-tokens` tem os tokens gravados e o cu
 **desconhecido**, nunca como zero: o extrato traz esse modelo em `modelosSemPreco` para o total
 não ser lido como se estivesse completo.
 
+## Nivelamento de entrada
+
+Antes disto todo mundo começava em A1 — e quem já sabe inglês abandona na primeira tela ao ser
+mandado traduzir "eu sou brasileiro".
+
+São **cinco perguntas abertas** em ordem crescente de exigência (A1 → C1), não múltipla escolha:
+o que interessa é o que a pessoa **produz**, que é exatamente o que o app vai cobrar depois.
+Pular é um botão de primeira classe, porque parar numa pergunta é o sinal mais limpo de onde
+está o teto — e a pergunta pulada continua gravada, marcada como pulada.
+
+**Uma única chamada de API**, no fim, com a conversa inteira. Julgar resposta por resposta
+custaria cinco chamadas e daria um veredito pior: o nível aparece no conjunto, não numa frase
+isolada. Medido: 1.073 tokens de entrada, 1.195 de saída, **US$ 0,021** — uma vez por conta.
+
+O prompt manda **escolher o menor nível na dúvida**, e nível em branco ou fora do quadro CEFR
+vira A1. Errar para baixo custa alguns minutos; errar para cima faz a pessoa desistir.
+
+### O que o nível estimado muda de verdade
+
+Os módulos de nível **abaixo** do estimado recebem nota **7,00**, e é isso que transforma a
+estimativa em ponto de partida: sem essa nota o pré-requisito de cada módulo continuaria
+pendente, e a pessoa cairia em A1 de novo com um nível bonito escrito no perfil e nenhum efeito
+na trilha.
+
+Sete, e não dez, porque nada disso foi **provado** aqui — é presunção, não resultado. Sete passa
+do limite de liberação (seis) e ainda aparece em **amarelo**, dizendo corretamente que o conceito
+não foi demonstrado. Como a quantidade de práticas fica em zero e não há data de prática, essa
+nota também **não sofre o decaimento por esquecimento**: não faz sentido "esquecer" o que ainda
+não foi medido. Nota já existente nunca é sobrescrita — prática de verdade vale mais que
+presunção, mesmo quando a presunção é mais alta.
+
+### Duas conversas ao mesmo tempo
+
+`iniciar` **trava a linha da conta** antes de procurar um nivelamento aberto. Sem a trava, duas
+requisições simultâneas — duas abas, um duplo clique, o modo estrito do React chamando o efeito
+duas vezes — passam juntas pelo "já existe?" e as duas tentam inserir; a segunda morre no índice
+único e vira erro na tela de quem clicou uma vez só. Aconteceu na primeira execução pelo
+navegador, antes da trava.
+
 ## Cálculo da nota
 
 Duas etapas separadas (`ServicoDeNota`):
