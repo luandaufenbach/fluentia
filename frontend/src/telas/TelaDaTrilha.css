@@ -486,3 +486,75 @@
   vertical-align: middle;
   white-space: nowrap;
 }
+
+/* ----------------------------------------------------------------------
+   Celular
+   ---------------------------------------------------------------------- */
+
+/*
+ * O botão de recolher só existe no toque. No desktop a fase inteira cabe na
+ * tela, e o percurso completo à vista é o que a trilha tem de melhor — um
+ * controle que não resolve nada ali só ocuparia espaço.
+ */
+.fase__alternar {
+  display: none;
+}
+
+/*
+ * O recolher vale só em telas de celular, não em tablet. A partir de 40rem sobra
+ * altura para o percurso inteiro, e recolher ali esconderia sem resolver nada.
+ */
+@media (max-width: 40rem) {
+  .fase__alternar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: none;
+    width: var(--alvo-de-toque);
+    height: var(--alvo-de-toque);
+    margin-right: calc(var(--espaco-2) * -1);
+    background: transparent;
+    border: none;
+    border-radius: var(--raio-pequeno);
+    color: var(--cor-texto-secundario);
+    font-size: 0.75rem;
+    transition: transform var(--transicao-rapida);
+  }
+
+  .fase[data-aberta="false"] .fase__alternar {
+    transform: rotate(-90deg);
+  }
+
+  /*
+   * Fase recolhida esconde os conceitos e o marco, mas nunca o cabeçalho: a
+   * contagem e a promessa continuam informando o que tem ali dentro, então
+   * recolher não vira caixa-preta.
+   */
+  .fase[data-aberta="false"] .fase__modulos,
+  .fase[data-aberta="false"] .fase__marco {
+    display: none;
+  }
+
+  .fase[data-aberta="false"] {
+    padding-bottom: var(--espaco-4);
+  }
+
+  /* O cabeçalho inteiro é a área de toque útil, então precisa de altura própria. */
+  .fase__cabecalho {
+    min-height: var(--alvo-de-toque);
+  }
+
+  /*
+   * Nó em duas colunas é desenho de tela larga. Aqui tudo empilha, e a dica de
+   * pré-requisito sobe de 12px para 13px: abaixo disso ninguém lê no ônibus.
+   */
+  .no__bloqueio {
+    font-size: 0.8125rem;
+  }
+}
+
+@media (hover: none) {
+  .fase__alternar:active {
+    background: var(--cor-superficie-sutil);
+  }
+}

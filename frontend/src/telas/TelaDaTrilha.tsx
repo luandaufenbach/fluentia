@@ -213,6 +213,16 @@ function BlocoDaFase({ fase, numero, onEstudarModulo }: PropsDaFase) {
   const alcancado = fase.situacaoDoMarco === "ALCANCADO";
   const presumido = fase.situacaoDoMarco === "PRESUMIDO";
 
+  /*
+   * Recolher só existe no celular — no desktop a fase inteira cabe na tela e o
+   * percurso completo é o que a trilha tem de melhor. O CSS ignora este estado
+   * acima de 52rem; aqui ele é só um dado.
+   *
+   * Abre na fase onde o aluno está. As cinco abertas somam seis telas de rolagem
+   * num aparelho comum, e achar a fase 4 vira trabalho de polegar.
+   */
+  const [aberta, setAberta] = useState(fase.emAndamento);
+
   const classes = [
     "fase",
     alcancado ? "fase--concluida" : "",
@@ -222,8 +232,10 @@ function BlocoDaFase({ fase, numero, onEstudarModulo }: PropsDaFase) {
     .filter(Boolean)
     .join(" ");
 
+  const conteudoId = `fase-${fase.codigo}`;
+
   return (
-    <section className={classes}>
+    <section className={classes} data-aberta={aberta}>
       <header className="fase__cabecalho">
         {/* O tique é só de quem praticou. Presumido ganha um traço: nem vazio, nem
             fechado — que é exatamente o estado de quem foi estimado e não provou. */}
@@ -242,11 +254,22 @@ function BlocoDaFase({ fase, numero, onEstudarModulo }: PropsDaFase) {
             </span>
           )}
         </span>
+
+        <button
+          type="button"
+          className="fase__alternar"
+          onClick={() => setAberta((estava) => !estava)}
+          aria-expanded={aberta}
+          aria-controls={conteudoId}
+          aria-label={`${aberta ? "Recolher" : "Abrir"} os conceitos de ${fase.nome}`}
+        >
+          <span aria-hidden="true">▾</span>
+        </button>
       </header>
 
       {fase.emAndamento && <span className="fase__aqui">Você está aqui</span>}
 
-      <ol className="fase__modulos">
+      <ol className="fase__modulos" id={conteudoId}>
         {fase.modulos.map((modulo, indice) => (
           <NoDoModulo
             key={modulo.codigo}

@@ -1,4 +1,4 @@
-# Fluentia
+XXX# Fluentia
 
 Trilha adaptativa de inglês. **Não é um chat com IA**: é um percurso por nível CEFR em que o
 app ensina o conceito, cobra com exercícios gerados na hora e decide o próximo passo a partir
@@ -39,6 +39,7 @@ consolidar o que ainda não está verde, revisar o que está há mais tempo para
 | **Ritmo diário** | Meta do dia derivada do ritmo escolhido, sequência de dias (um desafio conta) e aviso do que está caindo por tempo parado |
 | **Erro que insiste** | Na terceira vez do mesmo tipo, a correção mostra o padrão, as tentativas anteriores e onde o conceito é ensinado |
 | **Áudio** | Ouvir o inglês dos exemplos e das correções, e responder falando — pelo navegador, sem custo. O transcrito é editável antes de enviar |
+| **Feito para o celular** | Navegação fixa no rodapé, fases recolhíveis e alvos de toque de 44px. Verificado em 360 e 375px |
 
 ## Como rodar
 
@@ -61,7 +62,7 @@ Detalhes de cada lado em [`backend/README.md`](backend/README.md) e
 ## Stack
 
 Java 21 + Spring Boot 4 + Postgres no backend, React + TypeScript + Vite no frontend,
-Docker para empacotar. Migrations com Flyway, 133 testes incluindo integração contra o banco de verdade e a política de acesso.
+Docker para empacotar. Migrations com Flyway, 138 testes incluindo integração contra o banco de verdade e a política de acesso.
 
 ## Convenções
 

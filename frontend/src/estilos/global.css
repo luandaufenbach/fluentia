@@ -8,6 +8,13 @@
 
 html {
   font: 100% / 1.5 var(--fonte);
+  /*
+   * O iOS aumenta o corpo do texto sozinho ao girar o aparelho para paisagem, e
+   * o layout inteiro se desfaz na volta. Isto desliga o ajuste automático sem
+   * impedir o zoom manual, que continua sendo do usuário.
+   */
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
 }
 
 body {
@@ -15,6 +22,17 @@ body {
   background: var(--cor-fundo);
   color: var(--cor-texto);
   -webkit-font-smoothing: antialiased;
+}
+
+/*
+ * Campo com fonte abaixo de 16px faz o Safari do iPhone dar zoom na página ao
+ * receber foco — e a página não volta sozinha depois. É defesa: hoje todos os
+ * campos já estão em 16px ou mais, e esta regra impede a volta do problema.
+ */
+input,
+textarea,
+select {
+  font-size: max(1rem, inherit);
 }
 
 h1,
@@ -42,6 +60,13 @@ p {
 button {
   font: inherit;
   cursor: pointer;
+  /*
+   * Sem isto o navegador móvel espera ~300ms depois do toque para ver se vem um
+   * segundo toque (duplo toque = zoom). O botão parece lento sem motivo.
+   */
+  touch-action: manipulation;
+  /* O retângulo cinza que o WebKit pinta no toque briga com o realce do próprio app. */
+  -webkit-tap-highlight-color: transparent;
 }
 
 /* O feedback aparece no pointer-down, nao na soltura: a pressao precisa ser instantanea. */
@@ -90,6 +115,25 @@ button {
 
 .botao-secundario:hover:not(:disabled) {
   background: var(--cor-superficie-sutil);
+}
+
+/*
+ * No celular os botões de ação ocupam a largura toda e empilham. Dois botões
+ * lado a lado num aparelho de 360px sobram uns 150px cada, e o rótulo quebra em
+ * duas linhas — pior de ler e pior de acertar com o dedo.
+ */
+@media (max-width: 30rem) {
+  .botao-primario,
+  .botao-secundario {
+    width: 100%;
+    justify-content: center;
+  }
+
+  /* Hierarquia por ordem: a ação principal fica embaixo, ao alcance do polegar. */
+  .tela-de-desafio__fechamento-acoes,
+  .nivelamento__acoes {
+    flex-direction: column-reverse;
+  }
 }
 
 /* Movimento reduzido: troca deslocamento por fade curto, sem eliminar o feedback. */

@@ -31,8 +31,11 @@ peça acima precisa de lógica de decisão real, não só geração de texto.
   passiva, condicionais mistos. C1/C2 → subjuntivo, inversão, expressões idiomáticas
   avançadas.
 - **Temas (o "onde"):** a cena/contexto que envolve o desafio — conversação livre,
-  viagem, trabalho, cultura e expressões, inglês pra dev (diferencial, não o módulo
-  principal). O tema dá a roupagem; o conceito é o que está sendo avaliado.
+  viagem, trabalho, cultura e expressões, comida e restaurante, compras e serviços,
+  saúde e bem-estar, vida social, casa e rotina. O tema dá a roupagem; o conceito é o
+  que está sendo avaliado. "Inglês pra dev" saiu: era um nicho dentro de um app que
+  ensina a língua, e quem está aprendendo precisa pedir comida e marcar consulta muito
+  antes de escrever code review.
 - Um módulo (conceito) só é liberado quando os pré-requisitos dele têm nota razoável —
   preserva a progressão por nível sem travar o usuário numa ordem 100% fixa.
 

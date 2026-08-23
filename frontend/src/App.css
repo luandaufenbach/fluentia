@@ -1,7 +1,13 @@
 .aplicacao {
   display: grid;
   grid-template-columns: 15rem minmax(0, 1fr);
+  /*
+   * dvh acompanha a barra de endereço do navegador móvel, que aparece e some
+   * durante a rolagem. Com vh a página fica alta demais e sobra uma faixa vazia
+   * embaixo. O vh vem antes como reserva para quem não entende dvh.
+   */
   min-height: 100vh;
+  min-height: 100dvh;
 }
 
 /*
@@ -31,12 +37,35 @@
   }
 
   .aplicacao__conteudo {
-    padding: var(--espaco-5) var(--espaco-4) var(--espaco-6);
+    /*
+     * A folga de baixo tira o conteúdo de trás da navegação fixa no rodapé —
+     * 3,5rem da barra, mais a faixa do indicador de gesto do iPhone, mais o
+     * respiro normal. Sem isso o último botão de cada tela fica inalcançável.
+     */
+    padding: var(--espaco-5) var(--espaco-4);
+    padding-bottom: calc(3.5rem + env(safe-area-inset-bottom, 0px) + var(--espaco-6));
+  }
+
+  /*
+   * O título da tela some no celular: a aba acesa no rodapé já diz onde a pessoa
+   * está, e repetir isso em 1,75rem no topo custa uma linha de conteúdo em cada
+   * tela. Continua no documento para leitor de tela.
+   */
+  .aplicacao__titulo {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
   }
 }
 
 .aplicacao__carregando {
   min-height: 100vh;
+  min-height: 100dvh;
   display: flex;
   align-items: center;
   justify-content: center;

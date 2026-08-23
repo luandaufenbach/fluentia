@@ -9,8 +9,8 @@ e clara.
 ## Estrutura de telas
 
 - **Onboarding:** cadastro/login → diagnóstico de nível (conversa curta com o agente,
-  não múltipla escolha) → objetivo (viagem, trabalho, inglês pra dev, conversação
-  geral) → ritmo (minutos por dia, tipo de correção)
+  não múltipla escolha) → objetivo (viagem, trabalho, conversação geral) → ritmo
+  (minutos por dia, tipo de correção)
 - **Lista de módulos:** agrupada por nível CEFR (A1 a C2), cada módulo mostrando um
   indicador colorido (vermelho/amarelo/verde) e a nota de 0 a 10 ao lado do nome;
   módulo ainda não tentado aparece como "novo", sem cor de nota. Lista densa, linhas
@@ -18,9 +18,11 @@ e clara.
 - **Desafio:** tela onde o desafio gerado aparece — pode ser conversa, resposta
   escrita, ou (fase 2) resposta em áudio. A correção aparece só ao final da sessão,
   resumida, nunca interrompendo o meio da resposta.
-- **Sidebar de temas:** conversação livre, viagem, trabalho, cultura e expressões,
-  inglês pra dev (diferencial, não o módulo principal) — funciona como filtro/contexto
-  pro desafio, não como currículo em si (o currículo é a lista de módulos por nível).
+- **Sidebar de temas:** nove cenas de vida real — conversação livre, viagem, trabalho,
+  cultura e expressões, comida e restaurante, compras e serviços, saúde e bem-estar,
+  vida social, casa e rotina. Funciona como contexto pro desafio, não como currículo
+  em si (o currículo é a lista de módulos por nível). No celular a lista sai da tela:
+  o rodapé é só navegação.
 - **Progresso:** visão geral de quantos módulos estão em cada faixa de cor, e quais
   conceitos mais precisam de atenção agora.
 - **Configurações:** objetivo, ritmo, tipo de correção.

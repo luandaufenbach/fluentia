@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { BarraLateral, type Aba } from "./componentes/BarraLateral";
-import { api } from "./servicos/api";
+import { api, registrarPerdaDeSessao } from "./servicos/api";
 import { TelaDaTrilha } from "./telas/TelaDaTrilha";
 import { TelaDeAutenticacao } from "./telas/TelaDeAutenticacao";
 import { TelaDeConfiguracoes } from "./telas/TelaDeConfiguracoes";
@@ -49,6 +49,21 @@ export default function App() {
     return () => {
       cancelado = true;
     };
+  }, []);
+
+  /**
+   * Sessão recusada pelo servidor leva de volta para a entrada.
+   *
+   * A sessão expira em 60 minutos, e no celular isso é rotina: a pessoa volta ao
+   * app no dia seguinte e via "Autenticação necessária" impressa no meio de uma
+   * tela, sem nenhum caminho de volta. Registrado antes de qualquer requisição
+   * para que nem a primeira chamada da sessão caia nesse buraco.
+   */
+  useEffect(() => {
+    registrarPerdaDeSessao(() => {
+      setUsuario(null);
+      setAbaAtiva("modulos");
+    });
   }, []);
 
   /**

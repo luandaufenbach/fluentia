@@ -4,7 +4,11 @@ import type { Tema } from "../tipos";
 import "./BarraLateral.css";
 
 export type Aba =
-  "modulos" | "conteudo" | "desafio" | "progresso" | "configuracoes";
+  | "modulos"
+  | "conteudo"
+  | "desafio"
+  | "progresso"
+  | "configuracoes";
 
 interface Props {
   abaAtiva: Aba;
@@ -16,17 +20,26 @@ interface Props {
 /**
  * "Conteúdo" não entra aqui porque depende de um módulo escolhido: chega-se a ele
  * pela trilha ou pelo desafio, nunca do nada.
+ *
+ * O ícone é um glifo, não uma imagem: no celular o rótulo sozinho fica pequeno
+ * demais para distinguir de relance, e carregar uma fonte de ícones por quatro
+ * símbolos custaria mais do que resolve.
  */
-const ABAS: { id: Aba; rotulo: string }[] = [
-  { id: "modulos", rotulo: "Trilha" },
-  { id: "desafio", rotulo: "Desafio" },
-  { id: "progresso", rotulo: "Progresso" },
-  { id: "configuracoes", rotulo: "Configurações" },
+const ABAS: { id: Aba; rotulo: string; icone: string }[] = [
+  { id: "modulos", rotulo: "Trilha", icone: "◈" },
+  { id: "desafio", rotulo: "Desafio", icone: "✎" },
+  { id: "progresso", rotulo: "Progresso", icone: "◑" },
+  { id: "configuracoes", rotulo: "Ajustes", icone: "⚙" },
 ];
 
 /**
- * Navegação lateral. Os temas aparecem como contexto do desafio — são cena,
- * não a trilha: a trilha é a lista de módulos por nível.
+ * Navegação do app.
+ *
+ * São dois desenhos com o mesmo conteúdo, trocados por largura. No desktop, coluna
+ * à esquerda. No celular, uma barra fixa no rodapé: navegação que rola junto com a
+ * página some assim que o aluno desce a tela, e a trilha tem seis telas de altura —
+ * ele teria que voltar ao topo só para trocar de aba. O rodapé também é onde o
+ * polegar alcança sem trocar a mão de posição.
  */
 export function BarraLateral({
   abaAtiva,
@@ -45,15 +58,29 @@ export function BarraLateral({
 
   return (
     <aside className="barra-lateral">
-      <div className="barra-lateral__marca">
-        <span className="barra-lateral__ponto" aria-hidden="true" />
-        <span className="barra-lateral__nome">Fluentia</span>
+      <div className="barra-lateral__topo">
+        <div className="barra-lateral__marca">
+          <span className="barra-lateral__ponto" aria-hidden="true" />
+          <span className="barra-lateral__nome">Fluentia</span>
+        </div>
+
+        {/* No celular a conta sobe para o topo: o rodapé é só navegação, e
+            "Sair" ao lado das abas viraria toque errado. */}
+        <div className="barra-lateral__conta">
+          <span className="barra-lateral__quem" title={nomeDoUsuario}>
+            {nomeDoUsuario}
+          </span>
+          <button
+            type="button"
+            className="barra-lateral__sair"
+            onClick={onSair}
+          >
+            Sair
+          </button>
+        </div>
       </div>
 
-      <nav
-        className="barra-lateral__navegacao"
-        aria-label="Navegação principal"
-      >
+      <nav className="barra-lateral__navegacao" aria-label="Navegação principal">
         {ABAS.map((aba) => (
           <button
             key={aba.id}
@@ -64,7 +91,10 @@ export function BarraLateral({
             onClick={() => onTrocarAba(aba.id)}
             aria-current={abaAtiva === aba.id ? "page" : undefined}
           >
-            {aba.rotulo}
+            <span className="barra-lateral__icone" aria-hidden="true">
+              {aba.icone}
+            </span>
+            <span className="barra-lateral__rotulo">{aba.rotulo}</span>
           </button>
         ))}
       </nav>
@@ -85,14 +115,6 @@ export function BarraLateral({
           </p>
         </section>
       )}
-      <div className="barra-lateral__conta">
-        <span className="barra-lateral__quem" title={nomeDoUsuario}>
-          {nomeDoUsuario}
-        </span>
-        <button type="button" className="barra-lateral__sair" onClick={onSair}>
-          Sair
-        </button>
-      </div>
     </aside>
   );
 }

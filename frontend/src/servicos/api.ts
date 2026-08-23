@@ -48,6 +48,29 @@ function tokenDeCsrf(): string | null {
 /** Só requisição que altera estado precisa do token. */
 const METODOS_SEGUROS = new Set(["GET", "HEAD", "OPTIONS"]);
 
+/**
+ * Rotas em que 401 é resposta esperada, não sessão perdida.
+ *
+ * Entrar com senha errada devolve 401 — e ali quem precisa ver o erro é a própria
+ * tela de entrada. Sem esta lista, cada tentativa errada dispararia o aviso de
+ * sessão expirada.
+ */
+const ROTAS_DE_ENTRADA = ["/autenticacao/login", "/autenticacao/cadastro"];
+
+let aoPerderSessao: (() => void) | null = null;
+
+/**
+ * Avisa o app quando o servidor recusa a sessão.
+ *
+ * A sessão expira em 60 minutos, e no celular isso acontece o tempo todo: a pessoa
+ * volta ao app no dia seguinte e a primeira coisa que via era "Autenticação
+ * necessária" impressa no meio de uma tela, sem nenhum caminho para voltar. Quem
+ * manda sobre a sessão é o servidor, então o aviso vem da resposta dele.
+ */
+export function registrarPerdaDeSessao(callback: () => void) {
+  aoPerderSessao = callback;
+}
+
 async function requisitar<T>(
   caminho: string,
   opcoes?: RequestInit,
@@ -72,6 +95,13 @@ async function requisitar<T>(
   });
 
   if (!resposta.ok) {
+    if (
+      resposta.status === 401 &&
+      !ROTAS_DE_ENTRADA.some((rota) => caminho.startsWith(rota))
+    ) {
+      aoPerderSessao?.();
+    }
+
     // O backend devolve { status, mensagem, momento } no tratador de erros.
     const corpo = await resposta.json().catch(() => null);
     throw new ErroDaApi(

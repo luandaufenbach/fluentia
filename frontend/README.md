@@ -184,3 +184,36 @@ também reage ao evento `voiceschanged`. Sem isso ele nunca apareceria, mesmo pa
 Desafio em que **o enunciado é falado** (`formato = AUDIO`, "ouça e responda"). O campo já está
 no modelo de dados e a tela já trata o formato, mas o gerador ainda não produz esse tipo de
 desafio — ele precisaria de um texto para ouvir separado do enunciado escrito.
+
+## No celular
+
+O app é usado no telefone, então o desenho de toque não é adaptação do desktop — é o
+principal. Corte em `52rem` para a navegação e em `40rem` para o que só faz sentido em tela
+de celular.
+
+| | |
+|---|---|
+| **Navegação no rodapé** | Fixa, com ícone e rótulo. Navegação que rola junto some assim que o aluno desce a tela, e a trilha tem várias telas de altura — ele teria que voltar ao topo só para trocar de aba. O rodapé também é onde o polegar alcança sem trocar a mão de posição |
+| **Cabeçalho enxuto** | Marca, nome e sair. Rola junto de propósito: fixá-lo somaria 3,5rem permanentes aos 3,5rem do rodapé, 15% de um celular de 812px gastos em moldura |
+| **Fases recolhíveis** | Abre na fase onde o aluno está. Com as cinco abertas a trilha passava de seis telas de rolagem; recolhida fica em pouco mais de três, e o cabeçalho continua mostrando a contagem |
+| **Botões em largura cheia** | Abaixo de `30rem`. Dois lado a lado num aparelho de 360px sobram 150px cada, e o rótulo quebra em duas linhas |
+| **Alvos de 44px** | Verificado em 360 e 375px: nenhum controle abaixo disso em nenhuma tela |
+
+### Três detalhes que só aparecem no aparelho
+
+- **`text-size-adjust: 100%`** — o iOS aumenta o corpo do texto sozinho ao girar para
+  paisagem, e o layout se desfaz na volta.
+- **Campo com fonte abaixo de 16px** faz o Safari do iPhone dar zoom na página ao receber
+  foco — e ela não volta sozinha. A regra global é defesa contra regressão.
+- **`touch-action: manipulation`** — sem isso o navegador espera ~300ms depois do toque para
+  ver se vem um segundo (duplo toque = zoom), e o botão parece lento sem motivo.
+
+E `env(safe-area-inset-bottom)` na barra do rodapé: a faixa do indicador de gesto do iPhone
+come a última linha sem isso.
+
+### Sessão perdida volta para a entrada
+
+A sessão expira em 60 minutos, e no celular isso é rotina. Antes a pessoa voltava no dia
+seguinte e via "Autenticação necessária" impressa no meio de uma tela, sem caminho de volta.
+Agora um 401 vindo do servidor leva direto para a tela de entrada — menos nas rotas de login,
+onde 401 é resposta esperada de senha errada.
