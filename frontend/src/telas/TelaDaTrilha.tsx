@@ -3,7 +3,13 @@ import { useEffect, useState } from "react";
 import { IndicadorDeNota } from "../componentes/IndicadorDeNota";
 import { PainelDoDia } from "../componentes/PainelDoDia";
 import { api } from "../servicos/api";
-import type { FaseNaTrilha, Modulo, ResumoDoDia, Sugestao, Trilha } from "../tipos";
+import type {
+  FaseNaTrilha,
+  Modulo,
+  ResumoDoDia,
+  Sugestao,
+  Trilha,
+} from "../tipos";
 import "./TelaDaTrilha.css";
 
 interface Props {
@@ -22,7 +28,12 @@ interface Props {
  * ganha ao chegar lá. Aqui cada fase carrega a promessa do que ela destrava, e o
  * estado de cada nó vem da nota real — não de um checkbox que o aluno marca sozinho.
  */
-export function TelaDaTrilha({ versao, onEstudarModulo, onIrParaDesafio, onPraticarModulo }: Props) {
+export function TelaDaTrilha({
+  versao,
+  onEstudarModulo,
+  onIrParaDesafio,
+  onPraticarModulo,
+}: Props) {
   const [trilha, setTrilha] = useState<Trilha | null>(null);
   const [sugestao, setSugestao] = useState<Sugestao | null>(null);
   const [resumoDoDia, setResumoDoDia] = useState<ResumoDoDia | null>(null);
@@ -31,7 +42,11 @@ export function TelaDaTrilha({ versao, onEstudarModulo, onIrParaDesafio, onPrati
   useEffect(() => {
     let cancelado = false;
 
-    Promise.all([api.listarTrilha(), api.buscarSugestao(), api.buscarResumoDoDia()])
+    Promise.all([
+      api.listarTrilha(),
+      api.buscarSugestao(),
+      api.buscarResumoDoDia(),
+    ])
       .then(([percurso, proxima, dia]) => {
         if (!cancelado) {
           setTrilha(percurso);
@@ -41,7 +56,11 @@ export function TelaDaTrilha({ versao, onEstudarModulo, onIrParaDesafio, onPrati
       })
       .catch((falha: unknown) => {
         if (!cancelado) {
-          setErro(falha instanceof Error ? falha.message : "Não foi possível carregar a trilha.");
+          setErro(
+            falha instanceof Error
+              ? falha.message
+              : "Não foi possível carregar a trilha.",
+          );
         }
       });
 
@@ -58,7 +77,9 @@ export function TelaDaTrilha({ versao, onEstudarModulo, onIrParaDesafio, onPrati
     return <p className="trilha__estado">Carregando a trilha...</p>;
   }
 
-  const progresso = Math.round((trilha.modulosConsolidados / trilha.totalDeModulos) * 100);
+  const progresso = Math.round(
+    (trilha.modulosConsolidados / trilha.totalDeModulos) * 100,
+  );
 
   return (
     <div className="trilha">
@@ -75,7 +96,8 @@ export function TelaDaTrilha({ versao, onEstudarModulo, onIrParaDesafio, onPrati
           <div className="trilha__medidor-texto">
             <span className="trilha__percentual">{progresso}%</span>
             <span className="trilha__contagem">
-              {trilha.modulosConsolidados} de {trilha.totalDeModulos} conceitos vencidos
+              {trilha.modulosConsolidados} de {trilha.totalDeModulos} conceitos
+              vencidos
             </span>
           </div>
           <div className="trilha__barra">
@@ -100,7 +122,11 @@ export function TelaDaTrilha({ versao, onEstudarModulo, onIrParaDesafio, onPrati
               >
                 Estudar o conteúdo
               </button>
-              <button type="button" className="botao-secundario" onClick={onIrParaDesafio}>
+              <button
+                type="button"
+                className="botao-secundario"
+                onClick={onIrParaDesafio}
+              >
                 Ir direto ao desafio
               </button>
             </div>
@@ -119,7 +145,9 @@ export function TelaDaTrilha({ versao, onEstudarModulo, onIrParaDesafio, onPrati
         ))}
 
         <div className="trilha__fim">
-          <span className="trilha__bandeira">Inglês que você usa sem pensar</span>
+          <span className="trilha__bandeira">
+            Inglês que você usa sem pensar
+          </span>
         </div>
       </div>
 
@@ -127,24 +155,28 @@ export function TelaDaTrilha({ versao, onEstudarModulo, onIrParaDesafio, onPrati
         <h2>O que vale mais que o material</h2>
         <ol>
           <li>
-            <b>Constância ganha de intensidade.</b> Quinze minutos todo dia batem três horas no
-            domingo. O inimigo não é a dificuldade, é a semana pulada.
+            <b>Constância ganha de intensidade.</b> Quinze minutos todo dia
+            batem três horas no domingo. O inimigo não é a dificuldade, é a
+            semana pulada.
           </li>
           <li>
-            <b>Errar é o mecanismo, não a falha.</b> Aqui o erro vira nota, e a nota escolhe o seu
-            próximo desafio. Chutar uma resposta ensina mais do que fechar a tela.
+            <b>Errar é o mecanismo, não a falha.</b> Aqui o erro vira nota, e a
+            nota escolhe o seu próximo desafio. Chutar uma resposta ensina mais
+            do que fechar a tela.
           </li>
           <li>
-            <b>Pare de traduzir na cabeça.</b> Leia o exemplo em inglês antes da tradução e tente
-            entender pela cena, não pela palavra.
+            <b>Pare de traduzir na cabeça.</b> Leia o exemplo em inglês antes da
+            tradução e tente entender pela cena, não pela palavra.
           </li>
           <li>
-            <b>O desafio certo é o que você quase acerta.</b> Se está fácil demais, você não está
-            aprendendo; se está impossível, a base ainda não fechou — volte um conceito.
+            <b>O desafio certo é o que você quase acerta.</b> Se está fácil
+            demais, você não está aprendendo; se está impossível, a base ainda
+            não fechou — volte um conceito.
           </li>
           <li>
-            <b>Troque o ambiente, não só o estudo.</b> Celular em inglês, receita em inglês. O
-            estudo são minutos; a exposição pode ser o dia inteiro, de graça.
+            <b>Troque o ambiente, não só o estudo.</b> Celular em inglês,
+            receita em inglês. O estudo são minutos; a exposição pode ser o dia
+            inteiro, de graça.
           </li>
         </ol>
       </section>
@@ -170,7 +202,9 @@ function BlocoDaFase({ fase, numero, onEstudarModulo }: PropsDaFase) {
   return (
     <section className={classes}>
       <header className="fase__cabecalho">
-        <span className="fase__numero">{fase.marcoAlcancado ? "✓" : numero}</span>
+        <span className="fase__numero">
+          {fase.marcoAlcancado ? "✓" : numero}
+        </span>
         <div className="fase__titulo">
           <h2>{fase.nome}</h2>
           <p className="fase__promessa">{fase.promessa}</p>
@@ -193,7 +227,9 @@ function BlocoDaFase({ fase, numero, onEstudarModulo }: PropsDaFase) {
         ))}
       </ol>
 
-      <p className={`fase__marco ${fase.marcoAlcancado ? "fase__marco--alcancado" : ""}`}>
+      <p
+        className={`fase__marco ${fase.marcoAlcancado ? "fase__marco--alcancado" : ""}`}
+      >
         <span className="fase__marco-rotulo">Marco</span>
         {fase.marco}
       </p>

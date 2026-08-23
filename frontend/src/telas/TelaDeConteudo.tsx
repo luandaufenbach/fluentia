@@ -1,3 +1,4 @@
+import { BotaoDeOuvir } from "../componentes/BotaoDeOuvir";
 import { motion } from "motion/react";
 import { useEffect, useState } from "react";
 import { api } from "../servicos/api";
@@ -15,7 +16,11 @@ interface Props {
  * lido nada não ensina, só mede. É também para onde o aluno volta quando trava no meio
  * de um desafio.
  */
-export function TelaDeConteudo({ codigoDoModulo, onComecarExercicios, onVoltarParaTrilha }: Props) {
+export function TelaDeConteudo({
+  codigoDoModulo,
+  onComecarExercicios,
+  onVoltarParaTrilha,
+}: Props) {
   const [conteudo, setConteudo] = useState<ConteudoDoModulo | null>(null);
   const [carregando, setCarregando] = useState(true);
   const [erro, setErro] = useState<string | null>(null);
@@ -32,7 +37,11 @@ export function TelaDeConteudo({ codigoDoModulo, onComecarExercicios, onVoltarPa
       })
       .catch((falha: unknown) => {
         if (!cancelado) {
-          setErro(falha instanceof Error ? falha.message : "Não foi possível carregar o conteúdo.");
+          setErro(
+            falha instanceof Error
+              ? falha.message
+              : "Não foi possível carregar o conteúdo.",
+          );
         }
       })
       .finally(() => {
@@ -52,7 +61,11 @@ export function TelaDeConteudo({ codigoDoModulo, onComecarExercicios, onVoltarPa
     return (
       <div className="tela-de-conteudo__estado">
         <p>{erro ?? "Conteúdo indisponível."}</p>
-        <button type="button" className="botao-secundario" onClick={onVoltarParaTrilha}>
+        <button
+          type="button"
+          className="botao-secundario"
+          onClick={onVoltarParaTrilha}
+        >
           Voltar para a trilha
         </button>
       </div>
@@ -87,11 +100,17 @@ export function TelaDeConteudo({ codigoDoModulo, onComecarExercicios, onVoltarPa
               {conteudo.errosComuns.map((erro, indice) => (
                 <li key={indice}>
                   <p className="tela-de-conteudo__troca">
-                    <span className="tela-de-conteudo__errado">{erro.errado}</span>
+                    <span className="tela-de-conteudo__errado">
+                      {erro.errado}
+                    </span>
                     <span aria-hidden="true"> → </span>
-                    <span className="tela-de-conteudo__certo">{erro.certo}</span>
+                    <span className="tela-de-conteudo__certo">
+                      {erro.certo}
+                    </span>
                   </p>
-                  <p className="tela-de-conteudo__explicacao-do-erro">{erro.explicacao}</p>
+                  <p className="tela-de-conteudo__explicacao-do-erro">
+                    {erro.explicacao}
+                  </p>
                 </li>
               ))}
             </ul>
@@ -105,21 +124,37 @@ export function TelaDeConteudo({ codigoDoModulo, onComecarExercicios, onVoltarPa
           {conteudo.exemplos.map((exemplo, indice) => (
             <li key={indice}>
               <p className="tela-de-conteudo__ingles" lang="en">
-                {exemplo.emIngles}
+                {exemplo.emIngles}{" "}
+                <BotaoDeOuvir
+                  texto={exemplo.emIngles}
+                  descricao={`Ouvir: ${exemplo.emIngles}`}
+                />
               </p>
-              <p className="tela-de-conteudo__portugues">{exemplo.emPortugues}</p>
+              <p className="tela-de-conteudo__portugues">
+                {exemplo.emPortugues}
+              </p>
               {exemplo.observacao && (
-                <p className="tela-de-conteudo__observacao">{exemplo.observacao}</p>
+                <p className="tela-de-conteudo__observacao">
+                  {exemplo.observacao}
+                </p>
               )}
             </li>
           ))}
         </ol>
 
         <div className="tela-de-conteudo__acoes">
-          <button type="button" className="botao-primario" onClick={onComecarExercicios}>
+          <button
+            type="button"
+            className="botao-primario"
+            onClick={onComecarExercicios}
+          >
             Começar os exercícios
           </button>
-          <button type="button" className="botao-secundario" onClick={onVoltarParaTrilha}>
+          <button
+            type="button"
+            className="botao-secundario"
+            onClick={onVoltarParaTrilha}
+          >
             Voltar para a trilha
           </button>
         </div>

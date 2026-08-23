@@ -3,7 +3,8 @@ import { api } from "../servicos/api";
 import type { Tema } from "../tipos";
 import "./BarraLateral.css";
 
-export type Aba = "modulos" | "conteudo" | "desafio" | "progresso" | "configuracoes";
+export type Aba =
+  "modulos" | "conteudo" | "desafio" | "progresso" | "configuracoes";
 
 interface Props {
   abaAtiva: Aba;
@@ -27,11 +28,19 @@ const ABAS: { id: Aba; rotulo: string }[] = [
  * Navegação lateral. Os temas aparecem como contexto do desafio — são cena,
  * não a trilha: a trilha é a lista de módulos por nível.
  */
-export function BarraLateral({ abaAtiva, onTrocarAba, nomeDoUsuario, onSair }: Props) {
+export function BarraLateral({
+  abaAtiva,
+  onTrocarAba,
+  nomeDoUsuario,
+  onSair,
+}: Props) {
   const [temas, setTemas] = useState<Tema[]>([]);
 
   useEffect(() => {
-    api.listarTemas().then(setTemas).catch(() => setTemas([]));
+    api
+      .listarTemas()
+      .then(setTemas)
+      .catch(() => setTemas([]));
   }, []);
 
   return (
@@ -41,7 +50,10 @@ export function BarraLateral({ abaAtiva, onTrocarAba, nomeDoUsuario, onSair }: P
         <span className="barra-lateral__nome">Fluentia</span>
       </div>
 
-      <nav className="barra-lateral__navegacao" aria-label="Navegação principal">
+      <nav
+        className="barra-lateral__navegacao"
+        aria-label="Navegação principal"
+      >
         {ABAS.map((aba) => (
           <button
             key={aba.id}
@@ -68,7 +80,8 @@ export function BarraLateral({ abaAtiva, onTrocarAba, nomeDoUsuario, onSair }: P
             ))}
           </ul>
           <p className="barra-lateral__nota">
-            O tema dá a roupagem do desafio. O que recebe nota é o conceito, na lista da trilha.
+            O tema dá a roupagem do desafio. O que recebe nota é o conceito, na
+            lista da trilha.
           </p>
         </section>
       )}

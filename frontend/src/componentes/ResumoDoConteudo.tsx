@@ -15,7 +15,10 @@ const EXEMPLOS_NO_RESUMO = 3;
  * Lembrete do conteúdo ao lado do desafio. Não substitui a tela de conteúdo:
  * mostra o essencial para destravar e oferece o caminho de volta ao material inteiro.
  */
-export function ResumoDoConteudo({ codigoDoModulo, onVerConteudoCompleto }: Props) {
+export function ResumoDoConteudo({
+  codigoDoModulo,
+  onVerConteudoCompleto,
+}: Props) {
   const [conteudo, setConteudo] = useState<ConteudoDoModulo | null>(null);
 
   useEffect(() => {
@@ -47,17 +50,25 @@ export function ResumoDoConteudo({ codigoDoModulo, onVerConteudoCompleto }: Prop
       <p className="resumo-do-conteudo__resumo">{conteudo.resumo}</p>
 
       <ul className="resumo-do-conteudo__exemplos">
-        {conteudo.exemplos.slice(0, EXEMPLOS_NO_RESUMO).map((exemplo, indice) => (
-          <li key={indice}>
-            <span className="resumo-do-conteudo__ingles" lang="en">
-              {exemplo.emIngles}
-            </span>
-            <span className="resumo-do-conteudo__portugues">{exemplo.emPortugues}</span>
-          </li>
-        ))}
+        {conteudo.exemplos
+          .slice(0, EXEMPLOS_NO_RESUMO)
+          .map((exemplo, indice) => (
+            <li key={indice}>
+              <span className="resumo-do-conteudo__ingles" lang="en">
+                {exemplo.emIngles}
+              </span>
+              <span className="resumo-do-conteudo__portugues">
+                {exemplo.emPortugues}
+              </span>
+            </li>
+          ))}
       </ul>
 
-      <button type="button" className="botao-secundario" onClick={onVerConteudoCompleto}>
+      <button
+        type="button"
+        className="botao-secundario"
+        onClick={onVerConteudoCompleto}
+      >
         Voltar para o conteúdo
       </button>
     </aside>

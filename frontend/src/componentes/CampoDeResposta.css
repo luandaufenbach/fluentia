@@ -41,3 +41,71 @@
   color: var(--cor-texto-secundario);
   font-size: 0.9375rem;
 }
+
+.campo-de-resposta__cabecalho {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--espaco-3);
+  flex-wrap: wrap;
+}
+
+.campo-de-resposta__microfone {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--espaco-2);
+  min-height: var(--alvo-de-toque);
+  padding: 0 var(--espaco-4);
+  font: inherit;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--cor-texto-secundario);
+  background: var(--cor-superficie);
+  border: 1px solid var(--cor-borda-forte);
+  border-radius: var(--raio-medio);
+  cursor: pointer;
+  transition: border-color var(--transicao-rapida), color var(--transicao-rapida);
+}
+
+.campo-de-resposta__microfone:hover:not(:disabled) {
+  border-color: var(--cor-destaque-borda);
+  color: var(--cor-texto);
+}
+
+.campo-de-resposta__microfone:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+/* Ouvindo é um estado, não um clique: precisa ficar visível o tempo todo que durar. */
+.campo-de-resposta__microfone--ouvindo {
+  color: var(--cor-vermelho);
+  border-color: var(--cor-vermelho);
+  background: var(--cor-vermelho-fundo);
+}
+
+.campo-de-resposta__microfone--ouvindo span {
+  animation: campo-de-resposta-pulsar 1.2s ease-in-out infinite;
+}
+
+@keyframes campo-de-resposta-pulsar {
+  50% {
+    opacity: 0.25;
+  }
+}
+
+.campo-de-resposta__aviso {
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  color: var(--cor-texto-secundario);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .campo-de-resposta__microfone--ouvindo span {
+    animation: none;
+  }
+
+  .campo-de-resposta__microfone {
+    transition: none;
+  }
+}

@@ -9,7 +9,8 @@ export type FormatoDoDesafio = "TEXTO" | "CONVERSA" | "AUDIO";
 
 export type StatusDoDesafio = "AGUARDANDO_RESPOSTA" | "AVALIADO" | "DESCARTADO";
 
-export type ObjetivoDoUsuario = "VIAGEM" | "TRABALHO" | "DEV" | "CONVERSACAO_GERAL";
+export type ObjetivoDoUsuario =
+  "VIAGEM" | "TRABALHO" | "DEV" | "CONVERSACAO_GERAL";
 
 export type TipoDeCorrecao = "RESUMIDA" | "DETALHADA";
 

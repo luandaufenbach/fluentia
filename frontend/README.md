@@ -135,11 +135,6 @@ o aluno desiste.
 `conteudo` não é item de menu porque depende de um módulo escolhido — chega-se a ele pela trilha
 ou pelo desafio, nunca do nada.
 
-### Preparado para áudio na fase 2
-
-`CampoDeResposta` decide a entrada pelo campo `formato` do desafio (`TEXTO`, `CONVERSA`, `AUDIO`).
-Entrar com áudio é adicionar um ramo nesse componente — `TelaDeDesafio` não muda.
-
 ### Correção só ao final
 
 A correção aparece apenas depois do envio, nunca durante a escrita: nota da resposta, cada erro
@@ -149,3 +144,39 @@ com trecho errado → correção e explicação, e a nota do módulo já recalcu
 
 Nomes de componente, variável e comentário em **português**. Mensagens de commit também,
 organizadas por etapa.
+
+## Áudio
+
+Nos dois sentidos, pelo navegador — sem serviço de fala, sem custo por minuto e sem a voz do
+aluno saindo da máquina dele. `src/audio/vozDoNavegador.ts` concentra a Web Speech API.
+
+| | |
+|---|---|
+| **Ouvir** (`BotaoDeOuvir`) | Fala o inglês dos exemplos do conteúdo e das correções. Velocidade em 0,92 — a padrão atropela quem está aprendendo |
+| **Falar** (`CampoDeResposta`) | O que o reconhecimento entende vira texto no campo, **editável antes de enviar** |
+
+### Falar não envia direto
+
+O transcrito entra no campo e o aluno confere. Mandar direto puniria a pessoa por falha do
+reconhecimento — e é o aluno que leva a nota, não o microfone. A tela diz isso enquanto ouve.
+
+### O botão de ouvir some sem voz em inglês
+
+`lang = "en-US"` **não garante** voz em inglês. Numa máquina que só tem vozes em português — o
+caso comum de um Windows brasileiro — o navegador aceita a marcação e lê o inglês com a voz
+portuguesa. Num app de idioma isso é pior do que não ter áudio: ensina a pronúncia errada com a
+autoridade de um botão oficial.
+
+Por isso o botão só aparece quando existe uma voz `en*` de verdade, e a voz é escolhida
+explicitamente em vez de deixada para o navegador resolver pelo `lang`.
+
+Para instalar no Windows: *Configurações → Hora e Idioma → Fala → Gerenciar vozes → Adicionar*.
+
+As vozes carregam de forma assíncrona: na primeira renderização a lista vem vazia, então o botão
+também reage ao evento `voiceschanged`. Sem isso ele nunca apareceria, mesmo para quem tem voz.
+
+### O que ainda não existe
+
+Desafio em que **o enunciado é falado** (`formato = AUDIO`, "ouça e responda"). O campo já está
+no modelo de dados e a tela já trata o formato, mas o gerador ainda não produz esse tipo de
+desafio — ele precisaria de um texto para ouvir separado do enunciado escrito.

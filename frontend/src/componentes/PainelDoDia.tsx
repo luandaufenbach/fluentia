@@ -23,20 +23,28 @@ function plural(quantidade: number, singular: string, plural: string) {
  *
  * Sem pontos, sem ligas, sem troféu. O que o app mostra é o que ele mediu.
  */
-export function PainelDoDia({ resumo, onPraticarModulo, onIrParaDesafio }: Props) {
-  const { meta, concluidos, restantes, metaAlcancada, sequencia, revisoes } = resumo;
+export function PainelDoDia({
+  resumo,
+  onPraticarModulo,
+  onIrParaDesafio,
+}: Props) {
+  const { meta, concluidos, restantes, metaAlcancada, sequencia, revisoes } =
+    resumo;
   const percentual = Math.min(100, Math.round((concluidos / meta) * 100));
 
   return (
     <section className={`dia ${metaAlcancada ? "dia--fechado" : ""}`}>
       <div className="dia__principal">
         <div className="dia__texto">
-          <span className="dia__rotulo">{metaAlcancada ? "Dia fechado" : "Hoje"}</span>
+          <span className="dia__rotulo">
+            {metaAlcancada ? "Dia fechado" : "Hoje"}
+          </span>
           <p className="dia__frase">
             {metaAlcancada ? (
               <>
-                Você fez <b>{concluidos}</b> {plural(concluidos, "desafio", "desafios")} hoje. O
-                resto é bônus.
+                Você fez <b>{concluidos}</b>{" "}
+                {plural(concluidos, "desafio", "desafios")} hoje. O resto é
+                bônus.
               </>
             ) : (
               <>
@@ -52,7 +60,10 @@ export function PainelDoDia({ resumo, onPraticarModulo, onIrParaDesafio }: Props
         {/* A sequência só aparece depois do primeiro dia: um "0 dias" logo na entrada
             é uma cobrança antes de qualquer chance de cumprir. */}
         {sequencia.atual > 0 && (
-          <div className="dia__sequencia" title={`Melhor sequência: ${sequencia.melhor} dias`}>
+          <div
+            className="dia__sequencia"
+            title={`Melhor sequência: ${sequencia.melhor} dias`}
+          >
             <span className="dia__sequencia-numero">{sequencia.atual}</span>
             <span className="dia__sequencia-rotulo">
               {plural(sequencia.atual, "dia seguido", "dias seguidos")}
@@ -64,7 +75,13 @@ export function PainelDoDia({ resumo, onPraticarModulo, onIrParaDesafio }: Props
         )}
       </div>
 
-      <div className="dia__barra" role="progressbar" aria-valuenow={concluidos} aria-valuemin={0} aria-valuemax={meta}>
+      <div
+        className="dia__barra"
+        role="progressbar"
+        aria-valuenow={concluidos}
+        aria-valuemin={0}
+        aria-valuemax={meta}
+      >
         <motion.i
           initial={{ width: 0 }}
           animate={{ width: `${percentual}%` }}
@@ -73,7 +90,11 @@ export function PainelDoDia({ resumo, onPraticarModulo, onIrParaDesafio }: Props
       </div>
 
       {!metaAlcancada && (
-        <button type="button" className="botao-primario dia__acao" onClick={onIrParaDesafio}>
+        <button
+          type="button"
+          className="botao-primario dia__acao"
+          onClick={onIrParaDesafio}
+        >
           {concluidos === 0 ? "Começar o dia" : "Continuar"}
         </button>
       )}
@@ -84,8 +105,13 @@ export function PainelDoDia({ resumo, onPraticarModulo, onIrParaDesafio }: Props
           <ul>
             {revisoes.slice(0, REVISOES_VISIVEIS).map((revisao) => (
               <li key={revisao.moduloCodigo}>
-                <button type="button" onClick={() => onPraticarModulo(revisao.moduloCodigo)}>
-                  <span className="dia__revisao-nome">{revisao.moduloNome}</span>
+                <button
+                  type="button"
+                  onClick={() => onPraticarModulo(revisao.moduloCodigo)}
+                >
+                  <span className="dia__revisao-nome">
+                    {revisao.moduloNome}
+                  </span>
                   <span className="dia__revisao-queda">
                     {revisao.notaQuandoPraticou.toFixed(1).replace(".", ",")} →{" "}
                     <b>{revisao.notaHoje.toFixed(1).replace(".", ",")}</b>
@@ -98,7 +124,11 @@ export function PainelDoDia({ resumo, onPraticarModulo, onIrParaDesafio }: Props
           {revisoes.length > REVISOES_VISIVEIS && (
             <p className="dia__revisoes-resto">
               e mais {revisoes.length - REVISOES_VISIVEIS}{" "}
-              {plural(revisoes.length - REVISOES_VISIVEIS, "conceito", "conceitos")}
+              {plural(
+                revisoes.length - REVISOES_VISIVEIS,
+                "conceito",
+                "conceitos",
+              )}
             </p>
           )}
         </div>

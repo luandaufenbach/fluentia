@@ -29,12 +29,14 @@ export function TelaDeAutenticacao({ onEntrou }: Props) {
   const [enviando, setEnviando] = useState(false);
 
   const cadastrando = modo === "cadastrar";
-  const senhaCurta = cadastrando && senha.length > 0 && senha.length < TAMANHO_MINIMO_DA_SENHA;
+  const senhaCurta =
+    cadastrando && senha.length > 0 && senha.length < TAMANHO_MINIMO_DA_SENHA;
 
   const podeEnviar =
     email.trim().length > 0 &&
     senha.length > 0 &&
-    (!cadastrando || (nome.trim().length > 0 && senha.length >= TAMANHO_MINIMO_DA_SENHA));
+    (!cadastrando ||
+      (nome.trim().length > 0 && senha.length >= TAMANHO_MINIMO_DA_SENHA));
 
   async function enviar(evento: React.FormEvent) {
     evento.preventDefault();
@@ -51,7 +53,9 @@ export function TelaDeAutenticacao({ onEntrou }: Props) {
       setSenha("");
       onEntrou(usuario);
     } catch (falha) {
-      setErro(falha instanceof Error ? falha.message : "Não foi possível continuar.");
+      setErro(
+        falha instanceof Error ? falha.message : "Não foi possível continuar.",
+      );
       setSenha("");
     } finally {
       setEnviando(false);
@@ -127,9 +131,15 @@ export function TelaDeAutenticacao({ onEntrou }: Props) {
               disabled={enviando}
             />
             {cadastrando && (
-              <small className={senhaCurta ? "autenticacao__ajuda--alerta" : "autenticacao__ajuda"}>
-                Mínimo de {TAMANHO_MINIMO_DA_SENHA} caracteres. Uma frase que só você lembra
-                vale mais que símbolos embaralhados.
+              <small
+                className={
+                  senhaCurta
+                    ? "autenticacao__ajuda--alerta"
+                    : "autenticacao__ajuda"
+                }
+              >
+                Mínimo de {TAMANHO_MINIMO_DA_SENHA} caracteres. Uma frase que só
+                você lembra vale mais que símbolos embaralhados.
               </small>
             )}
           </label>
@@ -140,12 +150,21 @@ export function TelaDeAutenticacao({ onEntrou }: Props) {
             </p>
           )}
 
-          <button type="submit" className="botao-primario" disabled={!podeEnviar || enviando}>
+          <button
+            type="submit"
+            className="botao-primario"
+            disabled={!podeEnviar || enviando}
+          >
             {enviando ? "Aguarde..." : cadastrando ? "Criar conta" : "Entrar"}
           </button>
         </form>
 
-        <button type="button" className="autenticacao__troca" onClick={trocarModo} disabled={enviando}>
+        <button
+          type="button"
+          className="autenticacao__troca"
+          onClick={trocarModo}
+          disabled={enviando}
+        >
           {cadastrando ? "Já tenho conta" : "Criar uma conta"}
         </button>
       </motion.div>

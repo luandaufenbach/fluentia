@@ -1,0 +1,48 @@
+.botao-de-ouvir {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--espaco-1);
+  min-height: 1.75rem;
+  padding: 0 var(--espaco-2);
+  font: inherit;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--cor-texto-secundario);
+  background: var(--cor-superficie-sutil);
+  border: 1px solid var(--cor-borda);
+  border-radius: 999px;
+  cursor: pointer;
+  vertical-align: middle;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.botao-de-ouvir:hover {
+  background: var(--cor-destaque-suave);
+  color: var(--cor-texto);
+  border-color: var(--cor-destaque-borda);
+}
+
+.botao-de-ouvir:active {
+  transform: scale(0.96);
+}
+
+.botao-de-ouvir__rotulo {
+  letter-spacing: 0.01em;
+}
+
+/* Em telas estreitas fica só o ícone: o rótulo empurraria o texto ao lado para baixo. */
+@media (max-width: 30rem) {
+  .botao-de-ouvir__rotulo {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .botao-de-ouvir {
+    transition: none;
+  }
+
+  .botao-de-ouvir:active {
+    transform: none;
+  }
+}

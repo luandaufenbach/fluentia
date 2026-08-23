@@ -54,7 +54,11 @@ export function TelaDeDesafio({
     try {
       setDesafio(await api.proximoDesafio(codigoDoModulo));
     } catch (falha) {
-      setErro(falha instanceof Error ? falha.message : "Não foi possível carregar o desafio.");
+      setErro(
+        falha instanceof Error
+          ? falha.message
+          : "Não foi possível carregar o desafio.",
+      );
     } finally {
       setCarregando(false);
     }
@@ -79,21 +83,31 @@ export function TelaDeDesafio({
       onNotaAtualizada();
       atualizarDia();
     } catch (falha) {
-      setErro(falha instanceof Error ? falha.message : "Não foi possível enviar a resposta.");
+      setErro(
+        falha instanceof Error
+          ? falha.message
+          : "Não foi possível enviar a resposta.",
+      );
     } finally {
       setEnviando(false);
     }
   }
 
   if (carregando) {
-    return <p className="tela-de-desafio__estado">Escolhendo o próximo desafio...</p>;
+    return (
+      <p className="tela-de-desafio__estado">Escolhendo o próximo desafio...</p>
+    );
   }
 
   if (erro && !desafio) {
     return (
       <div className="tela-de-desafio__estado">
         <p>{erro}</p>
-        <button type="button" className="botao-secundario" onClick={() => void carregarDesafio()}>
+        <button
+          type="button"
+          className="botao-secundario"
+          onClick={() => void carregarDesafio()}
+        >
           Tentar de novo
         </button>
       </div>
@@ -101,21 +115,26 @@ export function TelaDeDesafio({
   }
 
   if (!desafio) {
-    return <p className="tela-de-desafio__estado">Nenhum desafio disponível.</p>;
+    return (
+      <p className="tela-de-desafio__estado">Nenhum desafio disponível.</p>
+    );
   }
 
   return (
     <div className="tela-de-desafio">
       <div className="tela-de-desafio__principal">
         <div className="tela-de-desafio__contexto">
-          <span className="tela-de-desafio__etiqueta">{desafio.moduloNome}</span>
+          <span className="tela-de-desafio__etiqueta">
+            {desafio.moduloNome}
+          </span>
           <span className="tela-de-desafio__separador" aria-hidden="true">
             ·
           </span>
           <span className="tela-de-desafio__tema">{desafio.temaNome}</span>
           {dia && (
             <span className="tela-de-desafio__contador">
-              {Math.min(dia.concluidos + (correcao ? 0 : 1), dia.meta)} de {dia.meta} hoje
+              {Math.min(dia.concluidos + (correcao ? 0 : 1), dia.meta)} de{" "}
+              {dia.meta} hoje
             </span>
           )}
         </div>
@@ -169,17 +188,23 @@ export function TelaDeDesafio({
           <section className="tela-de-desafio__fechamento">
             <h2>Dia cumprido</h2>
             <p>
-              {dia.concluidos} {dia.concluidos === 1 ? "desafio" : "desafios"} hoje
+              {dia.concluidos} {dia.concluidos === 1 ? "desafio" : "desafios"}{" "}
+              hoje
               {dia.sequencia.atual > 1 && (
                 <>
                   , {dia.sequencia.atual} dias seguidos
-                  {dia.sequencia.atual >= dia.sequencia.melhor && " — a sua melhor sequência"}
+                  {dia.sequencia.atual >= dia.sequencia.melhor &&
+                    " — a sua melhor sequência"}
                 </>
               )}
               .
             </p>
             <div className="tela-de-desafio__fechamento-acoes">
-              <button type="button" className="botao-primario" onClick={onVoltarParaTrilha}>
+              <button
+                type="button"
+                className="botao-primario"
+                onClick={onVoltarParaTrilha}
+              >
                 Voltar para a trilha
               </button>
               <button

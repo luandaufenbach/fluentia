@@ -23,7 +23,10 @@ const TIPOS_DE_CORRECAO: { valor: TipoDeCorrecao; rotulo: string }[] = [
 ];
 
 /** Objetivo, ritmo e tipo de correcao — os passos de onboarding que ficam editaveis. */
-export function TelaDeConfiguracoes({ onPreferenciasSalvas, onRefazerNivelamento }: Props) {
+export function TelaDeConfiguracoes({
+  onPreferenciasSalvas,
+  onRefazerNivelamento,
+}: Props) {
   const [usuario, setUsuario] = useState<Usuario | null>(null);
   const [salvando, setSalvando] = useState(false);
   const [mensagem, setMensagem] = useState<string | null>(null);
@@ -34,7 +37,11 @@ export function TelaDeConfiguracoes({ onPreferenciasSalvas, onRefazerNivelamento
       .buscarUsuario()
       .then(setUsuario)
       .catch((falha: unknown) =>
-        setErro(falha instanceof Error ? falha.message : "Não foi possível carregar o perfil."),
+        setErro(
+          falha instanceof Error
+            ? falha.message
+            : "Não foi possível carregar o perfil.",
+        ),
       );
   }, []);
 
@@ -55,7 +62,9 @@ export function TelaDeConfiguracoes({ onPreferenciasSalvas, onRefazerNivelamento
       setMensagem("Preferências salvas.");
       onPreferenciasSalvas();
     } catch (falha) {
-      setErro(falha instanceof Error ? falha.message : "Não foi possível salvar.");
+      setErro(
+        falha instanceof Error ? falha.message : "Não foi possível salvar.",
+      );
     } finally {
       setSalvando(false);
     }
@@ -66,7 +75,9 @@ export function TelaDeConfiguracoes({ onPreferenciasSalvas, onRefazerNivelamento
   }
 
   if (!usuario) {
-    return <p className="tela-de-configuracoes__estado">Carregando o perfil...</p>;
+    return (
+      <p className="tela-de-configuracoes__estado">Carregando o perfil...</p>
+    );
   }
 
   return (
@@ -79,7 +90,10 @@ export function TelaDeConfiguracoes({ onPreferenciasSalvas, onRefazerNivelamento
         <select
           value={usuario.objetivo}
           onChange={(evento) =>
-            setUsuario({ ...usuario, objetivo: evento.target.value as ObjetivoDoUsuario })
+            setUsuario({
+              ...usuario,
+              objetivo: evento.target.value as ObjetivoDoUsuario,
+            })
           }
         >
           {OBJETIVOS.map((opcao) => (
@@ -92,14 +106,19 @@ export function TelaDeConfiguracoes({ onPreferenciasSalvas, onRefazerNivelamento
 
       <label className="tela-de-configuracoes__campo">
         <span className="tela-de-configuracoes__rotulo">Ritmo</span>
-        <span className="tela-de-configuracoes__ajuda">Minutos de prática por dia.</span>
+        <span className="tela-de-configuracoes__ajuda">
+          Minutos de prática por dia.
+        </span>
         <input
           type="number"
           min={5}
           max={240}
           value={usuario.minutosPorDia}
           onChange={(evento) =>
-            setUsuario({ ...usuario, minutosPorDia: Number(evento.target.value) })
+            setUsuario({
+              ...usuario,
+              minutosPorDia: Number(evento.target.value),
+            })
           }
         />
       </label>
@@ -112,7 +131,10 @@ export function TelaDeConfiguracoes({ onPreferenciasSalvas, onRefazerNivelamento
         <select
           value={usuario.tipoDeCorrecao}
           onChange={(evento) =>
-            setUsuario({ ...usuario, tipoDeCorrecao: evento.target.value as TipoDeCorrecao })
+            setUsuario({
+              ...usuario,
+              tipoDeCorrecao: evento.target.value as TipoDeCorrecao,
+            })
           }
         >
           {TIPOS_DE_CORRECAO.map((opcao) => (
@@ -132,21 +154,28 @@ export function TelaDeConfiguracoes({ onPreferenciasSalvas, onRefazerNivelamento
         >
           {salvando ? "Salvando..." : "Salvar preferências"}
         </button>
-        {mensagem && <span className="tela-de-configuracoes__mensagem">{mensagem}</span>}
+        {mensagem && (
+          <span className="tela-de-configuracoes__mensagem">{mensagem}</span>
+        )}
         {erro && <span className="tela-de-configuracoes__erro">{erro}</span>}
       </div>
 
       {/*
-        * O nivelamento decide por onde a trilha comeca, entao errar nele prende a pessoa
-        * no lugar errado. Refazer precisa estar a um clique — inclusive para quem pulou.
-        */}
+       * O nivelamento decide por onde a trilha comeca, entao errar nele prende a pessoa
+       * no lugar errado. Refazer precisa estar a um clique — inclusive para quem pulou.
+       */}
       <section className="tela-de-configuracoes__nivelamento">
         <h2>Ponto de partida</h2>
         <p>
-          Se a trilha comecou no lugar errado — cedo demais ou adiantado demais — refaca o
-          nivelamento. As notas que voce ja conquistou praticando nao sao apagadas.
+          Se a trilha comecou no lugar errado — cedo demais ou adiantado demais
+          — refaca o nivelamento. As notas que voce ja conquistou praticando nao
+          sao apagadas.
         </p>
-        <button type="button" className="botao-secundario" onClick={onRefazerNivelamento}>
+        <button
+          type="button"
+          className="botao-secundario"
+          onClick={onRefazerNivelamento}
+        >
           Refazer o nivelamento
         </button>
       </section>

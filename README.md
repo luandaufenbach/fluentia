@@ -38,6 +38,7 @@ consolidar o que ainda não está verde, revisar o que está há mais tempo para
 | **Custo à vista** | Cada chamada grava tokens e custo; `GET /api/consumo` mostra o gasto da conta dentro do produto |
 | **Ritmo diário** | Meta do dia derivada do ritmo escolhido, sequência de dias (um desafio conta) e aviso do que está caindo por tempo parado |
 | **Erro que insiste** | Na terceira vez do mesmo tipo, a correção mostra o padrão, as tentativas anteriores e onde o conceito é ensinado |
+| **Áudio** | Ouvir o inglês dos exemplos e das correções, e responder falando — pelo navegador, sem custo. O transcrito é editável antes de enviar |
 
 ## Como rodar
 

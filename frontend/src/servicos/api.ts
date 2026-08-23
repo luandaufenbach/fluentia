@@ -40,15 +40,22 @@ function tokenDeCsrf(): string | null {
   const encontrado = document.cookie
     .split("; ")
     .find((parte) => parte.startsWith("XSRF-TOKEN="));
-  return encontrado ? decodeURIComponent(encontrado.slice("XSRF-TOKEN=".length)) : null;
+  return encontrado
+    ? decodeURIComponent(encontrado.slice("XSRF-TOKEN=".length))
+    : null;
 }
 
 /** Só requisição que altera estado precisa do token. */
 const METODOS_SEGUROS = new Set(["GET", "HEAD", "OPTIONS"]);
 
-async function requisitar<T>(caminho: string, opcoes?: RequestInit): Promise<T> {
+async function requisitar<T>(
+  caminho: string,
+  opcoes?: RequestInit,
+): Promise<T> {
   const metodo = (opcoes?.method ?? "GET").toUpperCase();
-  const cabecalhos: Record<string, string> = { "Content-Type": "application/json" };
+  const cabecalhos: Record<string, string> = {
+    "Content-Type": "application/json",
+  };
 
   if (!METODOS_SEGUROS.has(metodo)) {
     const token = tokenDeCsrf();
@@ -141,7 +148,11 @@ export const api = {
     requisitar<EtapaDoNivelamento>("/nivelamento", { method: "POST" }),
 
   /** Resposta em branco significa pular, que e um sinal legitimo de teto. */
-  responderNivelamento: (nivelamentoId: number, ordem: number, resposta: string) =>
+  responderNivelamento: (
+    nivelamentoId: number,
+    ordem: number,
+    resposta: string,
+  ) =>
     requisitar<EtapaDoNivelamento>(`/nivelamento/${nivelamentoId}/resposta`, {
       method: "POST",
       body: JSON.stringify({ ordem, resposta }),

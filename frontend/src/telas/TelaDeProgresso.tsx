@@ -32,7 +32,11 @@ export function TelaDeProgresso({ versao }: Props) {
       })
       .catch((falha: unknown) => {
         if (!cancelado) {
-          setErro(falha instanceof Error ? falha.message : "Não foi possível carregar o progresso.");
+          setErro(
+            falha instanceof Error
+              ? falha.message
+              : "Não foi possível carregar o progresso.",
+          );
         }
       });
 
@@ -46,7 +50,9 @@ export function TelaDeProgresso({ versao }: Props) {
   }
 
   if (!progresso) {
-    return <p className="tela-de-progresso__estado">Carregando o progresso...</p>;
+    return (
+      <p className="tela-de-progresso__estado">Carregando o progresso...</p>
+    );
   }
 
   const faixasNaOrdem: FaixaDeNota[] = ["VERDE", "AMARELO", "VERMELHO", "NOVO"];
@@ -56,7 +62,8 @@ export function TelaDeProgresso({ versao }: Props) {
       <section>
         <h2 className="tela-de-progresso__titulo">Visão geral</h2>
         <p className="tela-de-progresso__resumo">
-          {progresso.modulosLiberados} de {progresso.totalDeModulos} módulos liberados para prática.
+          {progresso.modulosLiberados} de {progresso.totalDeModulos} módulos
+          liberados para prática.
         </p>
 
         <ul className="tela-de-progresso__faixas">
@@ -68,7 +75,9 @@ export function TelaDeProgresso({ versao }: Props) {
               <span className="tela-de-progresso__quantidade">
                 {progresso.quantidadePorFaixa[faixa] ?? 0}
               </span>
-              <span className="tela-de-progresso__rotulo">{ROTULO_DA_FAIXA[faixa]}</span>
+              <span className="tela-de-progresso__rotulo">
+                {ROTULO_DA_FAIXA[faixa]}
+              </span>
             </li>
           ))}
         </ul>
@@ -79,16 +88,20 @@ export function TelaDeProgresso({ versao }: Props) {
 
         {progresso.precisamDeAtencao.length === 0 ? (
           <p className="tela-de-progresso__estado">
-            Nenhum conceito praticado está abaixo do verde. Continue praticando para não perder
-            terreno: a nota cai sozinha com o tempo sem prática.
+            Nenhum conceito praticado está abaixo do verde. Continue praticando
+            para não perder terreno: a nota cai sozinha com o tempo sem prática.
           </p>
         ) : (
           <ul className="tela-de-progresso__atencao">
             {progresso.precisamDeAtencao.map((modulo) => (
               <li key={modulo.id} className="tela-de-progresso__linha">
                 <div>
-                  <span className="tela-de-progresso__modulo">{modulo.nome}</span>
-                  <span className="tela-de-progresso__nivel">{modulo.nivel}</span>
+                  <span className="tela-de-progresso__modulo">
+                    {modulo.nome}
+                  </span>
+                  <span className="tela-de-progresso__nivel">
+                    {modulo.nivel}
+                  </span>
                 </div>
                 <IndicadorDeNota nota={modulo.nota} faixa={modulo.faixa} />
               </li>

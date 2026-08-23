@@ -57,7 +57,9 @@ export default function App() {
    * Quem pergunta é o servidor, como na sessão: um sinalizador local seria contornável
    * e, pior, mandaria de novo para o nivelamento quem já o fez em outro dispositivo.
    */
-  const [precisaNivelar, setPrecisaNivelar] = useState<boolean | undefined>(undefined);
+  const [precisaNivelar, setPrecisaNivelar] = useState<boolean | undefined>(
+    undefined,
+  );
 
   useEffect(() => {
     if (!usuario) {
@@ -88,14 +90,19 @@ export default function App() {
    * Módulo que o aluno pediu para praticar logo depois de estudar. Separado de
    * moduloEmEstudo porque abrir o conteúdo não deve, sozinho, mudar o desafio da vez.
    */
-  const [moduloParaPraticar, setModuloParaPraticar] = useState<string | null>(null);
+  const [moduloParaPraticar, setModuloParaPraticar] = useState<string | null>(
+    null,
+  );
 
   /**
    * Contador de invalidação: quando uma nota muda, a trilha e o progresso
    * precisam recarregar, porque a nota nova já altera a próxima decisão do agente.
    */
   const [versaoDosDados, setVersaoDosDados] = useState(0);
-  const invalidarDados = useCallback(() => setVersaoDosDados((versao) => versao + 1), []);
+  const invalidarDados = useCallback(
+    () => setVersaoDosDados((versao) => versao + 1),
+    [],
+  );
 
   const abrirConteudo = useCallback((codigoDoModulo: string) => {
     setModuloEmEstudo(codigoDoModulo);
@@ -196,7 +203,9 @@ export default function App() {
           />
         )}
 
-        {abaAtiva === "progresso" && <TelaDeProgresso versao={versaoDosDados} />}
+        {abaAtiva === "progresso" && (
+          <TelaDeProgresso versao={versaoDosDados} />
+        )}
 
         {abaAtiva === "configuracoes" && (
           <TelaDeConfiguracoes

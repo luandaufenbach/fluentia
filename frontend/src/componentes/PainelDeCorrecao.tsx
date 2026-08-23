@@ -1,4 +1,5 @@
 import { motion } from "motion/react";
+import { BotaoDeOuvir } from "./BotaoDeOuvir";
 import type { Correcao } from "../tipos";
 import { formatarNota } from "./IndicadorDeNota";
 import "./PainelDeCorrecao.css";
@@ -50,17 +51,29 @@ export function PainelDeCorrecao({
         <ul className="painel-de-correcao__erros">
           {correcao.erros.map((erro, indice) => (
             <li key={indice} className="painel-de-correcao__erro">
-              <span className="painel-de-correcao__tipo">{erro.tipo.replaceAll("_", " ")}</span>
+              <span className="painel-de-correcao__tipo">
+                {erro.tipo.replaceAll("_", " ")}
+              </span>
 
               {erro.trechoErrado && erro.correcao && (
                 <p className="painel-de-correcao__troca">
-                  <span className="painel-de-correcao__errado">{erro.trechoErrado}</span>
+                  <span className="painel-de-correcao__errado">
+                    {erro.trechoErrado}
+                  </span>
                   <span aria-hidden="true"> → </span>
-                  <span className="painel-de-correcao__certo">{erro.correcao}</span>
+                  <span className="painel-de-correcao__certo" lang="en">
+                    {erro.correcao}
+                  </span>{" "}
+                  <BotaoDeOuvir
+                    texto={erro.correcao}
+                    descricao={`Ouvir a forma correta: ${erro.correcao}`}
+                  />
                 </p>
               )}
 
-              <p className="painel-de-correcao__explicacao">{erro.explicacao}</p>
+              <p className="painel-de-correcao__explicacao">
+                {erro.explicacao}
+              </p>
             </li>
           ))}
         </ul>
@@ -79,19 +92,29 @@ export function PainelDeCorrecao({
           <p className="painel-de-correcao__reforco-texto">
             Não é distração — é um conceito que ainda não entrou.
             {correcao.reforco.moduloDoConceitoNome && (
-              <> Ele é ensinado em <b>{correcao.reforco.moduloDoConceitoNome}</b>.</>
+              <>
+                {" "}
+                Ele é ensinado em <b>{correcao.reforco.moduloDoConceitoNome}</b>
+                .
+              </>
             )}
           </p>
 
           {correcao.reforco.anteriores.length > 0 && (
             <>
-              <span className="painel-de-correcao__reforco-rotulo">As vezes anteriores</span>
+              <span className="painel-de-correcao__reforco-rotulo">
+                As vezes anteriores
+              </span>
               <ul className="painel-de-correcao__reforco-lista">
                 {correcao.reforco.anteriores.map((anterior, indice) => (
                   <li key={indice}>
-                    <span className="painel-de-correcao__errado">{anterior.trechoErrado}</span>
+                    <span className="painel-de-correcao__errado">
+                      {anterior.trechoErrado}
+                    </span>
                     <span aria-hidden="true"> → </span>
-                    <span className="painel-de-correcao__certo">{anterior.correcao}</span>
+                    <span className="painel-de-correcao__certo">
+                      {anterior.correcao}
+                    </span>
                   </li>
                 ))}
               </ul>
