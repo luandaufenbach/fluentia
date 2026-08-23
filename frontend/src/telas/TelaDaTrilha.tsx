@@ -77,8 +77,13 @@ export function TelaDaTrilha({
     return <p className="trilha__estado">Carregando a trilha...</p>;
   }
 
+  // O percentual conta só o que foi demonstrado. O estimado entra numa faixa própria da
+  // barra: some com o progresso visualmente, sem se passar por conquista.
   const progresso = Math.round(
     (trilha.modulosConsolidados / trilha.totalDeModulos) * 100,
+  );
+  const progressoPresumido = Math.round(
+    (trilha.modulosPresumidos / trilha.totalDeModulos) * 100,
   );
 
   return (
@@ -98,6 +103,12 @@ export function TelaDaTrilha({
             <span className="trilha__contagem">
               {trilha.modulosConsolidados} de {trilha.totalDeModulos} conceitos
               vencidos
+              {trilha.modulosPresumidos > 0 && (
+                <span className="trilha__contagem-presumida">
+                  {" "}
+                  · {trilha.modulosPresumidos} estimados pelo nivelamento
+                </span>
+              )}
             </span>
           </div>
           <div className="trilha__barra">
@@ -106,6 +117,14 @@ export function TelaDaTrilha({
               animate={{ width: `${progresso}%` }}
               transition={{ type: "spring", visualDuration: 0.5, bounce: 0 }}
             />
+            {progressoPresumido > 0 && (
+              <motion.i
+                className="trilha__barra-presumida"
+                initial={{ width: 0 }}
+                animate={{ width: `${progressoPresumido}%` }}
+                transition={{ type: "spring", visualDuration: 0.5, bounce: 0 }}
+              />
+            )}
           </div>
         </div>
 
@@ -191,9 +210,13 @@ interface PropsDaFase {
 }
 
 function BlocoDaFase({ fase, numero, onEstudarModulo }: PropsDaFase) {
+  const alcancado = fase.situacaoDoMarco === "ALCANCADO";
+  const presumido = fase.situacaoDoMarco === "PRESUMIDO";
+
   const classes = [
     "fase",
-    fase.marcoAlcancado ? "fase--concluida" : "",
+    alcancado ? "fase--concluida" : "",
+    presumido ? "fase--presumida" : "",
     fase.emAndamento ? "fase--em-andamento" : "",
   ]
     .filter(Boolean)
@@ -202,8 +225,10 @@ function BlocoDaFase({ fase, numero, onEstudarModulo }: PropsDaFase) {
   return (
     <section className={classes}>
       <header className="fase__cabecalho">
+        {/* O tique é só de quem praticou. Presumido ganha um traço: nem vazio, nem
+            fechado — que é exatamente o estado de quem foi estimado e não provou. */}
         <span className="fase__numero">
-          {fase.marcoAlcancado ? "✓" : numero}
+          {alcancado ? "✓" : presumido ? "~" : numero}
         </span>
         <div className="fase__titulo">
           <h2>{fase.nome}</h2>
@@ -211,6 +236,11 @@ function BlocoDaFase({ fase, numero, onEstudarModulo }: PropsDaFase) {
         </div>
         <span className="fase__contagem">
           {fase.modulosConsolidados}/{fase.totalDeModulos}
+          {fase.modulosPresumidos > 0 && (
+            <span className="fase__contagem-presumida">
+              +{fase.modulosPresumidos} estimados
+            </span>
+          )}
         </span>
       </header>
 
@@ -228,10 +258,18 @@ function BlocoDaFase({ fase, numero, onEstudarModulo }: PropsDaFase) {
       </ol>
 
       <p
-        className={`fase__marco ${fase.marcoAlcancado ? "fase__marco--alcancado" : ""}`}
+        className={`fase__marco ${alcancado ? "fase__marco--alcancado" : ""} ${
+          presumido ? "fase__marco--presumido" : ""
+        }`}
       >
         <span className="fase__marco-rotulo">Marco</span>
         {fase.marco}
+        {presumido && (
+          <span className="fase__marco-ressalva">
+            O nivelamento estimou que você já sabe isto, mas você ainda não demonstrou
+            aqui. Praticar os conceitos da fase fecha o marco.
+          </span>
+        )}
       </p>
     </section>
   );
@@ -244,10 +282,16 @@ interface PropsDoNo {
 }
 
 function NoDoModulo({ modulo, lado, onEstudar }: PropsDoNo) {
+  // Nota sem nenhuma prática só pode ter vindo do nivelamento: quem responde um desafio
+  // ganha a prática junto com a nota. Sem essa distinção, um 7,0 estimado fica idêntico
+  // a um 7,0 conquistado — e a trilha inteira passa a mentir sobre o que foi provado.
+  const presumido = modulo.nota !== null && modulo.quantidadeDePraticas === 0;
+
   const classes = [
     "no",
     `no--${lado}`,
     `no--${modulo.faixa.toLowerCase()}`,
+    presumido ? "no--presumido" : "",
     modulo.liberado ? "" : "no--bloqueado",
   ]
     .filter(Boolean)
@@ -263,7 +307,14 @@ function NoDoModulo({ modulo, lado, onEstudar }: PropsDoNo) {
         aria-label={`Ver o conteúdo de ${modulo.nome}`}
       >
         <span className="no__identificacao">
-          <span className="no__nome">{modulo.nome}</span>
+          <span className="no__nome">
+            {modulo.nome}
+            {presumido && (
+              <span className="no__estimado" title="Estimado pelo nivelamento, ainda não praticado">
+                estimado
+              </span>
+            )}
+          </span>
           <span className="no__descricao">{modulo.descricao}</span>
           {!modulo.liberado && modulo.preRequisitosPendentes.length > 0 && (
             <span className="no__bloqueio">

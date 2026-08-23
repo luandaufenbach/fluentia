@@ -67,7 +67,11 @@ Três decisões que a diferenciam de um roadmap comum:
 
 - **O estado vem da nota, não de um clique.** Em roadmap de checkbox o aluno marca o que
   quiser; aqui a cor de cada nó é a faixa real do módulo, e o marco da fase só fecha quando
-  todos os conceitos dela saem do vermelho. Não dá para se enganar.
+  todos os conceitos dela foram **praticados** e saíram do vermelho. Não dá para se enganar.
+- **Estimado não é conquistado.** O nivelamento dá nota aos conceitos abaixo do seu nível, e
+  essa nota libera o caminho — sem ela, quem foi nivelado em B1 voltaria para A1. Mas ela não
+  se passa por conquista: o nó ganha borda tracejada e a etiqueta `estimado`, a fase mostra `~`
+  no lugar do `✓`, e o marco vem com a ressalva de que você ainda não demonstrou aquilo aqui.
 - **Cada fase promete algo concreto.** "A2" não motiva ninguém; "contar como foi o seu fim de
   semana" motiva. O nível CEFR continua sendo a verdade técnica por trás, mas quem lê a tela
   vê a habilidade.

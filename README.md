@@ -61,7 +61,7 @@ Detalhes de cada lado em [`backend/README.md`](backend/README.md) e
 ## Stack
 
 Java 21 + Spring Boot 4 + Postgres no backend, React + TypeScript + Vite no frontend,
-Docker para empacotar. Migrations com Flyway, 124 testes incluindo integração contra o banco de verdade e a política de acesso.
+Docker para empacotar. Migrations com Flyway, 133 testes incluindo integração contra o banco de verdade e a política de acesso.
 
 ## Convenções
 

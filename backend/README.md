@@ -133,9 +133,32 @@ agrupamento que a tela principal mostra:
 | Precisão | B2 | Participar de uma reunião sem perder o fio |
 | Naturalidade | C1/C2 | Soar natural, não apenas correto |
 
-O marco de uma fase é alcançado quando **todos** os módulos dela saem do vermelho — o mesmo
-limite que libera o módulo seguinte. Seria incoerente destravar o próximo conceito e ainda
-assim dizer que este não foi vencido.
+### O marco tem três estados, não dois
+
+| | |
+|---|---|
+| **Alcançado** | Todos os conceitos da fase foram **praticados** e saíram do vermelho |
+| **Presumido** | Todos estão fora do vermelho, mas pelo menos um só por estimativa do nivelamento |
+| **Pendente** | Ainda há conceito em vermelho ou nunca tocado |
+
+O marco era booleano, e uma fase inteira presumida pelo nivelamento fechava com o mesmo tique
+de quem praticou. Mas o marco não é um número: é uma frase — *"se apresentar e falar da sua
+rotina sem travar"* — e dar isso por cumprido a partir de uma estimativa contradiz o que o
+produto promete. **O estado vem da nota real, não de um clique**; e uma presunção é ainda menos
+que um clique, porque nem o aluno afirmou.
+
+Rebaixar tudo que é presumido para pendente resolveria a honestidade e criaria outro problema:
+quem foi nivelado em B1 veria as duas primeiras fases como trabalho a fazer, e a trilha voltaria
+a empurrá-lo para trás — exatamente o que o nivelamento existe para evitar. Daí os três estados.
+
+A nota presumida **continua liberando** o módulo seguinte. O que ela não faz é anunciar conquista.
+
+### "Você está aqui" sai do orquestrador
+
+O marcador era *"fase já encostada e ainda não fechada"*. Com isso a tela conseguia mostrar
+"você está aqui" numa fase e o cartão de próximo passo apontando outra — dois indicadores de
+posição discordando na mesma tela. Agora `emAndamento` é a fase do conceito que o orquestrador
+escolheria agora, tirada do próprio orquestrador: saindo da mesma fonte, não têm como divergir.
 
 ## Custo por ciclo
 

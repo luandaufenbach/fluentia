@@ -408,3 +408,81 @@
     gap: var(--espaco-4) var(--espaco-6);
   }
 }
+
+/*
+ * Demonstrado vs. estimado.
+ *
+ * O nivelamento presume que o aluno domina os conceitos abaixo do nível dele, e essa
+ * presunção precisa liberar o caminho — senão quem foi nivelado em B1 volta para A1. Mas
+ * ela não pode se passar por conquista: o produto promete que o estado vem da nota real,
+ * e uma estimativa é ainda menos que um clique, porque nem o aluno afirmou.
+ *
+ * A escolha visual é a mesma em todo lugar: tracejado e cor esvaziada para o estimado,
+ * preenchido e colorido para o que foi provado.
+ */
+
+.trilha__barra {
+  display: flex;
+}
+
+.trilha__barra-presumida {
+  background: repeating-linear-gradient(
+    -45deg,
+    var(--cor-amarelo-fundo) 0 4px,
+    var(--cor-superficie-sutil) 4px 8px
+  );
+}
+
+.trilha__contagem-presumida {
+  color: var(--cor-amarelo);
+}
+
+.fase__contagem-presumida {
+  display: block;
+  font-size: 0.6875rem;
+  color: var(--cor-amarelo);
+}
+
+/* Nem vazio, nem fechado: é o estado de quem foi estimado e ainda não provou. */
+.fase--presumida .fase__numero {
+  background: var(--cor-amarelo-fundo);
+  border-color: var(--cor-amarelo);
+  color: var(--cor-amarelo);
+}
+
+.fase__marco--presumido {
+  border-style: dashed;
+  border-color: var(--cor-amarelo);
+  background: var(--cor-amarelo-fundo);
+  color: var(--cor-texto);
+}
+
+.fase__marco--presumido .fase__marco-rotulo {
+  color: var(--cor-amarelo);
+}
+
+.fase__marco-ressalva {
+  display: block;
+  margin-top: var(--espaco-2);
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  color: var(--cor-texto-secundario);
+}
+
+.no--presumido .no__gatilho {
+  border-style: dashed;
+}
+
+.no__estimado {
+  margin-left: var(--espaco-2);
+  padding: 0 var(--espaco-2);
+  font-size: 0.625rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--cor-amarelo);
+  background: var(--cor-amarelo-fundo);
+  border-radius: 999px;
+  vertical-align: middle;
+  white-space: nowrap;
+}

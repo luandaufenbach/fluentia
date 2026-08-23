@@ -148,6 +148,14 @@ export interface ConteudoDoModulo {
   errosComuns: ErroComumDoConteudo[];
 }
 
+/**
+ * Em que pé está o marco da fase.
+ *
+ * `PRESUMIDO` é a fase que só está fora do vermelho por estimativa do nivelamento: ela
+ * não trava o caminho, mas o marco não é anunciado como conquistado.
+ */
+export type SituacaoDoMarco = "ALCANCADO" | "PRESUMIDO" | "PENDENTE";
+
 export interface FaseNaTrilha {
   codigo: string;
   nome: string;
@@ -155,10 +163,13 @@ export interface FaseNaTrilha {
   promessa: string;
   /** A habilidade concreta que marca o fim da fase. */
   marco: string;
-  marcoAlcancado: boolean;
-  /** Fase onde o aluno esta agora: ja encostou e ainda nao fechou. */
+  situacaoDoMarco: SituacaoDoMarco;
+  /** Fase onde o aluno está agora: já praticou algo nela e ainda não fechou. */
   emAndamento: boolean;
+  /** Fora do vermelho e provados numa resposta de verdade. */
   modulosConsolidados: number;
+  /** Fora do vermelho apenas por estimativa do nivelamento, sem prática. */
+  modulosPresumidos: number;
   totalDeModulos: number;
   modulos: Modulo[];
 }
@@ -166,6 +177,7 @@ export interface FaseNaTrilha {
 export interface Trilha {
   fases: FaseNaTrilha[];
   modulosConsolidados: number;
+  modulosPresumidos: number;
   totalDeModulos: number;
 }
 

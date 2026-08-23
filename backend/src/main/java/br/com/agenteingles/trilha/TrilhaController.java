@@ -21,19 +21,24 @@ public class TrilhaController {
     }
 
     /**
-     * @param marcoAlcancado a fase inteira saiu do vermelho, entao a habilidade do marco
-     *                       conta como destravada
-     * @param emAndamento ha pelo menos um modulo praticado e a fase ainda nao fechou —
-     *                    e onde a interface posiciona "voce esta aqui"
+     * @param situacaoDoMarco alcancado exige pratica de verdade em todos os conceitos da
+     *                        fase; presumido e a fase que so esta fora do vermelho por
+     *                        estimativa do nivelamento
+     * @param emAndamento a fase contem o conceito que o orquestrador escolheria agora —
+     *                    e onde a interface posiciona "voce esta aqui". Sai da mesma fonte
+     *                    do cartao de proximo passo, para os dois nunca discordarem
+     * @param modulosConsolidados fora do vermelho e provados numa resposta
+     * @param modulosPresumidos fora do vermelho apenas por estimativa, sem pratica
      */
     public record FaseNaTrilhaResposta(
             String codigo,
             String nome,
             String promessa,
             String marco,
-            boolean marcoAlcancado,
+            SituacaoDoMarco situacaoDoMarco,
             boolean emAndamento,
             int modulosConsolidados,
+            int modulosPresumidos,
             int totalDeModulos,
             List<ModuloNaListaResposta> modulos) {
     }
@@ -41,6 +46,7 @@ public class TrilhaController {
     public record TrilhaResposta(
             List<FaseNaTrilhaResposta> fases,
             int modulosConsolidados,
+            int modulosPresumidos,
             int totalDeModulos) {
     }
 
