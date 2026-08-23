@@ -6,6 +6,11 @@ services:
       POSTGRES_DB: agente_ingles
       POSTGRES_USER: agente
       POSTGRES_PASSWORD: agente
+      # Mesmo fuso da aplicacao. As colunas sao TIMESTAMP sem fuso, entao banco em UTC
+      # e aplicacao em outro fuso fazem o DEFAULT NOW() gravar 3 horas a frente do que
+      # o Java grava na linha ao lado — e perto da meia-noite isso muda o dia.
+      TZ: ${FUSO_HORARIO:-America/Sao_Paulo}
+      PGTZ: ${FUSO_HORARIO:-America/Sao_Paulo}
     ports:
       - "5432:5432"
     volumes:
@@ -27,6 +32,10 @@ services:
       BANCO_URL: jdbc:postgresql://banco:5432/agente_ingles
       BANCO_USUARIO: agente
       BANCO_SENHA: agente
+      # O container nasce em UTC. Sem isto, quem estuda as 22h no Brasil tem a pratica
+      # gravada como do dia seguinte, e a sequencia de dias quebra sozinha.
+      # Limite conhecido: uma zona para todos. Publico fora deste fuso pede zona por conta.
+      TZ: ${FUSO_HORARIO:-America/Sao_Paulo}
       # Deixe USAR_CLAUDE=true e informe a chave para ligar os agentes reais.
       USAR_CLAUDE: ${USAR_CLAUDE:-false}
       ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}

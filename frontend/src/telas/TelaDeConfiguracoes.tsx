@@ -4,6 +4,8 @@ import type { ObjetivoDoUsuario, TipoDeCorrecao, Usuario } from "../tipos";
 import "./TelaDeConfiguracoes.css";
 
 interface Props {
+  /** Reabre o nivelamento: contrapartida de "prefiro comecar do inicio" ser definitivo. */
+  onRefazerNivelamento: () => void;
   /** O objetivo influencia o tema escolhido pelo orquestrador, entao a trilha recarrega. */
   onPreferenciasSalvas: () => void;
 }
@@ -21,7 +23,7 @@ const TIPOS_DE_CORRECAO: { valor: TipoDeCorrecao; rotulo: string }[] = [
 ];
 
 /** Objetivo, ritmo e tipo de correcao — os passos de onboarding que ficam editaveis. */
-export function TelaDeConfiguracoes({ onPreferenciasSalvas }: Props) {
+export function TelaDeConfiguracoes({ onPreferenciasSalvas, onRefazerNivelamento }: Props) {
   const [usuario, setUsuario] = useState<Usuario | null>(null);
   const [salvando, setSalvando] = useState(false);
   const [mensagem, setMensagem] = useState<string | null>(null);
@@ -133,6 +135,21 @@ export function TelaDeConfiguracoes({ onPreferenciasSalvas }: Props) {
         {mensagem && <span className="tela-de-configuracoes__mensagem">{mensagem}</span>}
         {erro && <span className="tela-de-configuracoes__erro">{erro}</span>}
       </div>
+
+      {/*
+        * O nivelamento decide por onde a trilha comeca, entao errar nele prende a pessoa
+        * no lugar errado. Refazer precisa estar a um clique — inclusive para quem pulou.
+        */}
+      <section className="tela-de-configuracoes__nivelamento">
+        <h2>Ponto de partida</h2>
+        <p>
+          Se a trilha comecou no lugar errado — cedo demais ou adiantado demais — refaca o
+          nivelamento. As notas que voce ja conquistou praticando nao sao apagadas.
+        </p>
+        <button type="button" className="botao-secundario" onClick={onRefazerNivelamento}>
+          Refazer o nivelamento
+        </button>
+      </section>
     </div>
   );
 }

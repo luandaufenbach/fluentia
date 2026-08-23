@@ -178,6 +178,33 @@ Modelo sem preço em `precos-por-milhao-de-tokens` tem os tokens gravados e o cu
 **desconhecido**, nunca como zero: o extrato traz esse modelo em `modelosSemPreco` para o total
 não ser lido como se estivesse completo.
 
+## O dia do aluno
+
+`GET /api/hoje` junta as três coisas que dão ritmo. Nenhuma delas guarda estado próprio:
+tudo é derivado do histórico de avaliações e das notas já gravadas. Uma tabela de "sessão do
+dia" seria mais um estado para dessincronizar de um histórico que já é a verdade.
+
+| | |
+|---|---|
+| **Meta do dia** | Sai do ritmo escolhido em Configurações: 15 min ÷ 3 min por desafio = 5. Piso de 3 e teto de 20 — meta de um desafio não é sessão, e de trinta ninguém cumpre |
+| **Sequência de dias** | **Um desafio conta o dia.** Exigir a sessão inteira transformaria a sequência num segundo cobrador, e quem tem quinze minutos ruins perderia semanas de constância — justamente o hábito que ela deveria proteger |
+| **Revisão espaçada** | Conceitos que estão caindo por tempo parado, do que mais caiu para o que menos caiu. Quem mudou de faixa vem antes: ali a queda pode ter fechado o módulo seguinte sem o aluno errar nada |
+
+Nota presumida pelo nivelamento não entra na revisão: sem data de prática ela não decai, e
+mandar revisar o que nunca foi medido inventaria um esquecimento que não aconteceu.
+
+**A sequência não quebra à meia-noite.** Quem praticou ontem e ainda não praticou hoje mantém
+a sequência viva — o dia não acabou. Zerar às 00h01 puniria o relógio, não a falta de prática.
+
+### Fuso horário
+
+Os dois containers rodam em `America/Sao_Paulo` (`TZ` no compose, `PGTZ` no banco). As colunas
+são `TIMESTAMP` sem fuso: com a aplicação num fuso e o banco em outro, um `DEFAULT NOW()` grava
+três horas à frente do que o Java grava na linha ao lado, e perto da meia-noite isso muda o dia
+— o que quebraria a sequência sozinha.
+
+**Limite conhecido:** um fuso para todos. Público fora dele pede fuso por conta.
+
 ## Nivelamento de entrada
 
 Antes disto todo mundo começava em A1 — e quem já sabe inglês abandona na primeira tela ao ser

@@ -32,7 +32,8 @@ npm run build
 | **Conteúdo** (`TelaDeConteudo`) | ✅ | O material de estudo do módulo: resumo, explicação em parágrafos, exemplos com tradução e os erros comuns. Daqui sai o botão para começar os exercícios |
 | **Desafio** (`TelaDeDesafio`) | ✅ | Cena + enunciado, campo de resposta e correção resumida ao final. No desktop, o lembrete do conteúdo fica ao lado, com "voltar para o conteúdo" |
 | **Progresso** (`TelaDeProgresso`) | ✅ | Quantos módulos em cada faixa e quais conceitos precisam de atenção agora |
-| **Configurações** (`TelaDeConfiguracoes`) | ✅ | Objetivo, ritmo e tipo de correção |
+| **Configurações** (`TelaDeConfiguracoes`) | ✅ | Objetivo, ritmo, tipo de correção e o caminho para refazer o nivelamento |
+| **Painel do dia** (`PainelDoDia`) | ✅ | No topo da trilha: quanto falta para fechar hoje, há quantos dias seguidos você aparece e o que o tempo está derrubando. Sem pontos, sem ligas |
 | **Barra lateral** | ✅ | Navegação e lista de temas como contexto da cena |
 | **Entrada** (`TelaDeAutenticacao`) | ✅ | Cadastro e login. A senha não vai para estado global nem armazenamento local: o que fica é o cookie de sessão, fora do alcance de JavaScript |
 | **Nivelamento** (`TelaDeNivelamento`) | ✅ | A conversa curta de entrada: cinco perguntas abertas em ordem crescente, com "não sei esta" como botão de primeira classe. O resultado abre a trilha no nível certo, em vez de mandar todo mundo para A1. Objetivo e ritmo, passos 3 e 4 do onboarding, estão em Configurações |

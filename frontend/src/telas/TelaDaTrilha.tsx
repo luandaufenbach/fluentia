@@ -1,8 +1,9 @@
 import { motion } from "motion/react";
 import { useEffect, useState } from "react";
 import { IndicadorDeNota } from "../componentes/IndicadorDeNota";
+import { PainelDoDia } from "../componentes/PainelDoDia";
 import { api } from "../servicos/api";
-import type { FaseNaTrilha, Modulo, Sugestao, Trilha } from "../tipos";
+import type { FaseNaTrilha, Modulo, ResumoDoDia, Sugestao, Trilha } from "../tipos";
 import "./TelaDaTrilha.css";
 
 interface Props {
@@ -10,6 +11,7 @@ interface Props {
   versao: number;
   onEstudarModulo: (codigoDoModulo: string) => void;
   onIrParaDesafio: () => void;
+  onPraticarModulo: (codigoDoModulo: string) => void;
 }
 
 /**
@@ -20,19 +22,21 @@ interface Props {
  * ganha ao chegar lá. Aqui cada fase carrega a promessa do que ela destrava, e o
  * estado de cada nó vem da nota real — não de um checkbox que o aluno marca sozinho.
  */
-export function TelaDaTrilha({ versao, onEstudarModulo, onIrParaDesafio }: Props) {
+export function TelaDaTrilha({ versao, onEstudarModulo, onIrParaDesafio, onPraticarModulo }: Props) {
   const [trilha, setTrilha] = useState<Trilha | null>(null);
   const [sugestao, setSugestao] = useState<Sugestao | null>(null);
+  const [resumoDoDia, setResumoDoDia] = useState<ResumoDoDia | null>(null);
   const [erro, setErro] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelado = false;
 
-    Promise.all([api.listarTrilha(), api.buscarSugestao()])
-      .then(([percurso, proxima]) => {
+    Promise.all([api.listarTrilha(), api.buscarSugestao(), api.buscarResumoDoDia()])
+      .then(([percurso, proxima, dia]) => {
         if (!cancelado) {
           setTrilha(percurso);
           setSugestao(proxima);
+          setResumoDoDia(dia);
         }
       })
       .catch((falha: unknown) => {
@@ -58,6 +62,14 @@ export function TelaDaTrilha({ versao, onEstudarModulo, onIrParaDesafio }: Props
 
   return (
     <div className="trilha">
+      {resumoDoDia && (
+        <PainelDoDia
+          resumo={resumoDoDia}
+          onPraticarModulo={onPraticarModulo}
+          onIrParaDesafio={onIrParaDesafio}
+        />
+      )}
+
       <header className="trilha__cabecalho">
         <div className="trilha__medidor">
           <div className="trilha__medidor-texto">

@@ -111,3 +111,40 @@
   }
 }
 
+
+/* Contador da sessão: discreto, ao lado do contexto — informa sem virar cobrança. */
+.tela-de-desafio__contador {
+  margin-left: auto;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--cor-texto-secundario);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Fechamento do dia: chegada, não parede. Continuar está a um clique. */
+.tela-de-desafio__fechamento {
+  margin-top: var(--espaco-5);
+  padding: var(--espaco-5);
+  background: var(--cor-destaque-suave);
+  border: 1px solid var(--cor-destaque-borda);
+  border-radius: var(--raio-grande);
+}
+
+.tela-de-desafio__fechamento h2 {
+  font-size: 1.25rem;
+  letter-spacing: -0.015em;
+  margin-bottom: var(--espaco-2);
+}
+
+.tela-de-desafio__fechamento p {
+  font-size: 0.9375rem;
+  line-height: 1.55;
+  color: var(--cor-texto-secundario);
+  margin-bottom: var(--espaco-4);
+}
+
+.tela-de-desafio__fechamento-acoes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espaco-3);
+}

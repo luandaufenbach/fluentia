@@ -168,6 +168,7 @@ export default function App() {
             versao={versaoDosDados}
             onEstudarModulo={abrirConteudo}
             onIrParaDesafio={() => trocarAba("desafio")}
+            onPraticarModulo={praticarModulo}
           />
         )}
 
@@ -191,13 +192,17 @@ export default function App() {
             moduloParaPraticar={moduloParaPraticar}
             onNotaAtualizada={invalidarDados}
             onVerConteudo={abrirConteudo}
+            onVoltarParaTrilha={() => setAbaAtiva("modulos")}
           />
         )}
 
         {abaAtiva === "progresso" && <TelaDeProgresso versao={versaoDosDados} />}
 
         {abaAtiva === "configuracoes" && (
-          <TelaDeConfiguracoes onPreferenciasSalvas={invalidarDados} />
+          <TelaDeConfiguracoes
+            onPreferenciasSalvas={invalidarDados}
+            onRefazerNivelamento={() => setPrecisaNivelar(true)}
+          />
         )}
       </main>
     </div>

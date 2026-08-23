@@ -63,3 +63,22 @@
   font-size: 0.9375rem;
   color: var(--cor-vermelho);
 }
+
+.tela-de-configuracoes__nivelamento {
+  margin-top: var(--espaco-6);
+  padding-top: var(--espaco-5);
+  border-top: 1px solid var(--cor-borda);
+}
+
+.tela-de-configuracoes__nivelamento h2 {
+  font-size: 1.0625rem;
+  margin-bottom: var(--espaco-2);
+}
+
+.tela-de-configuracoes__nivelamento p {
+  font-size: 0.9375rem;
+  line-height: 1.55;
+  color: var(--cor-texto-secundario);
+  max-width: 42rem;
+  margin-bottom: var(--espaco-4);
+}

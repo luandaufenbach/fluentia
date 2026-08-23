@@ -6,6 +6,7 @@ import type {
   NivelComModulos,
   Preferencias,
   Progresso,
+  ResumoDoDia,
   Sugestao,
   Tema,
   Trilha,
@@ -130,6 +131,8 @@ export const api = {
 
   historicoDeDesafios: (quantidade = 20) =>
     requisitar<Desafio[]>(`/desafios/historico?quantidade=${quantidade}`),
+
+  buscarResumoDoDia: () => requisitar<ResumoDoDia>("/hoje"),
 
   situacaoDoNivelamento: () => requisitar<{ jaFez: boolean }>("/nivelamento"),
 

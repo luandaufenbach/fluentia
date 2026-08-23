@@ -82,11 +82,20 @@ public class ServicoDeNivelamento {
         return proximaEtapa(nivelamento, usuario);
     }
 
-    /** Se a conta ja passou por um nivelamento — a tela usa isto para saber se deve oferecer. */
+    /**
+     * Se a conta ja passou por um nivelamento — a tela usa isto para saber se deve oferecer.
+     *
+     * <p>Abandonar tambem conta: e uma decisao, nao uma pendencia. Sem isso, quem escolhe
+     * comecar do inicio cai de volta na pergunta 1 a cada recarga.
+     */
     @Transactional(readOnly = true)
     public boolean jaFezNivelamento(Usuario usuario) {
-        return nivelamentoRepositorio.concluidosDoUsuario(usuario.getId()) > 0;
+        return nivelamentoRepositorio.encerradosDoUsuario(usuario.getId()) > 0;
     }
+
+    // Refazer o nivelamento e simplesmente chamar iniciar() de novo: com nenhum em
+    // andamento, ele abre um novo. Contrapartida necessaria de "abandonar tambem conta" —
+    // sem esse caminho, um clique num botao de saida trancaria a pessoa em A1 para sempre.
 
     /**
      * Registra a resposta e devolve a proxima pergunta — ou o resultado, se a escada acabou.

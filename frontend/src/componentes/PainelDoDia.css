@@ -1,0 +1,179 @@
+.dia {
+  background: var(--cor-superficie);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-grande);
+  padding: var(--espaco-5);
+  margin-bottom: var(--espaco-5);
+}
+
+/* Dia fechado ganha a cor de destaque na borda — não um troféu, só o reconhecimento. */
+.dia--fechado {
+  border-color: var(--cor-destaque-borda);
+  background: var(--cor-destaque-suave);
+}
+
+.dia__principal {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--espaco-4);
+  margin-bottom: var(--espaco-4);
+}
+
+.dia__rotulo {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--cor-texto-secundario);
+  margin-bottom: var(--espaco-2);
+}
+
+.dia__frase {
+  font-size: 1.0625rem;
+  line-height: 1.5;
+}
+
+.dia__frase b {
+  font-weight: 700;
+}
+
+.dia__sequencia {
+  flex: none;
+  text-align: right;
+}
+
+.dia__sequencia-numero {
+  display: block;
+  font-size: 2rem;
+  line-height: 1;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  color: var(--cor-amarelo);
+}
+
+.dia__sequencia-rotulo {
+  display: block;
+  font-size: 0.75rem;
+  color: var(--cor-texto-secundario);
+  margin-top: var(--espaco-1);
+}
+
+.dia__sequencia-aviso {
+  display: block;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--cor-amarelo);
+  margin-top: var(--espaco-1);
+}
+
+.dia__barra {
+  height: 0.375rem;
+  border-radius: 999px;
+  background: var(--cor-superficie-sutil);
+  overflow: hidden;
+  margin-bottom: var(--espaco-4);
+}
+
+.dia--fechado .dia__barra {
+  background: rgba(0, 0, 0, 0.08);
+}
+
+.dia__barra i {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: var(--cor-destaque);
+}
+
+.dia__acao {
+  width: 100%;
+}
+
+.dia__revisoes {
+  margin-top: var(--espaco-5);
+  padding-top: var(--espaco-4);
+  border-top: 1px solid var(--cor-borda);
+}
+
+.dia__revisoes ul {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-1);
+  list-style: none;
+}
+
+.dia__revisoes button {
+  width: 100%;
+  min-height: var(--alvo-de-toque);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--espaco-3);
+  padding: var(--espaco-2) var(--espaco-3);
+  font: inherit;
+  text-align: left;
+  background: none;
+  border: none;
+  border-radius: var(--raio-pequeno);
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.dia__revisoes button:hover {
+  background: var(--cor-superficie-sutil);
+}
+
+.dia__revisao-nome {
+  font-size: 0.9375rem;
+  font-weight: 500;
+}
+
+.dia__revisao-queda {
+  flex: none;
+  font-size: 0.8125rem;
+  color: var(--cor-texto-secundario);
+  font-variant-numeric: tabular-nums;
+}
+
+.dia__revisao-queda b {
+  color: var(--cor-vermelho);
+  font-weight: 600;
+}
+
+.dia__revisao-queda em {
+  font-style: normal;
+  font-size: 0.75rem;
+  color: var(--cor-vermelho);
+}
+
+.dia__revisoes-resto {
+  font-size: 0.8125rem;
+  color: var(--cor-texto-secundario);
+  padding: var(--espaco-2) var(--espaco-3) 0;
+}
+
+@media (max-width: 30rem) {
+  .dia__principal {
+    flex-direction: column;
+  }
+
+  .dia__sequencia {
+    text-align: left;
+  }
+
+  .dia__revisoes button {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--espaco-1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dia__revisoes button {
+    transition: none;
+  }
+}

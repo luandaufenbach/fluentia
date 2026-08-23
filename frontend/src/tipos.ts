@@ -180,3 +180,33 @@ export interface EtapaDoNivelamento {
   perguntaAtual: PerguntaDoNivelamento | null;
   resultado: ResultadoDoNivelamento | null;
 }
+
+/** Dias seguidos de prática. Um desafio conta o dia — não precisa ser a sessão inteira. */
+export interface SequenciaDeDias {
+  atual: number;
+  melhor: number;
+  praticouHoje: boolean;
+}
+
+/** Um conceito que está caindo por falta de prática, não por erro. */
+export interface RevisaoPendente {
+  moduloCodigo: string;
+  moduloNome: string;
+  notaQuandoPraticou: number;
+  notaHoje: number;
+  queda: number;
+  faixaHoje: FaixaDeNota;
+  /** A queda passou o conceito para uma faixa pior — pode ter fechado o módulo seguinte. */
+  mudouDeFaixa: boolean;
+  diasSemPraticar: number;
+}
+
+/** O dia do aluno: o que ele se propôs a fazer, o que já fez e o que o tempo derrubou. */
+export interface ResumoDoDia {
+  meta: number;
+  concluidos: number;
+  restantes: number;
+  metaAlcancada: boolean;
+  sequencia: SequenciaDeDias;
+  revisoes: RevisaoPendente[];
+}

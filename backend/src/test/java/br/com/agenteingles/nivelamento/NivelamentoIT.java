@@ -140,6 +140,30 @@ class NivelamentoIT {
     }
 
     @Test
+    @DisplayName("abandonar conta como decisao: o app nao oferece o nivelamento de novo")
+    void abandonarContaComoDecisao() {
+        // Apareceu ao usar a tela: quem clicava em "prefiro comecar do inicio" caia na
+        // trilha, atualizava a pagina e estava de volta na pergunta 1. A saida virava laco.
+        EtapaDoNivelamento etapa = servicoDeNivelamento.iniciar(usuario);
+        servicoDeNivelamento.abandonar(usuario, etapa.id());
+
+        assertThat(servicoDeNivelamento.jaFezNivelamento(usuario)).isTrue();
+    }
+
+    @Test
+    @DisplayName("depois de abandonar da para recomecar do zero")
+    void depoisDeAbandonarDaParaRecomecar() {
+        // Contrapartida do teste acima: se abandonar vale para sempre, precisa ter volta.
+        EtapaDoNivelamento primeira = servicoDeNivelamento.iniciar(usuario);
+        servicoDeNivelamento.abandonar(usuario, primeira.id());
+
+        EtapaDoNivelamento nova = servicoDeNivelamento.iniciar(usuario);
+
+        assertThat(nova.id()).isNotEqualTo(primeira.id());
+        assertThat(nova.ordem()).isEqualTo(1);
+    }
+
+    @Test
     @DisplayName("dois inicios simultaneos nao criam duas conversas")
     void doisIniciosSimultaneosNaoCriamDuasConversas() {
         // Aconteceu de verdade na primeira execucao pelo navegador: o modo estrito do
