@@ -58,7 +58,11 @@ agente-ingles:
     recusas-por-origem-por-hora: ${RECUSAS_POR_ORIGEM_POR_HORA:30}
 
 server:
-  port: ${PORTA:8080}
+  # PORT antes de PORTA: as plataformas de hospedagem (Render, Cloud Run) escolhem a
+  # porta e a injetam como PORT, sem perguntar. Um app que ignora essa variavel escuta
+  # na porta errada, nao recebe nada, e a plataforma o derruba por "nao respondeu" —
+  # sem nenhum erro que aponte para a porta.
+  port: ${PORT:${PORTA:8080}}
   # Atras de proxy reverso, a requisicao chega ao Spring como HTTP puro mesmo tendo
   # sido HTTPS ate o proxy. Sem ler os cabecalhos encaminhados, o Spring recusa o
   # cookie `secure` que ele mesmo pediu e ninguem consegue entrar.

@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Map;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.config.Customizer;
@@ -21,7 +22,18 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 /**
- * Politica de acesso da API.
+ * Politica de acesso da API e da pagina.
+ *
+ * <p><b>Sao duas cadeias, e precisam ser duas.</b> Quando o Spring passou a servir o
+ * frontend junto com a API, as duas politicas deixaram de caber numa so: a API responde
+ * JSON e nao deve executar nada ({@code default-src 'none'}), enquanto a pagina precisa
+ * justamente carregar script e estilo. Uma cadeia unica obrigaria a escolher entre
+ * afrouxar a API ate a pagina funcionar ou apertar a pagina ate ela quebrar — e a saida
+ * errada e sempre a primeira, porque a segunda aparece na tela e a primeira nao.
+ *
+ * <p>A ordem tambem nao e detalhe: a cadeia da API vem primeiro e so ela casa com
+ * {@code /api/**}. Invertida, a cadeia da pagina — que libera tudo — engoliria a API
+ * inteira e a deixaria publica.
  *
  * <p>Escolhas que definem a postura de seguranca aqui, e o porque de cada uma:
  *
@@ -72,13 +84,16 @@ public class ConfiguracaoDeSeguranca {
     }
 
     @Bean
-    public SecurityFilterChain cadeiaDeFiltros(HttpSecurity http) throws Exception {
+    @Order(1)
+    public SecurityFilterChain cadeiaDaApi(HttpSecurity http) throws Exception {
         // Sem o handler explicito, o token so e resolvido sob demanda e o cookie nao
         // chega ao cliente na primeira visita — o primeiro POST falharia.
         CsrfTokenRequestAttributeHandler tratadorDeCsrf = new CsrfTokenRequestAttributeHandler();
         tratadorDeCsrf.setCsrfRequestAttributeName(null);
 
         http
+                // Delimita esta cadeia. Tudo que nao casar aqui cai na cadeia da pagina.
+                .securityMatcher("/api/**", "/actuator/**")
                 .cors(Customizer.withDefaults())
                 .csrf(csrf -> csrf
                         // withHttpOnlyFalse: o SPA precisa LER o token para devolve-lo
@@ -135,6 +150,53 @@ public class ConfiguracaoDeSeguranca {
 
                 // Nao existe formulario de login nem Basic: a autenticacao passa pelo
                 // endpoint proprio, que e onde vivem o bloqueio e a auditoria.
+                .formLogin(login -> login.disable())
+                .httpBasic(basic -> basic.disable())
+                .logout(logout -> logout.disable());
+
+        return http.build();
+    }
+
+    /**
+     * A pagina: o {@code index.html} e os arquivos que o Vite gera.
+     *
+     * <p>Tudo aqui e publico de proposito, e isso nao afrouxa nada: sao os mesmos
+     * arquivos que qualquer visitante baixaria de qualquer forma. O que protege os dados
+     * e a cadeia da API, que continua exigindo sessao. Servir a tela de login exigindo
+     * estar logado seria a definicao de porta trancada por dentro.
+     *
+     * <p>Sem CSRF: nada aqui muda estado — sao arquivos estaticos, so leitura. O token
+     * que o frontend usa nasce na primeira chamada de API, que passa pela outra cadeia.
+     */
+    @Bean
+    @Order(2)
+    public SecurityFilterChain cadeiaDaPagina(HttpSecurity http) throws Exception {
+        http
+                .csrf(csrf -> csrf.disable())
+                .headers(cabecalhos -> cabecalhos
+                        .frameOptions(frame -> frame.deny())
+                        .contentTypeOptions(Customizer.withDefaults())
+                        .httpStrictTransportSecurity(hsts -> hsts
+                                .includeSubDomains(true)
+                                .maxAgeInSeconds(31536000))
+                        .referrerPolicy(politica -> politica.policy(
+                                org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter
+                                        .ReferrerPolicy.SAME_ORIGIN))
+                        // A CSP da PAGINA, e so dela. Diferente da CSP da API porque a
+                        // pagina precisa executar o proprio script e o proprio estilo.
+                        //
+                        // 'unsafe-inline' em style-src e exigencia do motion, que escreve
+                        // estilo direto no elemento durante a animacao; sem isso as
+                        // transicoes somem. Em script-src ele NAO aparece, que e onde a
+                        // permissao realmente custaria caro.
+                        .contentSecurityPolicy(csp -> csp.policyDirectives(
+                                "default-src 'self'; script-src 'self'; "
+                                        + "style-src 'self' 'unsafe-inline'; img-src 'self' data:; "
+                                        + "font-src 'self'; connect-src 'self'; frame-ancestors 'none'; "
+                                        + "base-uri 'none'; form-action 'self'")))
+
+                .authorizeHttpRequests(rotas -> rotas.anyRequest().permitAll())
+
                 .formLogin(login -> login.disable())
                 .httpBasic(basic -> basic.disable())
                 .logout(logout -> logout.disable());

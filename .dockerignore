@@ -1,0 +1,25 @@
+# O contexto do build e a raiz do repositorio. Sem esta lista, o Docker envia
+# node_modules e target inteiros para o daemon — centenas de megabytes que serao
+# descartados, e o build fica lento sem motivo aparente.
+#
+# Pior que a lentidao: `node_modules` copiado de uma maquina Windows para uma imagem
+# Linux traz binarios da plataforma errada, e o `npm ci` de dentro da imagem passaria a
+# conviver com eles.
+
+node_modules
+*/node_modules
+frontend/dist
+backend/target
+
+.git
+.gitignore
+.idea
+.vscode
+*.iml
+
+# Nunca dentro da imagem: a chave da API mora aqui.
+**/.env
+**/.env.*
+!**/.env.exemplo
+
+**/*.md
