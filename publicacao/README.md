@@ -1,5 +1,15 @@
 # Publicar o Fluentia
 
+Há dois caminhos, e eles não se misturam:
+
+| | |
+|---|---|
+| **Máquina própria** — este arquivo | Você tem um servidor. O Caddy faz o HTTPS, serve o frontend e repassa `/api`. Fica sempre ligado |
+| **Plataforma** — [PLATAFORMA.md](PLATAFORMA.md) | Render, Cloud Run e afins hospedam o container. Sem servidor para manter. O Caddy sai e o Spring serve o frontend, a partir do `Dockerfile` da raiz |
+
+Se a ideia é só ter uma URL para mostrar, sem administrar máquina, vá para
+[PLATAFORMA.md](PLATAFORMA.md). O resto deste arquivo é o caminho da máquina própria.
+
 Tudo sobe com um comando, mas há três coisas que precisam estar certas antes — e
 uma delas não dá para consertar depois.
 
@@ -7,10 +17,92 @@ uma delas não dá para consertar depois.
 
 | | |
 |---|---|
-| **Uma máquina com IP público** | Qualquer VPS pequena serve. O app inteiro roda em cerca de 1 GB de RAM |
+| **Uma máquina com IP público** | **2 GB de RAM no mínimo.** Rodando, o app cabe em ~1 GB; o problema é o `--build`, que compila Maven e Vite na própria máquina e estoura 1 GB. Ou contrate 2 GB, ou compile em outro lugar |
 | **Um domínio apontando para ela** | Um registro `A` com o IP. O certificado é emitido a partir do domínio: sem DNS correto, não há HTTPS |
 | **Portas 80 e 443 abertas** | A 80 não é opcional — é por ela que o Let's Encrypt valida o domínio |
 | **Docker e Docker Compose** | Nada mais: Java, Node e Postgres vêm dentro das imagens |
+
+Nada disso precisa ser pago — veja [Hospedar sem gastar](#hospedar-sem-gastar) logo abaixo.
+
+## Hospedar sem gastar
+
+Dá para colocar no ar sem pagar nada. Duas peças, e as duas são gratuitas de verdade
+— não teste de 30 dias.
+
+### A máquina: Oracle Cloud Always Free
+
+É a única oferta gratuita que dá uma **máquina de verdade, sempre ligada**, e ainda por
+cima com região em São Paulo e Vinhedo. Isso importa mais do que parece: as opções
+gratuitas de plataforma (tipo Render) desligam o app quando ninguém acessa, e a JVM
+demora para voltar. Num link de portfólio, quem clicar espera um minuto olhando tela
+branca — que é exatamente a primeira impressão que você não quer causar.
+
+Escolha a forma **ARM (Ampere)**: são 4 núcleos e 24 GB no plano gratuito, contra 1 GB
+da forma AMD. Já confirmei que as cinco imagens do projeto têm build ARM, então o
+`docker compose` roda lá sem alterar nada.
+
+Duas coisas a saber antes, para não perder tempo:
+
+**Pedem cartão no cadastro.** Não é cobrança, é verificação de identidade — a conta
+Always Free não vira paga sozinha. Mas se você não quiser dar o cartão, esta opção está
+fora, e aí o caminho é uma plataforma gratuita (comento no fim da seção).
+
+**A criação da máquina ARM costuma falhar** com "out of host capacity". Não é erro seu:
+a capacidade gratuita é disputada. Tente outra zona de disponibilidade da mesma região,
+ou repita mais tarde.
+
+### O detalhe que faz todo mundo desistir na Oracle
+
+O certificado não é emitido e ninguém entende por quê. São **dois** bloqueios, em
+lugares diferentes, e abrir só um não resolve:
+
+1. **Security List da VCN**, no painel da Oracle: libere as portas 80 e 443 de entrada.
+2. **O firewall dentro da máquina.** As imagens Ubuntu da Oracle vêm com regras que
+   descartam tudo menos o SSH. O painel pode estar liberado e o pacote morre aqui:
+
+```bash
+sudo iptables -I INPUT 6 -m state --state NEW -p tcp --dport 80 -j ACCEPT
+```
+
+```bash
+sudo iptables -I INPUT 6 -m state --state NEW -p tcp --dport 443 -j ACCEPT
+```
+
+```bash
+sudo netfilter-persistent save
+```
+
+Sem o último comando, as regras somem no próximo reboot e o site cai sozinho semanas
+depois — o tipo de defeito que ninguém liga à mudança que o causou.
+
+### O endereço: DuckDNS
+
+Um subdomínio gratuito em [duckdns.org](https://www.duckdns.org) (login com GitHub ou
+Google). Você escolhe o nome e aponta para o IP da máquina.
+
+O Caddy emite certificado Let's Encrypt para ele **igual** a qualquer domínio pago — não
+existe HTTPS de segunda categoria. Fica `https://fluentia.duckdns.org`, e a única perda é
+estética.
+
+No `.env`:
+
+```
+DOMINIO=fluentia.duckdns.org
+```
+
+Trocar por um domínio próprio depois é só mudar essa linha e refazer o DNS. Nada mais no
+projeto conhece o endereço.
+
+### Se você não quiser dar o cartão
+
+Aí sobra plataforma gratuita — Render, Google Cloud Run e afins — e ela **não roda este
+pacote como está**: essas plataformas terminam o HTTPS por conta própria e esperam um
+processo só, então o Caddy sai e o Spring passa a servir o frontend junto com a API. É
+uma mudança pequena e eu faço, mas é mudança: peça se for esse o caminho.
+
+Vale saber que as condições dessas ofertas mudam com frequência (memória, CPU, se o
+banco gratuito expira). Confirme o que está valendo antes de escolher por causa de um
+número que eu escrevi aqui.
 
 ## Os três passos
 
@@ -89,6 +181,10 @@ docker compose --env-file publicacao/.env -f publicacao/docker-compose.producao.
 **Confira o gasto** em `/api/consumo`, que mostra tokens e custo por conta. Um aluno
 estudando dez desafios por dia custa cerca de US$ 6 por mês.
 
+**Ponha um teto na própria Anthropic.** `console.anthropic.com` → *Limits* → limite de
+gasto mensal. É a única proteção que não depende de nada deste código estar certo: se
+algo aqui falhar, ela ainda segura a conta. Configure antes de divulgar o link.
+
 ## Cópia de segurança
 
 O banco é o produto: histórico, notas e progresso de todo mundo estão nele. O volume
@@ -122,4 +218,4 @@ Ditos na frente porque a alternativa é descobrir em produção.
 | **Uma instância só** | O controle de sessão única vive na memória do processo. Rodar duas cópias do backend faz cada uma derrubar só as sessões que ela mesma abriu — escalar pede sessão compartilhada (Spring Session com Redis) |
 | **Um fuso para todos** | Define a virada do dia na sequência de prática. Público fora do fuso configurado teria a sequência virando na hora errada |
 | **O cadastro revela se um e-mail existe** | Inevitável sem confirmação por e-mail |
-| **Sem limite de cadastro** | Nada impede alguém de criar contas em massa e gastar a sua chave. Enquanto o endereço não for público, o risco é baixo; se for divulgar, ponha um convite ou um limite por origem antes |
+| **Sem teto de gasto por conta** | O maior risco de dinheiro que sobrou. O limite por origem trava criar contas em massa, mas **uma** conta legítima pode chamar a API sem teto nenhum. O pacote `custo` mede e nunca barra: você vê o gasto em `/api/consumo` depois de gastar. Se o link circular, é isto que eu poria em pé antes |

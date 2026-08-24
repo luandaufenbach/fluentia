@@ -1,0 +1,53 @@
+# Descritor do Render. Com este arquivo no repositorio, o Render monta o servico
+# sozinho em vez de voce preencher formulario campo a campo.
+#
+# Painel do Render -> New -> Blueprint -> aponte para este repositorio.
+#
+# O BANCO NAO ESTA AQUI DE PROPOSITO. O Postgres gratuito do Render **e apagado 30 dias
+# depois de criado** (mais 14 de carencia) — junto com todos os dados. Declara-lo aqui
+# faria o app nascer com prazo de validade sem ninguem perceber. Use um banco externo
+# gratuito e sem validade, como o Neon, e cole a URL dele em BANCO_URL.
+
+services:
+  - type: web
+    name: fluentia
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    # A raiz: o Dockerfile precisa enxergar frontend/ e backend/ ao mesmo tempo.
+    dockerContext: .
+    plan: free
+    region: oregon
+
+    # O Render so considera o servico no ar quando esta rota responder. Sem ela, ele
+    # passa a mandar trafego assim que a porta abre — e a JVM ainda estaria subindo.
+    healthCheckPath: /actuator/health
+
+    envVars:
+      # `sync: false` = o Render pergunta o valor no painel e NAO o guarda no
+      # repositorio. E o que mantem senha e chave fora do git.
+      - key: BANCO_URL
+        sync: false
+      - key: BANCO_USUARIO
+        sync: false
+      - key: BANCO_SENHA
+        sync: false
+      - key: ANTHROPIC_API_KEY
+        sync: false
+
+      - key: USAR_CLAUDE
+        value: "true"
+
+      # Sem `secure`, o navegador manda a sessao tambem em HTTP e qualquer rede no
+      # caminho a le. Unico item desta lista que nao da para consertar depois: a sessao
+      # que vazou ja vazou.
+      - key: COOKIE_SEGURO
+        value: "true"
+
+      # O Render termina o HTTPS no proxy dele e repassa em HTTP. Sem ler os cabecalhos
+      # encaminhados, o Spring conclui que a conexao e insegura e recusa o cookie
+      # `secure` que ele mesmo pediu: o login parece funcionar e a sessao nao gruda.
+      - key: FORWARD_HEADERS
+        value: framework
+
+      - key: TZ
+        value: America/Sao_Paulo
