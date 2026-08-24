@@ -55,6 +55,17 @@ public class TratadorDeErros {
         return montar(HttpStatus.TOO_MANY_REQUESTS, excecao.getMessage());
     }
 
+    /**
+     * 429 tambem para o limite por origem — mesmo codigo do bloqueio por conta, e de
+     * proposito: para quem esta do outro lado, a diferenca entre "esta conta esperou
+     * demais" e "este endereco tentou demais" e informacao que nao precisa sair daqui.
+     */
+    @ExceptionHandler(br.com.agenteingles.seguranca.ServicoDeAutenticacao.LimiteDaOrigemException.class)
+    public ResponseEntity<RespostaDeErro> tratarLimiteDaOrigem(
+            br.com.agenteingles.seguranca.ServicoDeAutenticacao.LimiteDaOrigemException excecao) {
+        return montar(HttpStatus.TOO_MANY_REQUESTS, excecao.getMessage());
+    }
+
     @ExceptionHandler(br.com.agenteingles.seguranca.ServicoDeAutenticacao.EmailJaCadastradoException.class)
     public ResponseEntity<RespostaDeErro> tratarEmailDuplicado(
             br.com.agenteingles.seguranca.ServicoDeAutenticacao.EmailJaCadastradoException excecao) {

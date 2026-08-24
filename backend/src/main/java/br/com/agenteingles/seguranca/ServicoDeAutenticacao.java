@@ -13,7 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * Cadastro e verificacao de credencial.
  *
- * <p>Quatro cuidados sustentam esta classe:
+ * <p>Cinco cuidados sustentam esta classe:
  *
  * <ol>
  *   <li><b>Nao revelar quais contas existem.</b> Conta inexistente, conta inativa e
@@ -28,6 +28,10 @@ import org.springframework.transaction.annotation.Transactional;
  *       recusa lanca excecao, e excecao desfaz a transacao corrente.</li>
  *   <li><b>Bloqueio temporario, nunca permanente.</b> Bloqueio definitivo transforma
  *       tentativa de invasao em negacao de servico contra o dono da conta.</li>
+ *   <li><b>Limite por origem alem do limite por conta.</b> O contador por conta tem dois
+ *       pontos cegos, e os dois importam num endereco publico: quem espalha tentativas
+ *       por muitas contas nunca estoura o contador de nenhuma, e quem cria contas nao
+ *       falha nenhuma vez — nao existe contador de falha para estourar.</li>
  * </ol>
  */
 @Service
@@ -44,15 +48,18 @@ public class ServicoDeAutenticacao {
             "{bcrypt}$2a$12$C6UzMDM.H6dfI/f/IKcEe.6i9pQhVXqvE3sWjnKgs8Y8g/L9Yt3Ke";
 
     private final UsuarioRepositorio usuarioRepositorio;
+    private final EventoDeAutenticacaoRepositorio eventoRepositorio;
     private final RegistroDeSeguranca registro;
     private final PasswordEncoder codificador;
     private final PropriedadesDeSeguranca propriedades;
 
     public ServicoDeAutenticacao(UsuarioRepositorio usuarioRepositorio,
+                                 EventoDeAutenticacaoRepositorio eventoRepositorio,
                                  RegistroDeSeguranca registro,
                                  PasswordEncoder codificador,
                                  PropriedadesDeSeguranca propriedades) {
         this.usuarioRepositorio = usuarioRepositorio;
+        this.eventoRepositorio = eventoRepositorio;
         this.registro = registro;
         this.codificador = codificador;
         this.propriedades = propriedades;
@@ -61,12 +68,23 @@ public class ServicoDeAutenticacao {
     /**
      * Cria a conta.
      *
+     * <p>O limite por origem e conferido <b>antes</b> de checar se o e-mail existe, e a
+     * ordem e deliberada: invertida, quem ja estourou o limite continuaria usando este
+     * endpoint para descobrir quais e-mails estao cadastrados, porque "ja existe" e
+     * "limite atingido" sao respostas distinguiveis.
+     *
      * @throws EmailJaCadastradoException quando o e-mail ja existe. Aqui a distincao e
      *         inevitavel — nao da para cadastrar duas contas com o mesmo e-mail
+     * @throws LimiteDaOrigemException quando o endereco ja criou contas demais na ultima
+     *         hora
      */
     @Transactional
     public Usuario cadastrar(String nome, String email, String senha, String origem) {
         String emailNormalizado = normalizar(email);
+
+        exigirDentroDoLimite(origem, emailNormalizado, TipoDeEventoDeAutenticacao.CADASTRO,
+                propriedades.cadastrosPorOrigemPorHora(),
+                "Muitos cadastros a partir deste dispositivo. Tente novamente mais tarde.");
 
         if (usuarioRepositorio.existeComEmail(emailNormalizado)) {
             throw new EmailJaCadastradoException();
@@ -93,10 +111,19 @@ public class ServicoDeAutenticacao {
      *         e sempre a mesma, de proposito
      * @throws ContaBloqueadaException quando ha bloqueio temporario em vigor. Este caso
      *         precisa ser distinguido para o dono da conta saber por que nao entra
+     * @throws LimiteDaOrigemException quando o endereco acumulou recusas demais na ultima
+     *         hora, independente de quantas contas diferentes tenha tentado
      */
     public Usuario autenticar(String email, String senha, String origem) {
         String emailNormalizado = normalizar(email);
         LocalDateTime agora = LocalDateTime.now();
+
+        // Antes de qualquer trabalho: nao ha por que gastar BCrypt com quem ja estourou o
+        // limite. A mensagem nao cita conta nenhuma, entao nao acrescenta informacao a
+        // quem esteja sondando quais e-mails existem.
+        exigirDentroDoLimite(origem, emailNormalizado, TipoDeEventoDeAutenticacao.LOGIN_RECUSADO,
+                propriedades.recusasPorOrigemPorHora(),
+                "Muitas tentativas a partir deste dispositivo. Tente novamente mais tarde.");
 
         Usuario usuario = buscar(emailNormalizado);
 
@@ -144,6 +171,41 @@ public class ServicoDeAutenticacao {
                 TipoDeEventoDeAutenticacao.LOGOUT, origem, null);
     }
 
+    /**
+     * Recusa quando a origem passou do teto na ultima hora.
+     *
+     * <p>Tres decisoes aqui valem registro:
+     *
+     * <p><b>Origem desconhecida passa.</b> Sem endereco nao ha a quem atribuir a
+     * contagem, e barrar nesse caso trocaria um risco raro por indisponibilidade certa:
+     * uma falha de leitura do endereco viraria porta fechada para gente legitima.
+     *
+     * <p><b>A recusa e registrada em tipo proprio</b>, e nao como mais uma recusa de
+     * login. Se contasse como recusa, a primeira recusa por limite alimentaria o
+     * contador do proprio limite, e o bloqueio se renovaria sozinho sem fim.
+     *
+     * <p><b>O contador nao zera com acerto</b>, so decai com o tempo. Zerar exigiria
+     * apagar evento de auditoria, e auditoria que o proprio sistema apaga nao serve de
+     * auditoria.
+     */
+    private void exigirDentroDoLimite(String origem, String email,
+                                      TipoDeEventoDeAutenticacao tipo, int limite, String mensagem) {
+        if (origem == null) {
+            return;
+        }
+
+        long recentes = eventoRepositorio.contarEventosDaOrigem(
+                origem, tipo, LocalDateTime.now().minusHours(1));
+        if (recentes < limite) {
+            return;
+        }
+
+        log.warn("Origem {} atingiu o limite de {} {} por hora", origem, limite, tipo);
+        registro.registrarEvento(null, email, TipoDeEventoDeAutenticacao.LIMITE_DE_ORIGEM,
+                origem, "limite de " + tipo + " por hora");
+        throw new LimiteDaOrigemException(mensagem);
+    }
+
     @Transactional(readOnly = true)
     protected Usuario buscar(String email) {
         return usuarioRepositorio.buscarPorEmail(email).orElse(null);
@@ -169,6 +231,13 @@ public class ServicoDeAutenticacao {
     public static class EmailJaCadastradoException extends RuntimeException {
         public EmailJaCadastradoException() {
             super("Este e-mail ja esta cadastrado.");
+        }
+    }
+
+    /** Recusa por origem, e nao por conta: a mensagem nao menciona conta nenhuma. */
+    public static class LimiteDaOrigemException extends RuntimeException {
+        public LimiteDaOrigemException(String mensagem) {
+            super(mensagem);
         }
     }
 }

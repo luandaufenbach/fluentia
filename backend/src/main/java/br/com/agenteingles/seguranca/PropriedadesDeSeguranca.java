@@ -15,6 +15,12 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
  *                             composicao obrigatoria de caracteres
  * @param minutosDeSessao tempo de inatividade ate a sessao expirar
  * @param origensPermitidas origens que podem chamar a API pelo navegador
+ * @param cadastrosPorOrigemPorHora contas que um mesmo endereco pode criar por hora.
+ *                                  O limite por conta nao serve aqui: criar conta nao
+ *                                  falha, entao nao ha contador de falha para estourar
+ * @param recusasPorOrigemPorHora recusas de login que um mesmo endereco pode acumular
+ *                                por hora, cobrindo quem espalha poucas tentativas por
+ *                                muitas contas e nunca estoura o contador de nenhuma
  */
 @ConfigurationProperties(prefix = "agente-ingles.seguranca")
 public record PropriedadesDeSeguranca(
@@ -22,7 +28,9 @@ public record PropriedadesDeSeguranca(
         int minutosDeBloqueio,
         int tamanhoMinimoDaSenha,
         int minutosDeSessao,
-        List<String> origensPermitidas) {
+        List<String> origensPermitidas,
+        int cadastrosPorOrigemPorHora,
+        int recusasPorOrigemPorHora) {
 
     public PropriedadesDeSeguranca {
         if (tentativasAteBloquear < 1) {
@@ -39,6 +47,15 @@ public record PropriedadesDeSeguranca(
         }
         if (origensPermitidas == null || origensPermitidas.isEmpty()) {
             origensPermitidas = List.of("http://localhost:5173");
+        }
+        // Os dois limites caem para um padrao seguro quando vierem zerados, e nunca para
+        // "sem limite": configuracao ausente precisa falhar fechada. Um erro de digitacao
+        // no ambiente nao pode desligar a protecao em silencio.
+        if (cadastrosPorOrigemPorHora < 1) {
+            cadastrosPorOrigemPorHora = 3;
+        }
+        if (recusasPorOrigemPorHora < 1) {
+            recusasPorOrigemPorHora = 30;
         }
     }
 }

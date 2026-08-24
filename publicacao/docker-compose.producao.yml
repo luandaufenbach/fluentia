@@ -58,6 +58,11 @@ services:
       FORWARD_HEADERS: framework
 
       ORIGENS_PERMITIDAS: https://${DOMINIO}
+
+      # Tetos por origem. O padrao do proprio app ja e seguro, entao a variavel
+      # ausente nao desliga a protecao — so mantem o padrao.
+      CADASTROS_POR_ORIGEM_POR_HORA: ${CADASTROS_POR_ORIGEM_POR_HORA:-3}
+      RECUSAS_POR_ORIGEM_POR_HORA: ${RECUSAS_POR_ORIGEM_POR_HORA:-30}
       TZ: ${FUSO_HORARIO:-America/Sao_Paulo}
     # Sem `ports`: só o Caddy alcança o backend.
     expose:

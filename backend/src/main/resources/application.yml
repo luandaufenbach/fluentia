@@ -52,6 +52,10 @@ agente-ingles:
     tamanho-minimo-da-senha: 10
     minutos-de-sessao: ${MINUTOS_DE_SESSAO:60}
     origens-permitidas: ${ORIGENS_PERMITIDAS:http://localhost:5173,http://127.0.0.1:5173}
+    # Endereco publico com chave de API paga atras: sem teto, criar contas em massa
+    # sai de graca para quem cria e caro para quem paga.
+    cadastros-por-origem-por-hora: ${CADASTROS_POR_ORIGEM_POR_HORA:3}
+    recusas-por-origem-por-hora: ${RECUSAS_POR_ORIGEM_POR_HORA:30}
 
 server:
   port: ${PORTA:8080}
