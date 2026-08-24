@@ -242,6 +242,22 @@
     box-shadow: inset 0 2px 0 var(--cor-destaque);
   }
 
+  /*
+   * O anel de foco vira para dentro da aba.
+   *
+   * O padrão do app é `outline-offset: 2px`, que desenha o anel por fora do
+   * elemento. Numa aba de 106x56 colada na borda de baixo da tela, isso vira um
+   * retângulo maior que a própria aba, encostando na vizinha e vazando para fora
+   * da barra — do lado de fora ele parece um erro de layout, não foco.
+   *
+   * Puxado para dentro, o anel fica contido e proporcional, e o teclado continua
+   * enxergando onde está.
+   */
+  .barra-lateral__aba:focus-visible {
+    outline-offset: -0.4rem;
+    border-radius: var(--raio-medio);
+  }
+
   .barra-lateral__aba:hover {
     background: transparent;
   }

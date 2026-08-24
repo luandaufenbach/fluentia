@@ -34,6 +34,17 @@
 @media (max-width: 52rem) {
   .aplicacao {
     grid-template-columns: minmax(0, 1fr);
+    /*
+     * O cabeçalho fica na altura dele; a sobra vai toda para o conteúdo.
+     *
+     * Sem esta linha, as duas faixas eram automáticas e o grid distribuía entre
+     * elas a folga que o `min-height` cria — o `align-content` de um grid se
+     * comporta como `stretch` por padrão. Em tela cheia, como a trilha, não
+     * sobrava nada e o cabeçalho ficava nos 69px certos; numa tela curta, como
+     * progresso, ele inflava para quase 200px. A mesma barra com três alturas
+     * diferentes dependendo de quanto texto a tela tinha.
+     */
+    grid-template-rows: auto 1fr;
   }
 
   .aplicacao__conteudo {
