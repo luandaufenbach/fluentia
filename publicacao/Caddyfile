@@ -1,0 +1,60 @@
+# Porta de entrada da aplicação em produção.
+#
+# O Caddy resolve três coisas de uma vez: TLS automático pelo Let's Encrypt,
+# a entrega dos arquivos estáticos do frontend e o encaminhamento de /api para
+# o backend. Não é preferência de ferramenta — é a diferença entre ter HTTPS
+# em produção e não ter, e sem HTTPS o cookie de sessão trafega aberto.
+#
+# Origem única de propósito: o navegador só conversa com este endereço, então
+# o cookie é same-origin, não há CORS para configurar e não há cookie de
+# terceiro para o navegador bloquear.
+
+{$DOMINIO} {
+	encode zstd gzip
+
+	# Vale para toda resposta do domínio, inclusive as que vêm do backend.
+	#
+	# O HSTS é declarado aqui à mão. A suposição de que o Caddy o manda sozinho
+	# por servir em TLS não se confirmou: conferindo a resposta, o cabeçalho não
+	# vinha. HSTS é o que impede o navegador de tentar HTTP neste host de novo,
+	# então precisa existir de verdade e não por presunção.
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		X-Content-Type-Options nosniff
+		Referrer-Policy same-origin
+		# Não anuncia o servidor.
+		-Server
+	}
+
+	# O backend responde por /api e pela sonda de vida.
+	#
+	# Sem cabeçalho próprio aqui: as respostas de /api são JSON e já carregam os
+	# cabeçalhos que o Spring define para elas, incluindo a CSP `default-src
+	# 'none'`, que é mais restrita do que a da página. Repetir a CSP da página
+	# aqui a substituiria pela mais frouxa das duas.
+	handle /api/* {
+		reverse_proxy aplicacao:8080
+	}
+
+	handle /actuator/health {
+		reverse_proxy aplicacao:8080
+	}
+
+	handle {
+		root * /site
+
+		# A CSP da PÁGINA. Só aqui, porque só a página executa script.
+		#
+		# 'unsafe-inline' em style-src é exigência do motion, que escreve estilo
+		# direto no elemento durante a animação. Sem isso as transições somem.
+		header {
+			Content-Security-Policy "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'self'"
+			X-Frame-Options DENY
+		}
+
+		# O app é uma página só: qualquer caminho desconhecido devolve o index
+		# em vez de 404, senão recarregar numa rota interna quebraria.
+		try_files {path} /index.html
+		file_server
+	}
+}

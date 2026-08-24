@@ -6,3 +6,7 @@ Thumbs.db
 
 # Backup dos repositorios separados de antes da juncao. Pode apagar quando quiser.
 .git.antigo/
+
+# Segredos da publicacao: senha do banco e chave da API. O exemplo e versionado,
+# o arquivo real nunca.
+publicacao/.env

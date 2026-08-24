@@ -3,8 +3,29 @@
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!--
+      viewport-fit=cover deixa a página ocupar a tela toda em aparelho com
+      recorte na tela. É o par obrigatório do env(safe-area-inset-*) usado no
+      CSS: sem ele o navegador reserva a faixa sozinho e as margens somam duas
+      vezes.
+    -->
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+    />
     <meta name="theme-color" content="#F2B705" />
+    <meta
+      name="description"
+      content="Trilha adaptativa de inglês: o app ensina o conceito, cobra com exercícios gerados na hora e decide o próximo passo pelos seus erros reais."
+    />
+
+    <!-- Instalar na tela inicial do celular. -->
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="apple-touch-icon" href="/icone-192.png" />
+    <meta name="apple-mobile-web-app-title" content="Fluentia" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="mobile-web-app-capable" content="yes" />
+
     <title>Fluentia</title>
   </head>
   <body>

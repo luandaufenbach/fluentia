@@ -55,6 +55,14 @@ agente-ingles:
 
 server:
   port: ${PORTA:8080}
+  # Atras de proxy reverso, a requisicao chega ao Spring como HTTP puro mesmo tendo
+  # sido HTTPS ate o proxy. Sem ler os cabecalhos encaminhados, o Spring recusa o
+  # cookie `secure` que ele mesmo pediu e ninguem consegue entrar.
+  #
+  # Fica desligado por padrao de proposito: aceitar X-Forwarded-* de qualquer origem
+  # e confiar num cabecalho que o cliente pode escrever. So ligue quando houver um
+  # proxy de verdade na frente, e um que sobrescreva esses cabecalhos.
+  forward-headers-strategy: ${FORWARD_HEADERS:none}
   servlet:
     session:
       # Expira por inatividade: sessao eterna e credencial eterna.

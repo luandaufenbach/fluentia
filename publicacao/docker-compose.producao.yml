@@ -1,0 +1,98 @@
+# Produção: banco, aplicação e a porta de entrada com HTTPS.
+#
+# Rode a partir da raiz do repositório:
+#   docker compose -f publicacao/docker-compose.producao.yml up -d --build
+#
+# O que muda em relação ao compose de desenvolvimento:
+#   - o banco NÃO expõe porta para fora da máquina;
+#   - o backend NÃO expõe porta: só o Caddy fala com ele, pela rede interna;
+#   - o cookie de sessão vai como `secure`, porque agora existe HTTPS de verdade;
+#   - senha do banco e chave da API vêm do ambiente, sem valor padrão.
+
+name: fluentia
+
+services:
+  banco:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${BANCO_NOME:?defina BANCO_NOME}
+      POSTGRES_USER: ${BANCO_USUARIO:?defina BANCO_USUARIO}
+      POSTGRES_PASSWORD: ${BANCO_SENHA:?defina BANCO_SENHA}
+      TZ: ${FUSO_HORARIO:-America/Sao_Paulo}
+      PGTZ: ${FUSO_HORARIO:-America/Sao_Paulo}
+    volumes:
+      - dados-do-banco:/var/lib/postgresql/data
+    # Sem `ports`: o banco só é alcançável pela rede interna do compose. Postgres
+    # aberto na internet é varrido em minutos.
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  aplicacao:
+    build:
+      # O Dockerfile do backend espera a pasta backend como contexto.
+      context: ../backend
+    restart: unless-stopped
+    depends_on:
+      banco:
+        condition: service_healthy
+    environment:
+      BANCO_URL: jdbc:postgresql://banco:5432/${BANCO_NOME}
+      BANCO_USUARIO: ${BANCO_USUARIO}
+      BANCO_SENHA: ${BANCO_SENHA}
+
+      # Sem valor padrão: publicar sem chave sobe o app inteiro no modo simulado
+      # e ninguém percebe até o primeiro aluno reclamar da correção.
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:?defina ANTHROPIC_API_KEY}
+      USAR_CLAUDE: ${USAR_CLAUDE:-true}
+
+      # O ponto mais importante deste arquivo. Sem `secure`, o navegador manda o
+      # cookie de sessão também em HTTP, e qualquer rede no caminho lê a sessão.
+      COOKIE_SEGURO: "true"
+
+      # O app está atrás do Caddy: sem isto o Spring acha que a requisição chegou
+      # em HTTP puro e recusa o cookie `secure` que ele mesmo pediu.
+      FORWARD_HEADERS: framework
+
+      ORIGENS_PERMITIDAS: https://${DOMINIO}
+      TZ: ${FUSO_HORARIO:-America/Sao_Paulo}
+    # Sem `ports`: só o Caddy alcança o backend.
+    expose:
+      - "8080"
+    # A aplicação leva uns 12 segundos para subir. Sem esta sonda o Caddy começa
+    # a atender antes e devolve 502 nesse intervalo — a cada deploy, para quem
+    # estivesse usando o app naquele momento.
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:8080/actuator/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+      start_period: 20s
+
+  web:
+    build:
+      context: ..
+      dockerfile: publicacao/Dockerfile.web
+    restart: unless-stopped
+    depends_on:
+      aplicacao:
+        condition: service_healthy
+    environment:
+      DOMINIO: ${DOMINIO:?defina DOMINIO}
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    volumes:
+      # O certificado precisa sobreviver ao recriar do container. Sem isto, cada
+      # deploy pede um certificado novo e o Let's Encrypt limita por semana.
+      - certificados:/data
+      - configuracao-do-caddy:/config
+
+volumes:
+  dados-do-banco:
+  certificados:
+  configuracao-do-caddy:

@@ -1,0 +1,19 @@
+# Frontend compilado + Caddy servindo, numa imagem só.
+#
+# O build acontece aqui dentro e não na máquina de quem publica: assim a versão
+# do Node é a mesma em qualquer lugar, e ninguém publica um `dist` velho que
+# estava na pasta por acaso.
+
+FROM node:22-alpine AS construcao
+WORKDIR /construcao
+
+# O lockfile primeiro, para a camada de dependências ser reaproveitada entre builds.
+COPY frontend/package.json frontend/package-lock.json ./
+RUN npm ci
+
+COPY frontend/ ./
+RUN npm run build
+
+FROM caddy:2-alpine
+COPY --from=construcao /construcao/dist /site
+COPY publicacao/Caddyfile /etc/caddy/Caddyfile
