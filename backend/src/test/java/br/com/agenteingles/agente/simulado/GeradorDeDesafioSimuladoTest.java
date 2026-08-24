@@ -70,11 +70,21 @@ class GeradorDeDesafioSimuladoTest {
     }
 
     @Test
-    @DisplayName("a cena vem do tema escolhido")
+    @DisplayName("a cena vem sempre do tema escolhido")
     void cenaVemDoTemaEscolhido() {
-        DesafioGerado desafio = gerador.gerar(pedido(List.of(), List.of()), 1).get(0);
+        // Compara com a lista de verdade, e não com palavras copiadas para cá. A cena é
+        // sorteada entre as do tema: um teste que espera palavra fixa passa a falhar numa
+        // execução de cada três assim que a lista muda — foi o que aconteceu quando
+        // "restaurante" saiu da viagem para o tema de comida.
+        List<String> cenasDaViagem = GeradorDeDesafioSimulado.cenasDoTema("Viagem");
 
-        assertThat(desafio.contextoDaCena())
-                .containsAnyOf("aeroporto", "hotel", "restaurante");
+        // Repete o bastante para as três cenas saírem: o sorteio é o ponto do teste.
+        for (int i = 0; i < 30; i++) {
+            String cena = gerador.gerar(pedido(List.of(), List.of()), 1).get(0).contextoDaCena();
+
+            assertThat(cenasDaViagem)
+                    .as("cena sorteada: %s", cena)
+                    .anyMatch(cena::startsWith);
+        }
     }
 }

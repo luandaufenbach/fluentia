@@ -91,6 +91,18 @@ public class GeradorDeDesafioSimulado implements AgenteGeradorDeDesafio {
         return CENAS_POR_TEMA.containsKey(nomeDoTema);
     }
 
+    /**
+     * As cenas do tema, ou as genericas quando ele nao tem banco proprio.
+     *
+     * <p>Exposto para o teste comparar com a lista de verdade em vez de guardar uma
+     * copia das palavras. A cena e sorteada entre as do tema: um teste que espera
+     * palavra fixa passa a falhar em uma execucao de cada tres assim que a lista muda,
+     * e foi exatamente o que aconteceu quando "restaurante" saiu da viagem.
+     */
+    public static List<String> cenasDoTema(String nomeDoTema) {
+        return CENAS_POR_TEMA.getOrDefault(nomeDoTema, CENAS_PADRAO);
+    }
+
     private DesafioGerado gerarUm(PedidoDeGeracao pedido, List<String> jaUsados) {
         List<String> cenas = CENAS_POR_TEMA.getOrDefault(pedido.nomeDoTema(), CENAS_PADRAO);
         String cena = sortear(cenas) + montarReforco(pedido.errosRecentes());
