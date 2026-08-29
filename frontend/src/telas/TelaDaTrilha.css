@@ -14,13 +14,22 @@
   color: var(--cor-texto-secundario);
 }
 
-/* ---------- cabeçalho: medidor + sugestão ---------- */
+/* ---------- medidor: o resumo do percurso ---------- */
 
-.trilha__cabecalho {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  gap: var(--espaco-5);
-  align-items: start;
+/*
+ * O medidor e o percurso andam juntos, com folga menor entre eles do que a do
+ * resto da página. É o que faz a barra ser lida como cabeçalho da lista de
+ * conceitos, e não como mais um bloco solto.
+ *
+ * Antes o medidor dividia uma linha de duas colunas com o card "Próximo passo".
+ * Não funcionava por uma razão de forma, não de espaçamento: barra de progresso
+ * quer largura, card com título, texto e dois botões quer altura. Lado a lado,
+ * a coluna curta deixava um vazio do tamanho da diferença.
+ */
+.trilha__resumo-do-percurso {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-4);
 }
 
 .trilha__medidor-texto {
@@ -56,11 +65,44 @@
   background: var(--cor-verde);
 }
 
+/*
+ * Faixa: texto encostado numa borda, ações na outra.
+ *
+ * O card ocupa a linha inteira, mas o conteúdo dele é curto — e não há mais dado
+ * para mostrar. Empilhado, sobrava metade da largura vazia à direita, o que lê
+ * como defeito. Com as ações ancoradas na borda oposta, o mesmo espaço passa a
+ * ficar ENTRE dois elementos, e aí lê como respiro.
+ *
+ * É por isso que a solução foi mover o que já existia, e não inventar conteúdo
+ * para encher: preencher espaço com informação secundária custaria a clareza de
+ * uma tela cuja função é dizer uma coisa só — qual é o próximo passo.
+ */
 .trilha__sugestao {
   background: var(--cor-destaque-suave);
   border: 1px solid var(--cor-destaque);
   border-radius: var(--raio-grande);
   padding: var(--espaco-5);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--espaco-4) var(--espaco-7);
+}
+
+/*
+ * `flex: 1 1 30rem` decide o arranjo sozinho, e é melhor que um breakpoint na mão.
+ *
+ * A primeira tentativa foi uma grade `1fr auto` a partir de 60rem. A 1440px ficava
+ * ótima, mas a 1000px a coluna `auto` dos botões vencia a disputa: o texto caía
+ * para 164px e o parágrafo quebrava em OITO linhas. Um breakpoint calibrado no
+ * olho conserta a largura que eu testei e erra as outras — ainda mais aqui, onde a
+ * barra lateral come espaço e a conta muda.
+ *
+ * Assim o bloco pede 30rem. Havendo espaço para isso mais os botões, os dois ficam
+ * lado a lado; não havendo, os botões descem sozinhos. A régua é a largura de
+ * leitura, não um número de tela.
+ */
+.trilha__sugestao-texto {
+  flex: 1 1 30rem;
 }
 
 .trilha__sugestao-rotulo {
@@ -81,13 +123,34 @@
   font-size: 0.9375rem;
   line-height: 1.55;
   color: var(--cor-texto-secundario);
-  margin-bottom: var(--espaco-4);
+  /*
+   * Sem margem: quem separa o texto das ações agora é o `gap` do flex. Mantida,
+   * a folga sairia somada à do gap e o card ficaria frouxo no celular.
+   */
+  margin-bottom: 0;
+  /*
+   * O card passou a ocupar a linha inteira, e texto solto numa tela larga vira
+   * linha de 140 caracteres: o olho perde onde a próxima começa. O limite vale
+   * só para o parágrafo — os botões não são afetados.
+   */
+  max-width: 62ch;
 }
 
 .trilha__sugestao-acoes {
   display: flex;
   gap: var(--espaco-2);
   flex-wrap: wrap;
+}
+
+/*
+ * Botões sempre lado a lado, nunca empilhados. Empilhar parecia a escolha óbvia:
+ * uma coluna de botões encarando três linhas de texto soa mais equilibrado.
+ * Medindo, não era. O bloco de texto domina a altura do card nos dois arranjos,
+ * então empilhar não ganhava altura nenhuma e só devolvia largura: o conteúdo
+ * ocupava 67% do card empilhado contra 86% lado a lado.
+ */
+.trilha__sugestao-acoes button {
+  white-space: nowrap;
 }
 
 /* ---------- percurso ---------- */
@@ -387,11 +450,6 @@
 /* ---------- desktop ---------- */
 
 @media (min-width: 68rem) {
-  .trilha__cabecalho {
-    grid-template-columns: minmax(0, 1fr) minmax(22rem, 0.85fr);
-    gap: var(--espaco-7);
-  }
-
   /* Dois conceitos por linha: a fase inteira cabe na tela sem rolagem. */
   .fase__modulos {
     grid-template-columns: repeat(2, minmax(0, 1fr));

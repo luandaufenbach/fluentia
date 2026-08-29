@@ -96,7 +96,44 @@ export function TelaDaTrilha({
         />
       )}
 
-      <header className="trilha__cabecalho">
+      {sugestao && (
+        <section className="trilha__sugestao">
+          <div className="trilha__sugestao-texto">
+            <span className="trilha__sugestao-rotulo">Próximo passo</span>
+            <h2>{sugestao.moduloNome}</h2>
+            <p>{sugestao.motivo}</p>
+          </div>
+          <div className="trilha__sugestao-acoes">
+            {/*
+              Contornado, e nao preenchido. "Comecar o dia", logo acima, ja e o
+              amarelo cheio da tela: dois botoes preenchidos no mesmo topo
+              disputam a mesma atencao e nenhum vence.
+            */}
+            <button
+              type="button"
+              className="botao-secundario"
+              onClick={() => onEstudarModulo(sugestao.moduloCodigo)}
+            >
+              Estudar o conteúdo
+            </button>
+            <button
+              type="button"
+              className="botao-secundario"
+              onClick={onIrParaDesafio}
+            >
+              Ir direto ao desafio
+            </button>
+          </div>
+        </section>
+      )}
+
+      {/*
+        O medidor fica encostado no percurso porque e dele que ele fala: os 25%
+        sao o resumo exato da lista logo abaixo. Ao lado da sugestao, como estava
+        antes, ele resumia algo que nao estava por perto — e sobrava um vazio,
+        porque barra de progresso quer largura e o card ao lado queria altura.
+      */}
+      <div className="trilha__resumo-do-percurso">
         <div className="trilha__medidor">
           <div className="trilha__medidor-texto">
             <span className="trilha__percentual">{progresso}%</span>
@@ -128,45 +165,21 @@ export function TelaDaTrilha({
           </div>
         </div>
 
-        {sugestao && (
-          <section className="trilha__sugestao">
-            <span className="trilha__sugestao-rotulo">Próximo passo</span>
-            <h2>{sugestao.moduloNome}</h2>
-            <p>{sugestao.motivo}</p>
-            <div className="trilha__sugestao-acoes">
-              <button
-                type="button"
-                className="botao-primario"
-                onClick={() => onEstudarModulo(sugestao.moduloCodigo)}
-              >
-                Estudar o conteúdo
-              </button>
-              <button
-                type="button"
-                className="botao-secundario"
-                onClick={onIrParaDesafio}
-              >
-                Ir direto ao desafio
-              </button>
-            </div>
-          </section>
-        )}
-      </header>
+        <div className="trilha__percurso">
+          {trilha.fases.map((fase, indice) => (
+            <BlocoDaFase
+              key={fase.codigo}
+              fase={fase}
+              numero={indice + 1}
+              onEstudarModulo={onEstudarModulo}
+            />
+          ))}
 
-      <div className="trilha__percurso">
-        {trilha.fases.map((fase, indice) => (
-          <BlocoDaFase
-            key={fase.codigo}
-            fase={fase}
-            numero={indice + 1}
-            onEstudarModulo={onEstudarModulo}
-          />
-        ))}
-
-        <div className="trilha__fim">
-          <span className="trilha__bandeira">
-            Inglês que você usa sem pensar
-          </span>
+          <div className="trilha__fim">
+            <span className="trilha__bandeira">
+              Inglês que você usa sem pensar
+            </span>
+          </div>
         </div>
       </div>
 

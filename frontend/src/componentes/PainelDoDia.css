@@ -99,11 +99,35 @@
   border-top: 1px solid var(--cor-borda);
 }
 
+/*
+ * `list-style: none` tira a bolinha, mas NÃO tira o recuo: o navegador dá a toda `ul`
+ * um `padding-inline-start` de 40px, e ele fica. Sem zerar, o botão começava 40px à
+ * direita do rótulo acima e terminava colado na borda do card — desalinhado à
+ * esquerda e alinhado à direita, o que lê como se o botão tivesse largura errada.
+ *
+ * O projeto não tem reset global de listas, então cada uma zera a sua. A outra lista
+ * (.fase__modulos) já fazia isso; esta tinha ficado para trás.
+ */
 .dia__revisoes ul {
   display: flex;
   flex-direction: column;
   gap: var(--espaco-1);
   list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+/*
+ * O item sai 12px para fora, o mesmo tanto do padding lateral do botão. O efeito é que
+ * o TEXTO alinha com o rótulo acima e com o resto do card, enquanto a área clicável (e
+ * o fundo do hover) continua com folga em volta das palavras.
+ *
+ * Sem isto, zerar o recuo da lista alinharia o fundo do botão e deixaria o texto 12px
+ * para dentro — trocaria um desalinhamento por outro, menor. Cabe com sobra: o card tem
+ * 24px de padding, então ainda restam 12px de cada lado.
+ */
+.dia__revisoes li {
+  margin-inline: calc(-1 * var(--espaco-3));
 }
 
 .dia__revisoes button {

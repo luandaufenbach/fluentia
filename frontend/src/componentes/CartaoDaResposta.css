@@ -1,0 +1,92 @@
+/*
+ * O que o aluno escreveu, ao lado da mesma frase corrigida.
+ *
+ * Fica discreto de propósito: quem manda na tela é o painel de correção, com a nota e
+ * a explicação. Este cartão é apoio de leitura — se disputar atenção com o painel, a
+ * tela passa a ter dois centros e nenhum.
+ */
+.cartao-da-resposta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espaco-4) var(--espaco-6);
+  padding: var(--espaco-4) var(--espaco-5);
+  background: var(--cor-superficie-sutil);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-grande);
+}
+
+/*
+ * `flex: 1 1 20rem` no lugar de duas colunas fixas, e por dois motivos que só
+ * apareceram com a tela na frente.
+ *
+ * Um: quando a resposta está certa existe um bloco só, e numa grade de duas colunas
+ * ele ficava com metade da largura — a frase quebrava sem precisar e sobrava metade
+ * do card vazia ao lado.
+ *
+ * Dois: a media query media a JANELA, e quem manda aqui é a largura do CARD. Com a
+ * barra lateral ocupando espaço, uma janela de 1090px deixava cada coluna com 250px,
+ * larga o bastante para o CSS e estreita demais para uma frase.
+ *
+ * Assim cada bloco pede 20rem: cabendo os dois, ficam lado a lado para comparar;
+ * não cabendo, empilham e cada um usa a largura toda. E um bloco sozinho sempre
+ * ocupa o card inteiro, que é o certo quando não há com o que comparar.
+ */
+.cartao-da-resposta__bloco {
+  flex: 1 1 20rem;
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-1);
+  min-width: 0;
+}
+
+.cartao-da-resposta__rotulo {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--cor-texto-secundario);
+}
+
+.cartao-da-resposta__rotulo--certo {
+  color: var(--cor-verde);
+}
+
+.cartao-da-resposta__frase {
+  font-size: 1rem;
+  line-height: 1.6;
+  /*
+   * Quebra o texto do aluno onde precisar. Resposta longa sem espaço, ou uma palavra
+   * gigante digitada por engano, empurraria a largura do cartão e a página inteira
+   * passaria a rolar de lado.
+   */
+  overflow-wrap: anywhere;
+}
+
+/*
+ * `mark` é o elemento certo aqui: o navegador e o leitor de tela já entendem que é
+ * trecho destacado dentro de um texto maior. Um `span` colorido só diria isso a quem
+ * enxerga a cor.
+ */
+.cartao-da-resposta__frase mark {
+  background: none;
+  padding: 0 0.125rem;
+  border-radius: 0.1875rem;
+  font-weight: 600;
+}
+
+.cartao-da-resposta__marca--errado {
+  background: var(--cor-vermelho-fundo);
+  color: var(--cor-vermelho);
+  /*
+   * Sublinhado além da cor. Daltonismo vermelho-verde é o mais comum que existe, e
+   * marcar "errado" e "certo" só pela cor deixaria os dois idênticos para quem tem.
+   */
+  text-decoration: underline wavy currentColor;
+  text-underline-offset: 0.2em;
+}
+
+.cartao-da-resposta__marca--certo {
+  background: var(--cor-verde-fundo);
+  color: var(--cor-verde);
+}
+

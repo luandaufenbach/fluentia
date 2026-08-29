@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { CampoDeResposta } from "../componentes/CampoDeResposta";
+import { CartaoDaResposta } from "../componentes/CartaoDaResposta";
 import { PainelDeCorrecao } from "../componentes/PainelDeCorrecao";
 import { ResumoDoConteudo } from "../componentes/ResumoDoConteudo";
 import { api } from "../servicos/api";
@@ -120,6 +121,25 @@ export function TelaDeDesafio({
     );
   }
 
+  /*
+   * O desafio na tela já conta, enquanto não é respondido: quem está no sexto quer
+   * ler "6", não "5 concluídos". Depois da correção ele virou concluído de verdade
+   * e o servidor já o inclui, então somar de novo contaria duas vezes.
+   */
+  const numeroDeHoje = dia ? dia.concluidos + (correcao ? 0 : 1) : 0;
+
+  /*
+   * Passada a meta, o formato "X de Y" para de servir — ele mede progresso ATÉ um
+   * alvo, e não há mais alvo. Antes o número era travado no teto por Math.min, e o
+   * sexto desafio simplesmente não aparecia: o contador congelava em "5 de 5" e o
+   * esforço extra sumia da tela, que é o oposto do que um contador existe para fazer.
+   */
+  const contadorDoDia = dia
+    ? dia.metaAlcancada
+      ? `${numeroDeHoje} hoje · meta cumprida`
+      : `${numeroDeHoje} de ${dia.meta} hoje`
+    : "";
+
   return (
     <div className="tela-de-desafio">
       <div className="tela-de-desafio__principal">
@@ -132,10 +152,7 @@ export function TelaDeDesafio({
           </span>
           <span className="tela-de-desafio__tema">{desafio.temaNome}</span>
           {dia && (
-            <span className="tela-de-desafio__contador">
-              {Math.min(dia.concluidos + (correcao ? 0 : 1), dia.meta)} de{" "}
-              {dia.meta} hoje
-            </span>
+            <span className="tela-de-desafio__contador">{contadorDoDia}</span>
           )}
         </div>
 
@@ -169,12 +186,25 @@ export function TelaDeDesafio({
         )}
 
         {correcao && (
-          <PainelDeCorrecao
-            correcao={correcao}
-            onProximoDesafio={() => void carregarDesafio()}
-            carregandoProximo={carregando}
-            onVerConteudo={onVerConteudo}
-          />
+          <>
+            {/*
+              Vem antes do painel de propósito: a ordem de leitura é o que você
+              escreveu, depois o veredito. Invertida, o aluno lê a nota sem ter mais
+              na frente a frase que a gerou.
+            */}
+            <CartaoDaResposta
+              respostaDoAluno={resposta}
+              erros={correcao.erros}
+              acertou={correcao.erros.length === 0}
+            />
+
+            <PainelDeCorrecao
+              correcao={correcao}
+              onProximoDesafio={() => void carregarDesafio()}
+              carregandoProximo={carregando}
+              onVerConteudo={onVerConteudo}
+            />
+          </>
         )}
 
         {/*
