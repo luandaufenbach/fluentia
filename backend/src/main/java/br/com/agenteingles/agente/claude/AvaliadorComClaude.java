@@ -48,6 +48,10 @@ public class AvaliadorComClaude implements AgenteAvaliador {
               mesmo problema quebra essa contagem.
             - Se a resposta estiver correta, devolva a lista de erros vazia.
             - O feedback e as explicacoes vao em portugues; os trechos e correcoes, em ingles.
+            - Escreva o portugues com a ortografia correta, COM acentos e cedilha
+              ("Voce" esta errado, "Você" esta certo). Este texto e lido pelo aluno.
+              Estas instrucoes vem sem acento por convencao do codigo-fonte: nao imite
+              esse estilo, ele nao vale para o que voce escreve.
             """.formatted(CatalogoDeTiposDeErro.paraOPrompt());
 
     /**
@@ -70,6 +74,19 @@ public class AvaliadorComClaude implements AgenteAvaliador {
             - Explicacao de cada erro dizendo o porque da regra, nao so qual e a forma certa.
             """;
 
+    /**
+     * A forma do JSON de saida, escrita a mao.
+     *
+     * <p>Fica junto da instrucao do sistema, e nao no fim do pedido, porque e instrucao
+     * fixa e nao dado da requisicao — o lugar dela e onde estao as outras regras.
+     */
+    private static final String FORMA_DA_RESPOSTA = LeitorDeRespostaEstruturada.instrucaoCompacta("""
+            {"notaObtida": <numero de 0 a 10>, "feedback": "<texto>", "erros": [
+              {"tipo": "<um da lista>", "trechoErrado": "<em ingles>",
+               "correcao": "<em ingles>", "explicacao": "<em portugues>"}]}
+            Sem erros, "erros" vem [].
+            """);
+
     private final ChatClient clienteDeChat;
     private final PropriedadesDoAgente propriedades;
     private final MedidorDeChamada medidor;
@@ -89,21 +106,41 @@ public class AvaliadorComClaude implements AgenteAvaliador {
         log.debug("Avaliando resposta do modulo {}", pedido.codigoDoModulo());
 
         var resposta = clienteDeChat.prompt()
-                .system(INSTRUCAO_DO_SISTEMA + formatoDaCorrecao(pedido))
-                .user(montarPedido(pedido) + "\n" + leitor.instrucaoDeFormato())
-                .options(AnthropicChatOptions.builder()
-                        .model(Model.of(propriedades.modeloDeRaciocinio()))
-                        .maxTokens(MAXIMO_DE_TOKENS)
-                        .thinkingAdaptive())
+                .system(INSTRUCAO_DO_SISTEMA + formatoDaCorrecao(pedido) + FORMA_DA_RESPOSTA)
+                .user(montarPedido(pedido))
+                .options(opcoes())
                 .call()
                 .chatResponse();
 
         // Uma chamada, uma correcao — mesmo quando a resposta vem ilegivel e a
         // avaliacao se perde, a chamada ja foi cobrada e precisa aparecer no total.
         medidor.medir(resposta, pedido.usuarioId(), TipoDeChamada.AVALIACAO_DE_RESPOSTA,
-                propriedades.modeloDeRaciocinio(), 1);
+                propriedades.modeloDeAvaliacao(), 1);
 
         return leitor.converter(resposta);
+    }
+
+    /**
+     * O raciocinio estendido e o item mais caro desta chamada, e por isso e configuravel.
+     *
+     * <p>Ele nao aparece na resposta, mas <b>e cobrado como saida</b> — e saida custa
+     * cinco vezes a entrada. Medindo em producao, a avaliacao gastava 342 tokens de
+     * saida para um JSON que ocupa cerca de 120: o resto era raciocinio.
+     *
+     * <p>Fica ligado por padrao. Desligar economiza de verdade, mas a nota que sai daqui
+     * alimenta a media do modulo e a decisao do orquestrador — um erro de correcao se
+     * propaga pelo curriculo inteiro. Entao a troca e de qualidade por dinheiro, e quem
+     * decide isso e o dono do app, com numero na mao, nao um padrao escondido no codigo.
+     */
+    private AnthropicChatOptions.Builder opcoes() {
+        AnthropicChatOptions.Builder construtor = AnthropicChatOptions.builder();
+        construtor.model(Model.of(propriedades.modeloDeAvaliacao()))
+                .maxTokens(MAXIMO_DE_TOKENS);
+
+        if (propriedades.raciocinioNaAvaliacao()) {
+            construtor.thinkingAdaptive();
+        }
+        return construtor;
     }
 
     private String formatoDaCorrecao(PedidoDeAvaliacao pedido) {

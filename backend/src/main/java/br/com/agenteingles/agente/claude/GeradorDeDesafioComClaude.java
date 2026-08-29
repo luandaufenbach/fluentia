@@ -54,7 +54,17 @@ public class GeradorDeDesafioComClaude implements AgenteGeradorDeDesafio {
               em ingles.
             - A resposta de referencia deve ser uma resposta correta e natural.
             - O criterio de avaliacao descreve objetivamente o que verificar na resposta.
+            - Escreva o portugues com a ortografia correta, COM acentos e cedilha. Estas
+              instrucoes vem sem acento por convencao do codigo-fonte: nao imite esse
+              estilo, ele nao vale para o texto que o aluno le.
             """;
+
+    /** A forma do JSON de saida, escrita a mao. Ver {@link LeitorDeRespostaEstruturada}. */
+    private static final String FORMA_DA_RESPOSTA = LeitorDeRespostaEstruturada.instrucaoCompacta("""
+            {"desafios": [
+              {"enunciado": "<o pedido ao aluno>", "contextoDaCena": "<a situacao>",
+               "respostaDeReferencia": "<em ingles>", "criterioDeAvaliacao": "<o que verificar>"}]}
+            """);
 
     private final ChatClient clienteDeChat;
     private final PropriedadesDoAgente propriedades;
@@ -76,8 +86,8 @@ public class GeradorDeDesafioComClaude implements AgenteGeradorDeDesafio {
                 quantidade, pedido.codigoDoModulo(), pedido.nomeDoTema());
 
         var resposta = clienteDeChat.prompt()
-                .system(INSTRUCAO_DO_SISTEMA)
-                .user(montarPedido(pedido, quantidade) + "\n" + leitor.instrucaoDeFormato())
+                .system(INSTRUCAO_DO_SISTEMA + FORMA_DA_RESPOSTA)
+                .user(montarPedido(pedido, quantidade))
                 .options(AnthropicChatOptions.builder()
                         .model(Model.of(propriedades.modeloDeGeracao()))
                         .maxTokens(Math.max(TOKENS_MINIMOS, quantidade * TOKENS_POR_DESAFIO)))

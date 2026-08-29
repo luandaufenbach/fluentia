@@ -76,6 +76,22 @@ class MedidorDeCustoIT {
     }
 
     @Test
+    @DisplayName("o nome com data no fim encontra o preco da familia")
+    void nomeComDataEncontraOPreco() {
+        // A API responde com o nome datado mesmo quando pedimos o nome curto:
+        // pedimos claude-sonnet-5 e volta claude-sonnet-5-20250929. A busca exata
+        // falhava nesses casos e o custo ficava em aberto — sem quebrar nada, so
+        // deixando o relatorio de gasto furado, que e a pior forma de falhar.
+        registro.registrar(usuario.getId(), TipoDeChamada.AVALIACAO_DE_RESPOSTA,
+                "claude-sonnet-5-20250929", 1_000, 500, 1);
+
+        ResumoDeConsumo resumo = servicoDeConsumo.doUsuario(usuario);
+
+        assertThat(resumo.total().custoUsd()).isEqualByComparingTo("0.010500");
+        assertThat(resumo.modelosSemPreco()).isEmpty();
+    }
+
+    @Test
     @DisplayName("modelo sem preco configurado grava os tokens e deixa o custo em aberto")
     void modeloSemPrecoNaoViraZero() {
         registro.registrar(usuario.getId(), TipoDeChamada.AVALIACAO_DE_RESPOSTA,

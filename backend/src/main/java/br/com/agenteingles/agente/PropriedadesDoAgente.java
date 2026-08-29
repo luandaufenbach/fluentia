@@ -33,7 +33,9 @@ public record PropriedadesDoAgente(
         int desafiosPorLote,
         int desafiosPorLoteInicial,
         Map<String, PrecoDoModelo> precosPorMilhaoDeTokens,
-        String emailDoUsuarioPadrao) {
+        String emailDoUsuarioPadrao,
+        Boolean raciocinioNaAvaliacao,
+        String modeloDeAvaliacao) {
 
     public PropriedadesDoAgente {
         if (modeloDeRaciocinio == null || modeloDeRaciocinio.isBlank()) {
@@ -56,6 +58,18 @@ public record PropriedadesDoAgente(
         }
         if (emailDoUsuarioPadrao == null || emailDoUsuarioPadrao.isBlank()) {
             emailDoUsuarioPadrao = "dev@agenteingles.local";
+        }
+        // Ligado quando nao dito: a correcao e o coracao do produto, e o padrao seguro
+        // e o que preserva qualidade, nao o que economiza.
+        if (raciocinioNaAvaliacao == null) {
+            raciocinioNaAvaliacao = Boolean.TRUE;
+        }
+        // Separado do modelo de raciocinio de proposito. Aquele e compartilhado com o
+        // nivelamento e a geracao de conteudo: trocar la para economizar na correcao
+        // levaria os tres juntos, e os tres tem exigencias diferentes. Sem valor
+        // proprio, herda o de raciocinio e nada muda.
+        if (modeloDeAvaliacao == null || modeloDeAvaliacao.isBlank()) {
+            modeloDeAvaliacao = modeloDeRaciocinio;
         }
     }
 }

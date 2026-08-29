@@ -52,6 +52,28 @@ public class LeitorDeRespostaEstruturada<T> {
         return conversor.getFormat();
     }
 
+    /**
+     * A mesma exigencia de formato, em cerca de um quinto dos tokens.
+     *
+     * <p>O {@link BeanOutputConverter#getFormat()} gera JSON Schema completo: para o
+     * veredito do avaliador, que tem tres campos, sao <b>296 tokens</b> de tipos,
+     * {@code required}, {@code additionalProperties} e quatro linhas repetindo para nao
+     * usar cerca de codigo. Isso ia em toda chamada, e entrada custa dinheiro toda vez.
+     *
+     * <p>Escrever a forma a mao custa cerca de 60 tokens e diz a mesma coisa. Nao ha
+     * perda de robustez: o {@link #converter} ja tolera cerca de codigo aberta e
+     * resposta em varios blocos, entao a garantia nunca veio do texto verboso — veio
+     * do parser, e ele continua igual.
+     *
+     * @param forma exemplo do JSON esperado, com os nomes exatos dos campos
+     */
+    public static String instrucaoCompacta(String forma) {
+        return """
+                Responda apenas com JSON valido neste formato, sem cerca de codigo e sem \
+                nenhum texto fora dele:
+                """ + forma;
+    }
+
     public T converter(ChatResponse resposta) {
         if (resposta == null || resposta.getResults() == null || resposta.getResults().isEmpty()) {
             throw new RespostaIlegivelDaClaudeException("A Claude nao devolveu nenhum bloco.", null);
