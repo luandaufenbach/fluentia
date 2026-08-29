@@ -114,6 +114,10 @@ export interface Usuario {
   minutosPorDia: number;
   tipoDeCorrecao: TipoDeCorrecao;
   nivelEstimado: NivelCefr | null;
+  /** Nulo = sem preferência; quem decide a cena é o objetivo. */
+  temaPreferidoId: number | null;
+  /** Decide se a aba do painel aparece. Barrar de verdade é papel do servidor. */
+  ehAdministrador: boolean;
 }
 
 export interface Preferencias {
@@ -121,6 +125,11 @@ export interface Preferencias {
   minutosPorDia?: number;
   tipoDeCorrecao?: TipoDeCorrecao;
   nivelEstimado?: NivelCefr;
+  /**
+   * Aqui `null` NÃO é "não mexer", é "sem preferência" — sem essa distinção não
+   * haveria como desfazer a escolha. Por isso não é opcional: precisa ser enviado.
+   */
+  temaPreferidoId: number | null;
 }
 
 export interface ExemploDoConteudo {
@@ -243,4 +252,50 @@ export interface ResumoDoDia {
   metaAlcancada: boolean;
   sequencia: SequenciaDeDias;
   revisoes: RevisaoPendente[];
+}
+
+/* ---------- painel do administrador ---------- */
+
+export interface TotalDeConsumo {
+  chamadas: number;
+  tokensDeEntrada: number;
+  tokensDeSaida: number;
+  /** Nulo quando algum modelo usado não tinha preço: "não dá para saber", não zero. */
+  custoUsd: number | null;
+}
+
+export interface ConsumoPorTipo {
+  tipo: string;
+  chamadas: number;
+  custoUsd: number | null;
+  itensProduzidos: number;
+}
+
+export interface LinhaDoPainel {
+  usuarioId: number;
+  nome: string;
+  email: string;
+  papel: string;
+  ativo: boolean;
+  bloqueada: boolean;
+  criadoEm: string;
+  /** Nulo para quem se cadastrou e nunca voltou. */
+  ultimoAcessoEm: string | null;
+  chamadas: number;
+  tokensDeEntrada: number;
+  tokensDeSaida: number;
+  custoUsd: number | null;
+  desafiosRespondidos: number;
+}
+
+export interface PainelDoAdministrador {
+  hoje: TotalDeConsumo;
+  ultimosSeteDias: TotalDeConsumo;
+  total: TotalDeConsumo;
+  porTipo: ConsumoPorTipo[];
+  contasAtivas: number;
+  contasNoTotal: number;
+  contas: LinhaDoPainel[];
+  /** Enquanto não estiver vazia, os totais acima estão incompletos. */
+  modelosSemPreco: string[];
 }

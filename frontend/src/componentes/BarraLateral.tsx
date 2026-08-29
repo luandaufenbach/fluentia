@@ -8,12 +8,15 @@ export type Aba =
   | "conteudo"
   | "desafio"
   | "progresso"
-  | "configuracoes";
+  | "configuracoes"
+  | "admin";
 
 interface Props {
   abaAtiva: Aba;
   onTrocarAba: (aba: Aba) => void;
   nomeDoUsuario: string;
+  /** Mostra a aba do painel. Quem nao e administrador nem sabe que ela existe. */
+  ehAdministrador: boolean;
   onSair: () => void;
 }
 
@@ -32,6 +35,9 @@ const ABAS: { id: Aba; rotulo: string; icone: string }[] = [
   { id: "configuracoes", rotulo: "Ajustes", icone: "⚙" },
 ];
 
+/** Fora do array acima para deixar claro que ela não é para todo mundo. */
+const ABA_DO_ADMIN = { id: "admin" as const, rotulo: "Painel", icone: "▤" };
+
 /**
  * Navegação do app.
  *
@@ -42,6 +48,7 @@ const ABAS: { id: Aba; rotulo: string; icone: string }[] = [
  * polegar alcança sem trocar a mão de posição.
  */
 export function BarraLateral({
+  ehAdministrador,
   abaAtiva,
   onTrocarAba,
   nomeDoUsuario,
@@ -81,7 +88,13 @@ export function BarraLateral({
       </div>
 
       <nav className="barra-lateral__navegacao" aria-label="Navegação principal">
-        {ABAS.map((aba) => (
+        {/*
+          A aba do painel só existe para quem é administrador. Isto é conveniência de
+          interface, não segurança: quem souber o endereço da API ainda bate nela
+          direto — e quem barra é o papel exigido no servidor, que é onde a regra
+          precisa morar.
+        */}
+        {(ehAdministrador ? [...ABAS, ABA_DO_ADMIN] : ABAS).map((aba) => (
           <button
             key={aba.id}
             type="button"

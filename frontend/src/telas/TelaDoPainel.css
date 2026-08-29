@@ -1,0 +1,232 @@
+/*
+ * Painel do administrador. Denso de propósito: aqui o objetivo é comparar números
+ * entre contas, e comparação pede as linhas próximas umas das outras — o contrário
+ * do resto do app, onde cada tela tem uma coisa a dizer por vez.
+ */
+.painel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-6);
+}
+
+.painel__estado {
+  color: var(--cor-texto-secundario);
+}
+
+/*
+ * O aviso de total incompleto. Vermelho e antes dos números: lido depois, o total já
+ * teria sido tomado como verdade.
+ */
+.painel__alerta {
+  font-size: 0.875rem;
+  line-height: 1.55;
+  color: var(--cor-vermelho);
+  background: var(--cor-vermelho-fundo);
+  border: 1px solid var(--cor-vermelho);
+  border-radius: var(--raio-pequeno);
+  padding: var(--espaco-3) var(--espaco-4);
+}
+
+/* ---------- cartões de resumo ---------- */
+
+.painel__resumo {
+  display: grid;
+  /* Sem breakpoint: os cartões cabem quantos couberem, na largura que houver. */
+  grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+  gap: var(--espaco-3);
+}
+
+.painel__cartao {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  padding: var(--espaco-4);
+  background: var(--cor-superficie);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-grande);
+}
+
+.painel__cartao-rotulo {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--cor-texto-secundario);
+}
+
+.painel__cartao-valor {
+  font-size: 1.5rem;
+  letter-spacing: -0.02em;
+  /* Dígitos de mesma largura: sem isto os valores dançam ao atualizar. */
+  font-variant-numeric: tabular-nums;
+}
+
+.painel__cartao-detalhe {
+  font-size: 0.8125rem;
+  color: var(--cor-texto-secundario);
+}
+
+/* ---------- seções ---------- */
+
+.painel__secao h2 {
+  font-size: 1.125rem;
+  margin-bottom: var(--espaco-2);
+}
+
+.painel__ajuda {
+  font-size: 0.8125rem;
+  color: var(--cor-texto-secundario);
+  margin-bottom: var(--espaco-3);
+}
+
+.painel__tipos {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-1);
+}
+
+.painel__tipos li {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: var(--espaco-2) var(--espaco-3);
+  padding: var(--espaco-3);
+  background: var(--cor-superficie);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-pequeno);
+}
+
+.painel__tipo-nome {
+  font-weight: 600;
+}
+
+.painel__tipo-detalhe {
+  font-size: 0.8125rem;
+  color: var(--cor-texto-secundario);
+}
+
+/* Empurra o custo para a borda: a coluna de números fica alinhada à direita. */
+.painel__tipo-custo {
+  margin-left: auto;
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
+
+/* ---------- tabela de contas ---------- */
+
+/*
+ * A rolagem lateral fica AQUI, e não na página. Tabela com sete colunas não cabe em
+ * 375px de jeito nenhum, e a saída errada seria a página inteira rolar de lado — o
+ * que quebra a leitura de tudo, não só da tabela.
+ */
+.painel__rolagem {
+  overflow-x: auto;
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-grande);
+  background: var(--cor-superficie);
+}
+
+.painel__tabela {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+  /* Impede a tabela de espremer as colunas até o texto virar uma letra por linha. */
+  min-width: 44rem;
+}
+
+.painel__tabela th {
+  text-align: left;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--cor-texto-secundario);
+  padding: var(--espaco-3) var(--espaco-3);
+  border-bottom: 1px solid var(--cor-borda);
+  white-space: nowrap;
+}
+
+.painel__tabela td {
+  padding: var(--espaco-3);
+  border-bottom: 1px solid var(--cor-borda);
+  vertical-align: middle;
+}
+
+.painel__tabela tr:last-child td {
+  border-bottom: none;
+}
+
+.painel__nome {
+  display: block;
+  font-weight: 600;
+}
+
+.painel__email {
+  display: block;
+  font-size: 0.75rem;
+  color: var(--cor-texto-secundario);
+}
+
+.painel__numero {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.painel__custo {
+  font-weight: 600;
+}
+
+.painel__data {
+  white-space: nowrap;
+  color: var(--cor-texto-secundario);
+}
+
+/*
+ * Estado da conta. A cor vem acompanhada da palavra, nunca sozinha: daltonismo
+ * vermelho-verde é o mais comum que existe, e "bloqueada" e "ativa" ficariam
+ * idênticas para quem tem.
+ */
+.painel__marca {
+  display: inline-block;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 0.125rem var(--espaco-2);
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.painel__marca--verde {
+  color: var(--cor-verde);
+  background: var(--cor-verde-fundo);
+}
+
+.painel__marca--vermelho {
+  color: var(--cor-vermelho);
+  background: var(--cor-vermelho-fundo);
+}
+
+.painel__marca--amarelo {
+  color: var(--cor-amarelo);
+  background: var(--cor-amarelo-fundo);
+}
+
+.painel__marca--cinza {
+  color: var(--cor-texto-secundario);
+  background: var(--cor-superficie-sutil);
+}
+
+.painel__dica {
+  margin-top: var(--espaco-2);
+  font-size: 0.875rem;
+  color: var(--cor-texto);
+  background: var(--cor-destaque-suave);
+  border: 1px solid var(--cor-destaque);
+  border-radius: var(--raio-pequeno);
+  padding: var(--espaco-3);
+}

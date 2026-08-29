@@ -10,6 +10,7 @@ import type {
   Sugestao,
   Tema,
   Trilha,
+  PainelDoAdministrador,
   Usuario,
   UsuarioAutenticado,
 } from "../tipos";
@@ -123,6 +124,18 @@ export const api = {
       body: JSON.stringify({ nome, email, senha }),
     }),
 
+  pedirRecuperacao: (email: string) =>
+    requisitar<void>("/autenticacao/recuperacao", {
+      method: "POST",
+      body: JSON.stringify({ email }),
+    }),
+
+  redefinirSenha: (token: string, novaSenha: string) =>
+    requisitar<void>("/autenticacao/redefinicao", {
+      method: "POST",
+      body: JSON.stringify({ token, novaSenha }),
+    }),
+
   entrar: (email: string, senha: string) =>
     requisitar<UsuarioAutenticado>("/autenticacao/login", {
       method: "POST",
@@ -132,6 +145,9 @@ export const api = {
   sair: () => requisitar<void>("/autenticacao/logout", { method: "POST" }),
 
   buscarUsuario: () => requisitar<Usuario>("/usuario"),
+
+  /** Só responde para quem tem papel de administrador; o resto recebe 403. */
+  buscarPainel: () => requisitar<PainelDoAdministrador>("/admin/painel"),
 
   salvarPreferencias: (preferencias: Preferencias) =>
     requisitar<Usuario>("/usuario/preferencias", {

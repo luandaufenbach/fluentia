@@ -28,16 +28,38 @@ public class UsuarioController {
             ObjetivoDoUsuario objetivo,
             Integer minutosPorDia,
             TipoDeCorrecao tipoDeCorrecao,
-            NivelCefr nivelEstimado) {
+            NivelCefr nivelEstimado,
+            /** Nulo = sem preferencia; quem decide a cena e o objetivo. */
+            Long temaPreferidoId,
+            /**
+             * Se esta conta e administradora.
+             *
+             * <p>Um booleano, e nao o papel. A resposta do login segue sem nada disso —
+             * la o dado nao tem uso e so aumentaria a superficie. Aqui tem: e o que
+             * decide se a aba do painel aparece.
+             *
+             * <p>Contar isso a propria pessoa nao vaza nada: ela ja sabe o que e. E a
+             * aba e conveniencia de interface, nao protecao — quem barra o acesso e o
+             * papel exigido no servidor.
+             */
+            boolean ehAdministrador) {
     }
 
+    /**
+     * @param minutosPorDia a faixa acompanha o que de fato muda a meta. Ela sai de
+     *        {@code minutos / 3}, limitada entre 3 e 20 desafios: abaixo de 9 minutos
+     *        e acima de 60 o resultado para de mudar. Aceitar 240 era prometer um
+     *        ajuste que nao existia — quem escolhesse 240 recebia o mesmo de 60 e nao
+     *        tinha como perceber.
+     */
     public record PreferenciasRequisicao(
             ObjetivoDoUsuario objetivo,
-            @Min(value = 5, message = "o ritmo minimo e de 5 minutos por dia")
-            @Max(value = 240, message = "o ritmo maximo e de 240 minutos por dia")
+            @Min(value = 9, message = "o ritmo minimo e de 9 minutos por dia")
+            @Max(value = 60, message = "o ritmo maximo e de 60 minutos por dia")
             Integer minutosPorDia,
             TipoDeCorrecao tipoDeCorrecao,
-            NivelCefr nivelEstimado) {
+            NivelCefr nivelEstimado,
+            Long temaPreferidoId) {
     }
 
     @GetMapping
@@ -51,7 +73,8 @@ public class UsuarioController {
                 requisicao.objetivo(),
                 requisicao.minutosPorDia(),
                 requisicao.tipoDeCorrecao(),
-                requisicao.nivelEstimado()));
+                requisicao.nivelEstimado(),
+                requisicao.temaPreferidoId()));
     }
 
     private UsuarioResposta converter(Usuario usuario) {
@@ -62,6 +85,8 @@ public class UsuarioController {
                 usuario.getObjetivo(),
                 usuario.getMinutosPorDia(),
                 usuario.getTipoDeCorrecao(),
-                usuario.getNivelEstimado());
+                usuario.getNivelEstimado(),
+                usuario.getTemaPreferidoId(),
+                usuario.getPapel() == PapelDoUsuario.ADMINISTRADOR);
     }
 }

@@ -8,6 +8,8 @@ import { TelaDeConteudo } from "./telas/TelaDeConteudo";
 import { TelaDeDesafio } from "./telas/TelaDeDesafio";
 import { TelaDeNivelamento } from "./telas/TelaDeNivelamento";
 import { TelaDeProgresso } from "./telas/TelaDeProgresso";
+import { TelaDeRedefinicao } from "./telas/TelaDeRedefinicao";
+import { TelaDoPainel } from "./telas/TelaDoPainel";
 import type { UsuarioAutenticado } from "./tipos";
 import "./App.css";
 
@@ -17,6 +19,7 @@ const TITULO_DA_ABA: Record<Aba, string> = {
   desafio: "Desafio",
   progresso: "Progresso",
   configuracoes: "Configurações",
+  admin: "Painel",
 };
 
 /** `undefined` enquanto a sessão está sendo verificada; `null` quando não há sessão. */
@@ -24,6 +27,28 @@ type SessaoConhecida = UsuarioAutenticado | null | undefined;
 
 export default function App() {
   const [usuario, setUsuario] = useState<SessaoConhecida>(undefined);
+
+  /*
+   * Lido uma vez, na montagem. O token some da URL assim que a senha é trocada — não
+   * pode ficar no endereço, onde entra no histórico do navegador e em qualquer print
+   * de tela que a pessoa venha a compartilhar.
+   */
+  const [tokenDeRecuperacao, setTokenDeRecuperacao] = useState<string | null>(
+    () => new URLSearchParams(window.location.search).get("recuperacao"),
+  );
+  const [senhaRedefinida, setSenhaRedefinida] = useState(false);
+
+  /*
+   * O papel vem do perfil, não do login: a resposta de entrada não traz papel de
+   * propósito. Fica separado do usuário autenticado porque as duas informações têm
+   * origens diferentes e chegam em momentos diferentes.
+   */
+  const [ehAdministrador, setEhAdministrador] = useState(false);
+
+  const limparTokenDaUrl = useCallback(() => {
+    setTokenDeRecuperacao(null);
+    window.history.replaceState(null, "", window.location.pathname);
+  }, []);
   const [abaAtiva, setAbaAtiva] = useState<Aba>("modulos");
 
   /**
@@ -40,6 +65,7 @@ export default function App() {
       .then((perfil) => {
         if (!cancelado) {
           setUsuario({ id: perfil.id, nome: perfil.nome, email: perfil.email });
+          setEhAdministrador(perfil.ehAdministrador);
         }
       })
       .catch(() => {
@@ -151,8 +177,33 @@ export default function App() {
     return <div className="aplicacao__carregando">Carregando...</div>;
   }
 
+  /*
+   * O token do e-mail chega pela query string, e não por rota: o app é uma página só,
+   * sem roteador. Ler `?recuperacao=` aqui resolve o caso inteiro sem trazer uma
+   * dependência de roteamento para um app que tem exatamente uma URL.
+   */
+  if (tokenDeRecuperacao) {
+    return (
+      <TelaDeRedefinicao
+        token={tokenDeRecuperacao}
+        onRedefinida={() => {
+          // Limpa a URL antes de sair da tela: recarregar a página com o token ainda
+          // no endereço traria de volta um formulário para um link já queimado.
+          limparTokenDaUrl();
+          setSenhaRedefinida(true);
+        }}
+        onCancelar={limparTokenDaUrl}
+      />
+    );
+  }
+
   if (usuario === null) {
-    return <TelaDeAutenticacao onEntrou={setUsuario} />;
+    return (
+      <TelaDeAutenticacao
+        onEntrou={setUsuario}
+        avisoDeSenhaRedefinida={senhaRedefinida}
+      />
+    );
   }
 
   if (precisaNivelar === undefined) {
@@ -179,6 +230,7 @@ export default function App() {
         abaAtiva={abaAtiva}
         onTrocarAba={trocarAba}
         nomeDoUsuario={usuario.nome}
+        ehAdministrador={ehAdministrador}
         onSair={() => void sair()}
       />
 
@@ -221,6 +273,13 @@ export default function App() {
         {abaAtiva === "progresso" && (
           <TelaDeProgresso versao={versaoDosDados} />
         )}
+
+        {/*
+          A condição do papel também aqui, e não só na barra: sem ela, quem já esteve
+          na aba e depois perdesse o papel continuaria na tela até trocar de aba — e
+          veria a mensagem de erro do servidor em vez de simplesmente não estar lá.
+        */}
+        {abaAtiva === "admin" && ehAdministrador && <TelaDoPainel />}
 
         {abaAtiva === "configuracoes" && (
           <TelaDeConfiguracoes

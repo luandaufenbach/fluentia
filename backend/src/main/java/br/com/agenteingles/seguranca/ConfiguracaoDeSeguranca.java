@@ -131,12 +131,18 @@ public class ConfiguracaoDeSeguranca {
                                 .policyDirectives("default-src 'none'; frame-ancestors 'none'")))
 
                 .authorizeHttpRequests(rotas -> rotas
-                        .requestMatchers("/api/autenticacao/cadastro", "/api/autenticacao/login").permitAll()
+                        // Recuperacao e redefinicao sao publicas por definicao: quem
+                        // perdeu a senha nao tem como estar autenticado. O que as protege
+                        // e o limite por origem e o token de uso unico, nao a sessao.
+                        .requestMatchers("/api/autenticacao/cadastro", "/api/autenticacao/login",
+                                "/api/autenticacao/recuperacao", "/api/autenticacao/redefinicao").permitAll()
                         // Sonda de vida do orquestrador de containers. Os detalhes
                         // ficam desligados na configuracao, entao nao ha vazamento
                         // de estado interno aqui.
                         .requestMatchers("/actuator/health").permitAll()
                         .requestMatchers("/api/diagnostico").hasRole("ADMINISTRADOR")
+                        // Expoe dados de TODAS as contas: e-mail, ultimo acesso, gasto.
+                        .requestMatchers("/api/admin/**").hasRole("ADMINISTRADOR")
                         .requestMatchers("/actuator/**").hasRole("ADMINISTRADOR")
                         .anyRequest().authenticated())
 

@@ -21,6 +21,26 @@ spring:
       # A chave nunca fica no repositorio: vem da variavel de ambiente ANTHROPIC_API_KEY.
       api-key: ${ANTHROPIC_API_KEY:}
 
+  # SMTP da recuperacao de senha. Vazio por padrao: o app sobe sem isto e o link vai
+  # para o log, entao um clone recem-baixado funciona sem credencial de e-mail.
+  #
+  # Gmail: smtp.gmail.com na 587, usuario = seu e-mail, senha = SENHA DE APP de 16
+  # caracteres (a senha normal da conta nao funciona; e preciso ter a verificacao em
+  # duas etapas ligada para gerar uma).
+  #
+  # Trocar para Resend ou Brevo depois e mudar so estas quatro linhas — nenhum Java.
+  mail:
+    host: ${SMTP_SERVIDOR:}
+    port: ${SMTP_PORTA:587}
+    username: ${SMTP_USUARIO:}
+    password: ${SMTP_SENHA:}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+
 agente-ingles:
   # Enquanto false, os agentes usam a implementacao simulada e nao consomem a API.
   usar-claude: ${USAR_CLAUDE:false}
@@ -28,12 +48,28 @@ agente-ingles:
   modelo-de-raciocinio: ${MODELO_DE_RACIOCINIO:claude-sonnet-5}
   # Gerador: separado para poder baixar so ele de nivel sem mexer na correcao.
   modelo-de-geracao: ${MODELO_DE_GERACAO:claude-sonnet-5}
+  # Avaliador: separado do modelo de raciocinio para poder trocar so a correcao sem
+  # mexer no nivelamento nem na geracao de conteudo, que compartilham aquele.
+  # Vazio herda o de raciocinio.
+  modelo-de-avaliacao: ${MODELO_DE_AVALIACAO:}
   modelo-simples: claude-haiku-4-5
   # Desafios pedidos por chamada. O custo fixo do pedido e dividido por este numero.
   desafios-por-lote: ${DESAFIOS_POR_LOTE:5}
   # Lote da primeira visita a um modulo: quem nunca praticou ali pode nao voltar,
   # e o lote cheio deixaria quatro desafios ja pagos parados na fila.
   desafios-por-lote-inicial: ${DESAFIOS_POR_LOTE_INICIAL:2}
+
+  # Raciocinio estendido na avaliacao. Nao aparece na resposta, mas e cobrado como
+  # saida — o item mais caro da chamada. Desligar economiza cerca de um terco do custo
+  # total do app; a troca e qualidade da correcao por dinheiro.
+  raciocinio-na-avaliacao: ${RACIOCINIO_NA_AVALIACAO:true}
+
+  # Endereco publico do app. Entra no link do e-mail de recuperacao, entao precisa ser
+  # o que o navegador do aluno alcanca — nao o endereco interno do container.
+  url-base: ${URL_BASE:http://localhost:5173}
+  email:
+    # De quem o e-mail sai. No Gmail, precisa ser a mesma conta da senha de app.
+    remetente: ${EMAIL_REMETENTE:}
   # Dolar por milhao de tokens. Confira em anthropic.com/pricing: modelo sem preco
   # aqui tem os tokens gravados e o custo marcado como desconhecido, nunca como zero.
   precos-por-milhao-de-tokens:
@@ -56,6 +92,10 @@ agente-ingles:
     # sai de graca para quem cria e caro para quem paga.
     cadastros-por-origem-por-hora: ${CADASTROS_POR_ORIGEM_POR_HORA:3}
     recusas-por-origem-por-hora: ${RECUSAS_POR_ORIGEM_POR_HORA:30}
+    # Janela em que um e-mail interceptado ainda serve para entrar na conta.
+    minutos-do-link-de-recuperacao: ${MINUTOS_DO_LINK:15}
+    # Sem teto, o endpoint vira maquina de mandar e-mail para endereco alheio.
+    recuperacoes-por-origem-por-hora: ${RECUPERACOES_POR_ORIGEM_POR_HORA:5}
 
 server:
   # PORT antes de PORTA: as plataformas de hospedagem (Render, Cloud Run) escolhem a
@@ -94,6 +134,17 @@ management:
   endpoint:
     health:
       show-details: never
+  health:
+    # O app nao depende de e-mail para funcionar, e a sonda de vida nao pode achar que
+    # depende. Ligado, este indicador conecta no SMTP a cada consulta: sem SMTP
+    # configurado ele falha sempre, e com SMTP configurado ele falha em qualquer
+    # instabilidade do provedor. Nos dois casos /actuator/health devolve 503 e o
+    # orquestrador mata um app que estava perfeitamente saudavel — derrubando o
+    # aprendizado de todo mundo por causa de um recurso que quase ninguem usa.
+    #
+    # Falha de envio continua aparecendo, como ERROR no log, que e o lugar certo.
+    mail:
+      enabled: false
   info:
     env:
       enabled: false
@@ -101,3 +152,4 @@ management:
 logging:
   level:
     br.com.agenteingles: DEBUG
+
