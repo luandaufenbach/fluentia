@@ -39,6 +39,16 @@ services:
       # Deixe USAR_CLAUDE=true e informe a chave para ligar os agentes reais.
       USAR_CLAUDE: ${USAR_CLAUDE:-false}
       ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+
+      # Recuperacao de senha. Vazio = o link vai para o log em vez de sair por e-mail,
+      # que e o que faz um clone recem-baixado funcionar sem credencial.
+      SMTP_SERVIDOR: ${SMTP_SERVIDOR:-}
+      SMTP_PORTA: ${SMTP_PORTA:-587}
+      SMTP_USUARIO: ${SMTP_USUARIO:-}
+      SMTP_SENHA: ${SMTP_SENHA:-}
+      EMAIL_REMETENTE: ${EMAIL_REMETENTE:-}
+      # Entra no link do e-mail: precisa ser o endereco que o navegador alcanca.
+      URL_BASE: ${URL_BASE:-http://localhost:5173}
     ports:
       - "8080:8080"
     profiles:

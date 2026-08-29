@@ -38,10 +38,14 @@ public class AutenticacaoController {
     private final SessoesAtivas sessoesAtivas;
     private final SecurityContextRepository repositorioDeContexto = new HttpSessionSecurityContextRepository();
 
+    private final ServicoDeRecuperacaoDeSenha servicoDeRecuperacao;
+
     public AutenticacaoController(ServicoDeAutenticacao servicoDeAutenticacao,
-                                  SessoesAtivas sessoesAtivas) {
+                                  SessoesAtivas sessoesAtivas,
+                                  ServicoDeRecuperacaoDeSenha servicoDeRecuperacao) {
         this.servicoDeAutenticacao = servicoDeAutenticacao;
         this.sessoesAtivas = sessoesAtivas;
+        this.servicoDeRecuperacao = servicoDeRecuperacao;
     }
 
     public record CadastroRequisicao(
@@ -102,6 +106,46 @@ public class AutenticacaoController {
 
         abrirSessao(usuario, http, resposta);
         return UsuarioAutenticadoResposta.de(usuario);
+    }
+
+    public record RecuperacaoRequisicao(
+            @NotBlank(message = "Informe o e-mail.")
+            @Size(max = 180)
+            String email) {
+    }
+
+    public record RedefinicaoRequisicao(
+            @NotBlank(message = "Link inválido.")
+            @Size(max = 200)
+            String token,
+
+            @NotBlank(message = "Informe a nova senha.")
+            @Size(min = TAMANHO_MINIMO_DA_SENHA, max = TAMANHO_MAXIMO_DA_SENHA,
+                    message = "A senha precisa ter no minimo " + TAMANHO_MINIMO_DA_SENHA + " caracteres.")
+            String novaSenha) {
+    }
+
+    /**
+     * Pede o link de recuperacao.
+     *
+     * <p>Responde <b>204 sempre</b>: com conta, sem conta ou com conta inativa. Devolver
+     * "enviado" ou "nao enviado" transformaria este endpoint numa consulta publica de
+     * quem tem cadastro, sem precisar de senha nenhuma. O preco e que quem digitou o
+     * e-mail errado fica esperando — e vale a pena.
+     */
+    @PostMapping("/recuperacao")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void pedirRecuperacao(@Valid @RequestBody RecuperacaoRequisicao requisicao,
+                                 HttpServletRequest http) {
+        servicoDeRecuperacao.solicitar(requisicao.email(), origemDe(http));
+    }
+
+    /** Define a nova senha a partir do link. Derruba as sessoes abertas da conta. */
+    @PostMapping("/redefinicao")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void redefinirSenha(@Valid @RequestBody RedefinicaoRequisicao requisicao,
+                               HttpServletRequest http) {
+        servicoDeRecuperacao.redefinir(requisicao.token(), requisicao.novaSenha(), origemDe(http));
     }
 
     @PostMapping("/logout")

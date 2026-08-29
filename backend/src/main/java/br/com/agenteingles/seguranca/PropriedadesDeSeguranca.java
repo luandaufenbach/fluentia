@@ -30,7 +30,9 @@ public record PropriedadesDeSeguranca(
         int minutosDeSessao,
         List<String> origensPermitidas,
         int cadastrosPorOrigemPorHora,
-        int recusasPorOrigemPorHora) {
+        int recusasPorOrigemPorHora,
+        int minutosDoLinkDeRecuperacao,
+        int recuperacoesPorOrigemPorHora) {
 
     public PropriedadesDeSeguranca {
         if (tentativasAteBloquear < 1) {
@@ -56,6 +58,18 @@ public record PropriedadesDeSeguranca(
         }
         if (recusasPorOrigemPorHora < 1) {
             recusasPorOrigemPorHora = 30;
+        }
+        // Curto de proposito: e a janela em que um e-mail interceptado ainda serve para
+        // entrar na conta. Quinze minutos bastam para abrir a caixa de entrada e clicar,
+        // e nao deixam a chave viva pelo resto do dia.
+        if (minutosDoLinkDeRecuperacao < 1) {
+            minutosDoLinkDeRecuperacao = 15;
+        }
+        // Mais apertado que o de cadastro: quem esqueceu a senha pede um link, talvez
+        // dois. Cinco por hora ja e folga, e o custo de nao limitar seria usar o app
+        // como maquina de mandar e-mail para endereco alheio.
+        if (recuperacoesPorOrigemPorHora < 1) {
+            recuperacoesPorOrigemPorHora = 5;
         }
     }
 }

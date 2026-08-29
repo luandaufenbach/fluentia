@@ -59,6 +59,16 @@ services:
 
       ORIGENS_PERMITIDAS: https://${DOMINIO}
 
+      # Recuperacao de senha. Sem SMTP, o link so vai para o log — em producao isso
+      # significa que ninguem consegue recuperar a senha e o erro nao aparece na tela.
+      SMTP_SERVIDOR: ${SMTP_SERVIDOR:-}
+      SMTP_PORTA: ${SMTP_PORTA:-587}
+      SMTP_USUARIO: ${SMTP_USUARIO:-}
+      SMTP_SENHA: ${SMTP_SENHA:-}
+      EMAIL_REMETENTE: ${EMAIL_REMETENTE:-}
+      # O link do e-mail aponta para o dominio publico, nao para o container.
+      URL_BASE: https://${DOMINIO}
+
       # Tetos por origem. O padrao do proprio app ja e seguro, entao a variavel
       # ausente nao desliga a protecao — so mantem o padrao.
       CADASTROS_POR_ORIGEM_POR_HORA: ${CADASTROS_POR_ORIGEM_POR_HORA:-3}

@@ -6,9 +6,11 @@ import "./TelaDeAutenticacao.css";
 
 interface Props {
   onEntrou: (usuario: UsuarioAutenticado) => void;
+  /** Mostrado quando a pessoa acabou de trocar a senha pelo link do e-mail. */
+  avisoDeSenhaRedefinida?: boolean;
 }
 
-type Modo = "entrar" | "cadastrar";
+type Modo = "entrar" | "cadastrar" | "recuperar";
 
 /** Espelha o mínimo exigido pelo backend — a validação de verdade é lá. */
 const TAMANHO_MINIMO_DA_SENHA = 10;
@@ -20,7 +22,7 @@ const TAMANHO_MINIMO_DA_SENHA = 10;
  * nem para armazenamento local, nem para log. O que fica depois do login é o cookie
  * de sessão, que o próprio navegador guarda fora do alcance de JavaScript.
  */
-export function TelaDeAutenticacao({ onEntrou }: Props) {
+export function TelaDeAutenticacao({ onEntrou, avisoDeSenhaRedefinida }: Props) {
   const [modo, setModo] = useState<Modo>("entrar");
   const [nome, setNome] = useState("");
   const [email, setEmail] = useState("");
@@ -28,15 +30,21 @@ export function TelaDeAutenticacao({ onEntrou }: Props) {
   const [erro, setErro] = useState<string | null>(null);
   const [enviando, setEnviando] = useState(false);
 
+  /** Confirmação do pedido de recuperação. Nunca diz se a conta existe. */
+  const [pedidoEnviado, setPedidoEnviado] = useState(false);
+
   const cadastrando = modo === "cadastrar";
+  const recuperando = modo === "recuperar";
   const senhaCurta =
     cadastrando && senha.length > 0 && senha.length < TAMANHO_MINIMO_DA_SENHA;
 
   const podeEnviar =
     email.trim().length > 0 &&
-    senha.length > 0 &&
-    (!cadastrando ||
-      (nome.trim().length > 0 && senha.length >= TAMANHO_MINIMO_DA_SENHA));
+    // Recuperar pede só o e-mail: quem esqueceu a senha não tem o que digitar aqui.
+    (recuperando ||
+      (senha.length > 0 &&
+        (!cadastrando ||
+          (nome.trim().length > 0 && senha.length >= TAMANHO_MINIMO_DA_SENHA))));
 
   async function enviar(evento: React.FormEvent) {
     evento.preventDefault();
@@ -47,6 +55,11 @@ export function TelaDeAutenticacao({ onEntrou }: Props) {
     setEnviando(true);
     setErro(null);
     try {
+      if (recuperando) {
+        await api.pedirRecuperacao(email);
+        setPedidoEnviado(true);
+        return;
+      }
       const usuario = cadastrando
         ? await api.cadastrar(nome, email, senha)
         : await api.entrar(email, senha);
@@ -62,10 +75,15 @@ export function TelaDeAutenticacao({ onEntrou }: Props) {
     }
   }
 
-  function trocarModo() {
-    setModo(cadastrando ? "entrar" : "cadastrar");
+  function irPara(destino: Modo) {
+    setModo(destino);
     setErro(null);
     setSenha("");
+    setPedidoEnviado(false);
+  }
+
+  function trocarModo() {
+    irPara(cadastrando ? "entrar" : "cadastrar");
   }
 
   return (
@@ -82,12 +100,18 @@ export function TelaDeAutenticacao({ onEntrou }: Props) {
         </div>
 
         <h1 className="autenticacao__titulo">
-          {cadastrando ? "Criar sua conta" : "Entrar"}
+          {recuperando
+            ? "Recuperar a senha"
+            : cadastrando
+              ? "Criar sua conta"
+              : "Entrar"}
         </h1>
         <p className="autenticacao__subtitulo">
-          {cadastrando
-            ? "Sua trilha começa no primeiro conceito e avança conforme os seus acertos."
-            : "Continue de onde parou."}
+          {recuperando
+            ? "Informe o e-mail da conta. Se houver cadastro, mandamos um link para você definir uma senha nova."
+            : cadastrando
+              ? "Sua trilha começa no primeiro conceito e avança conforme os seus acertos."
+              : "Continue de onde parou."}
         </p>
 
         <form className="autenticacao__formulario" onSubmit={enviar} noValidate>
@@ -119,6 +143,7 @@ export function TelaDeAutenticacao({ onEntrou }: Props) {
             />
           </label>
 
+          {!recuperando && (
           <label className="autenticacao__campo">
             <span>Senha</span>
             <input
@@ -143,6 +168,30 @@ export function TelaDeAutenticacao({ onEntrou }: Props) {
               </small>
             )}
           </label>
+          )}
+
+          {/*
+            A confirmação é deliberadamente ambígua: "se houver cadastro". Dizer
+            "enviamos" confirmaria que o e-mail tem conta, e este endpoint é público —
+            viraria uma consulta de quem está cadastrado, sem precisar de senha.
+          */}
+          {pedidoEnviado && (
+            <p className="autenticacao__aviso" role="status">
+              Se houver uma conta com esse e-mail, o link acabou de sair. Ele vale
+              por 15 minutos. Confira também a caixa de spam.
+            </p>
+          )}
+
+          {/*
+            Sem isto, quem acabou de redefinir a senha voltaria para a tela de entrada
+            sem nenhum sinal de que deu certo — e ficaria em dúvida se deve digitar a
+            senha antiga ou a nova.
+          */}
+          {avisoDeSenhaRedefinida && modo === "entrar" && !pedidoEnviado && (
+            <p className="autenticacao__aviso" role="status">
+              Senha alterada. Entre com a nova.
+            </p>
+          )}
 
           {erro && (
             <p className="autenticacao__erro" role="alert">
@@ -155,18 +204,43 @@ export function TelaDeAutenticacao({ onEntrou }: Props) {
             className="botao-primario"
             disabled={!podeEnviar || enviando}
           >
-            {enviando ? "Aguarde..." : cadastrando ? "Criar conta" : "Entrar"}
+            {enviando
+              ? "Aguarde..."
+              : recuperando
+                ? "Enviar o link"
+                : cadastrando
+                  ? "Criar conta"
+                  : "Entrar"}
           </button>
         </form>
 
         <button
           type="button"
           className="autenticacao__troca"
-          onClick={trocarModo}
+          onClick={() => (recuperando ? irPara("entrar") : trocarModo())}
           disabled={enviando}
         >
-          {cadastrando ? "Já tenho conta" : "Criar uma conta"}
+          {recuperando
+            ? "Voltar para a entrada"
+            : cadastrando
+              ? "Já tenho conta"
+              : "Criar uma conta"}
         </button>
+
+        {/*
+          Só na entrada: quem está criando conta não tem senha para esquecer, e quem
+          já está recuperando não precisa do atalho para onde já está.
+        */}
+        {modo === "entrar" && (
+          <button
+            type="button"
+            className="autenticacao__esqueci"
+            onClick={() => irPara("recuperar")}
+            disabled={enviando}
+          >
+            Esqueci a senha
+          </button>
+        )}
       </motion.div>
     </div>
   );

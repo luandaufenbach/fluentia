@@ -128,3 +128,45 @@
 .autenticacao__troca:hover:not(:disabled) {
   color: var(--cor-texto);
 }
+
+/*
+ * Confirmação do pedido de recuperação. Verde, e não vermelho: deu certo, e a
+ * ambiguidade do texto ("se houver uma conta") é proteção, não falha.
+ */
+.autenticacao__aviso {
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: var(--cor-verde);
+  background: var(--cor-verde-fundo);
+  border-radius: var(--raio-pequeno);
+  padding: var(--espaco-3);
+}
+
+/*
+ * "Esqueci a senha" fica abaixo de "Criar uma conta" e mais discreto que ele. A
+ * hierarquia é intencional: a maioria de quem chega aqui quer entrar ou se cadastrar;
+ * recuperar senha é o caminho de exceção, e caminho de exceção com o mesmo peso do
+ * principal atrapalha os dois.
+ */
+.autenticacao__esqueci {
+  display: block;
+  width: 100%;
+  margin-top: var(--espaco-2);
+  min-height: var(--alvo-de-toque);
+  background: transparent;
+  border: none;
+  color: var(--cor-texto-secundario);
+  font-size: 0.8125rem;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+
+.autenticacao__esqueci:hover:not(:disabled) {
+  color: var(--cor-texto);
+}
+
+.autenticacao__esqueci:disabled {
+  opacity: 0.6;
+  cursor: default;
+}

@@ -188,7 +188,7 @@ public class ServicoDeAutenticacao {
      * apagar evento de auditoria, e auditoria que o proprio sistema apaga nao serve de
      * auditoria.
      */
-    private void exigirDentroDoLimite(String origem, String email,
+    public void exigirDentroDoLimite(String origem, String email,
                                       TipoDeEventoDeAutenticacao tipo, int limite, String mensagem) {
         if (origem == null) {
             return;
