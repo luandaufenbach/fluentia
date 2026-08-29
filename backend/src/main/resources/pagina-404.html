@@ -1,0 +1,142 @@
+<!doctype html>
+<!--
+  Página de endereço não encontrado.
+
+  Autocontida de propósito: sem CSS externo, sem fonte remota, sem script. Ela existe
+  justamente para o momento em que um arquivo não foi encontrado — depender de outro
+  arquivo para explicar isso é convite para a página de erro também falhar.
+
+  As cores são as mesmas de tokens.css, copiadas à mão. A duplicação é consciente: são
+  quatro valores que praticamente não mudam, e o custo de errá-los é uma página feia
+  numa tela rara, enquanto o custo de importar o CSS do app é a página quebrar quando
+  o app estiver quebrado.
+-->
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Endereço não encontrado · Fluentia</title>
+    <style>
+      :root {
+        --amarelo: #f2b705;
+        --texto: #1a1a1a;
+        --texto-secundario: #6b6659;
+        --fundo: #faf8f4;
+        --superficie: #ffffff;
+        --borda: #e6e2d9;
+      }
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+      }
+
+      body {
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+        padding: 1.5rem;
+        background: var(--fundo);
+        color: var(--texto);
+        font-family:
+          system-ui,
+          -apple-system,
+          "Segoe UI",
+          sans-serif;
+        line-height: 1.6;
+        -webkit-text-size-adjust: 100%;
+      }
+
+      .cartao {
+        width: 100%;
+        max-width: 26rem;
+        padding: 2rem;
+        background: var(--superficie);
+        border: 1px solid var(--borda);
+        border-radius: 1rem;
+      }
+
+      .marca {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-bottom: 1.75rem;
+      }
+
+      .ponto {
+        width: 0.625rem;
+        height: 0.625rem;
+        border-radius: 50%;
+        background: var(--amarelo);
+      }
+
+      .nome {
+        font-weight: 700;
+        letter-spacing: -0.01em;
+      }
+
+      h1 {
+        font-size: 1.375rem;
+        letter-spacing: -0.02em;
+        margin-bottom: 0.5rem;
+        text-wrap: balance;
+      }
+
+      p {
+        color: var(--texto-secundario);
+        font-size: 0.9375rem;
+      }
+
+      .voltar {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        /* Alvo de toque confortável no celular. */
+        min-height: 2.75rem;
+        margin-top: 1.75rem;
+        padding: 0 1.25rem;
+        background: var(--amarelo);
+        color: var(--texto);
+        font-weight: 600;
+        text-decoration: none;
+        border-radius: 0.5rem;
+      }
+
+      .voltar:hover {
+        filter: brightness(0.96);
+      }
+
+      .voltar:focus-visible {
+        outline: 2px solid var(--texto);
+        outline-offset: 2px;
+      }
+
+      /* A página do app é clara; aqui o mesmo respeito ao tema do aparelho. */
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --texto: #f2f0ec;
+          --texto-secundario: #a8a296;
+          --fundo: #1a1a1a;
+          --superficie: #232323;
+          --borda: #3a3a3a;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="cartao">
+      <div class="marca">
+        <span class="ponto" aria-hidden="true"></span>
+        <span class="nome">Fluentia</span>
+      </div>
+
+      <h1>Este endereço não existe</h1>
+      <p>
+        O link pode estar incompleto ou ter sido digitado com um caractere a mais.
+        Nada aconteceu com a sua conta nem com o seu progresso.
+      </p>
+
+      <a class="voltar" href="/">Voltar para o app</a>
+    </main>
+  </body>
+</html>

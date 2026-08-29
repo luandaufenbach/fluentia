@@ -5,6 +5,7 @@ import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -66,6 +67,17 @@ public class TratadorDeErros {
         return montar(HttpStatus.TOO_MANY_REQUESTS, excecao.getMessage());
     }
 
+    /**
+     * 400, e nao 404: o link ser invalido, ter vencido ou ja ter sido usado sao a mesma
+     * resposta de proposito. Distinguir ajudaria quem estivesse sondando tokens e nao
+     * ajudaria em nada quem so quer recuperar a propria senha.
+     */
+    @ExceptionHandler(br.com.agenteingles.seguranca.ServicoDeRecuperacaoDeSenha.LinkInvalidoException.class)
+    public ResponseEntity<RespostaDeErro> tratarLinkInvalido(
+            br.com.agenteingles.seguranca.ServicoDeRecuperacaoDeSenha.LinkInvalidoException excecao) {
+        return montar(HttpStatus.BAD_REQUEST, excecao.getMessage());
+    }
+
     @ExceptionHandler(br.com.agenteingles.seguranca.ServicoDeAutenticacao.EmailJaCadastradoException.class)
     public ResponseEntity<RespostaDeErro> tratarEmailDuplicado(
             br.com.agenteingles.seguranca.ServicoDeAutenticacao.EmailJaCadastradoException excecao) {
@@ -94,6 +106,59 @@ public class TratadorDeErros {
             org.springframework.security.access.AccessDeniedException excecao) {
         return montar(HttpStatus.FORBIDDEN, "Sem permissao para este recurso.");
     }
+
+    /**
+     * Endereco que nao existe.
+     *
+     * <p>Sem esta entrada, o tratador generico engolia a excecao e devolvia <b>500</b>
+     * para um simples endereco errado: quem digitasse mal a URL via "erro inesperado no
+     * servidor", e quem estivesse investigando outro problema perseguia um erro de
+     * servidor que nunca existiu.
+     *
+     * <p>A resposta muda conforme quem perguntou. Chamada de API recebe JSON, porque e
+     * o que o cliente sabe ler. Navegacao recebe a pagina de erro do proprio app: uma
+     * pessoa que errou o endereco precisa de uma frase e de um caminho de volta, nao de
+     * um objeto JSON no meio da tela.
+     */
+    @ExceptionHandler(org.springframework.web.servlet.resource.NoResourceFoundException.class)
+    public ResponseEntity<?> tratarEnderecoInexistente(
+            org.springframework.web.servlet.resource.NoResourceFoundException excecao,
+            jakarta.servlet.http.HttpServletRequest requisicao) {
+
+        String caminho = requisicao.getRequestURI();
+        if (caminho.startsWith("/api") || caminho.startsWith("/actuator")) {
+            return montar(HttpStatus.NOT_FOUND, "Este endereco nao existe.");
+        }
+
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .contentType(MediaType.TEXT_HTML)
+                .body(paginaDeNaoEncontrado());
+    }
+
+    /**
+     * A pagina 404, lida uma vez do proprio pacote da aplicacao.
+     *
+     * <p>Fica embutida, e nao no build do frontend, por um motivo pratico: ela precisa
+     * funcionar justamente quando o caminho pedido nao existe — depender de outro
+     * arquivo estatico para explicar que um arquivo estatico nao foi achado e convite
+     * para a pagina de erro tambem dar erro.
+     */
+    private String paginaDeNaoEncontrado() {
+        if (paginaDeErro == null) {
+            try (var entrada = getClass().getResourceAsStream("/pagina-404.html")) {
+                paginaDeErro = entrada == null
+                        ? "<!doctype html><meta charset=\"utf-8\"><title>Não encontrado</title>"
+                          + "<p>Este endereço não existe. <a href=\"/\">Voltar ao início</a>"
+                        : new String(entrada.readAllBytes(), java.nio.charset.StandardCharsets.UTF_8);
+            } catch (java.io.IOException falha) {
+                paginaDeErro = "<!doctype html><meta charset=\"utf-8\"><title>Não encontrado</title>"
+                        + "<p>Este endereço não existe. <a href=\"/\">Voltar ao início</a>";
+            }
+        }
+        return paginaDeErro;
+    }
+
+    private volatile String paginaDeErro;
 
     /**
      * Metodo HTTP errado e erro de quem chamou, nao do servidor.
