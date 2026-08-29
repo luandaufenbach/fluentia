@@ -82,3 +82,24 @@
   max-width: 42rem;
   margin-bottom: var(--espaco-4);
 }
+
+/*
+ * O resultado da escolha, embaixo do campo de ritmo. Fecha uma conta que o app fazia
+ * escondido: você escolhe minutos e a Trilha cobra desafios. Sem isto, "15 minutos" e
+ * "5 de 5 hoje" eram dois números sem relação aparente.
+ */
+.tela-de-configuracoes__resultado {
+  margin-top: var(--espaco-2);
+  font-size: 0.8125rem;
+  color: var(--cor-texto-secundario);
+}
+
+.tela-de-configuracoes__resultado b {
+  color: var(--cor-texto);
+  font-variant-numeric: tabular-nums;
+}
+
+/* O nível estimado: era gravado e nunca exibido. */
+.tela-de-configuracoes__nivel {
+  font-weight: 600;
+}

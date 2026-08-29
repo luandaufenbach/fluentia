@@ -110,14 +110,41 @@ public class Orquestrador {
     }
 
     /**
-     * Tema preferido do objetivo do usuario, trocando de cena quando o ultimo desafio
-     * daquele modulo ja usou esse tema — o conceito se repete, a roupagem nao.
+     * O tema escolhido pelo aluno nos Ajustes, se houver um.
+     *
+     * <p>Ganha do objetivo porque e mais especifico: o objetivo diz por que a pessoa
+     * estuda e cobre tres dos nove temas; a escolha direta cobre os nove e e uma
+     * declaracao explicita.
+     *
+     * <p>Vazio quando o tema apontado nao existe mais. A chave estrangeira ja limpa a
+     * coluna quando um tema e removido, mas a conferencia continua aqui: e barato, e a
+     * alternativa e o aluno perder o proximo desafio por causa de uma preferencia
+     * antiga — exatamente o tipo de defeito que aparece meses depois da causa.
      */
-    private Tema escolherTema(Usuario usuario, SituacaoDoModulo escolhido) {
+    private Optional<Tema> temaEscolhidoPeloAluno(Usuario usuario) {
+        Long escolhido = usuario.getTemaPreferidoId();
+        return escolhido == null ? Optional.empty() : temaRepositorio.findById(escolhido);
+    }
+
+    /** O tema que o objetivo declarado no onboarding sugere. */
+    private Tema temaDoObjetivo(Usuario usuario) {
         String codigoPreferido = TEMA_PREFERIDO_POR_OBJETIVO.getOrDefault(usuario.getObjetivo(), TEMA_PADRAO);
-        Tema preferido = temaRepositorio.buscarPorCodigo(codigoPreferido)
+        return temaRepositorio.buscarPorCodigo(codigoPreferido)
                 .or(() -> temaRepositorio.buscarPorCodigo(TEMA_PADRAO))
                 .orElseThrow(() -> new RegraDeNegocioException("Nenhum tema cadastrado na trilha."));
+    }
+
+    /**
+     * Tema da cena, trocando quando o ultimo desafio daquele modulo ja usou esse tema —
+     * o conceito se repete, a roupagem nao.
+     *
+     * <p>O rodizio vale tambem para quem escolheu um tema: praticar o mesmo conceito na
+     * mesma cena duas vezes seguidas ensina menos, e a preferencia diz "prefiro", nao
+     * "somente".
+     */
+    private Tema escolherTema(Usuario usuario, SituacaoDoModulo escolhido) {
+        Tema preferido = temaEscolhidoPeloAluno(usuario)
+                .orElseGet(() -> temaDoObjetivo(usuario));
 
         List<Desafio> ultimos = desafioRepositorio.listarHistorico(usuario.getId(), Limit.of(1));
         boolean repetiuTemaNoMesmoModulo = !ultimos.isEmpty()
@@ -188,14 +215,34 @@ public class Orquestrador {
                 + tema.getNome() + ".";
     }
 
+    /**
+     * Por que esta cena, e nao outra.
+     *
+     * <p>Antes a frase dizia sempre "alinhado ao objetivo X", o que ficava falso em dois
+     * casos: quando o rodizio troca a cena para nao repetir, e agora tambem quando o
+     * aluno escolheu o tema nos Ajustes. Explicacao que nao acompanha a decisao real
+     * ensina a desconfiar dela, e a tela inteira depende de o aluno acreditar no motivo.
+     */
+    private String explicarACena(Tema tema, Usuario usuario) {
+        if (tema.getId().equals(usuario.getTemaPreferidoId())) {
+            return ", que você escolheu nos Ajustes";
+        }
+        if (usuario.getTemaPreferidoId() != null) {
+            return ", variando a cena para não repetir a do desafio anterior";
+        }
+        if (tema.getId().equals(temaDoObjetivo(usuario).getId())) {
+            return ", alinhado ao objetivo " + usuario.getObjetivo().getRotulo();
+        }
+        return ", variando a cena para não repetir a do desafio anterior";
+    }
+
     /*
      * Sem aspas em volta do nome do modulo: alguns ja tem aspas no proprio nome
      * (Verbo "to be") e o texto sairia com aspas aninhadas na tela.
      */
     private String montarMotivo(SituacaoDoModulo escolhido, Tema tema, Usuario usuario) {
         String nomeDoModulo = escolhido.modulo().getNome();
-        String cena = " A cena vem do tema " + tema.getNome() + ", alinhado ao objetivo "
-                + usuario.getObjetivo().getRotulo() + ".";
+        String cena = " A cena vem do tema " + tema.getNome() + explicarACena(tema, usuario) + ".";
 
         if (escolhido.nuncaPraticado()) {
             return nomeDoModulo + " ainda não foi praticado e está com os pré-requisitos em dia: "

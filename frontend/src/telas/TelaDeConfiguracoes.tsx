@@ -1,7 +1,28 @@
 import { useEffect, useState } from "react";
 import { api } from "../servicos/api";
-import type { ObjetivoDoUsuario, TipoDeCorrecao, Usuario } from "../tipos";
+import type { ObjetivoDoUsuario, Tema, TipoDeCorrecao, Usuario } from "../tipos";
 import "./TelaDeConfiguracoes.css";
+
+/**
+ * Conversão de minutos em desafios, espelhando a regra do backend
+ * (ServicoDaSessao: minutos / 3, limitado entre 3 e 20).
+ *
+ * <p>Duplicar a regra aqui é deliberado e tem limite: serve só para PREVER o resultado
+ * na tela antes de salvar. Quem decide a meta continua sendo o servidor — o número que
+ * a Trilha exibe vem de lá, nunca deste cálculo.
+ */
+const MINUTOS_POR_DESAFIO = 3;
+const META_MINIMA = 3;
+const META_MAXIMA = 20;
+
+/** Faixa em que mexer no ritmo muda alguma coisa. Fora dela o resultado é sempre o mesmo. */
+const MINUTOS_MINIMOS = META_MINIMA * MINUTOS_POR_DESAFIO;
+const MINUTOS_MAXIMOS = META_MAXIMA * MINUTOS_POR_DESAFIO;
+
+function desafiosPorDia(minutos: number): number {
+  const bruto = Math.floor(minutos / MINUTOS_POR_DESAFIO);
+  return Math.min(Math.max(bruto, META_MINIMA), META_MAXIMA);
+}
 
 interface Props {
   /** Reabre o nivelamento: contrapartida de "prefiro comecar do inicio" ser definitivo. */
@@ -27,6 +48,7 @@ export function TelaDeConfiguracoes({
   onRefazerNivelamento,
 }: Props) {
   const [usuario, setUsuario] = useState<Usuario | null>(null);
+  const [temas, setTemas] = useState<Tema[]>([]);
   const [salvando, setSalvando] = useState(false);
   const [mensagem, setMensagem] = useState<string | null>(null);
   const [erro, setErro] = useState<string | null>(null);
@@ -42,6 +64,11 @@ export function TelaDeConfiguracoes({
             : "Não foi possível carregar o perfil.",
         ),
       );
+
+    // A lista vem do servidor, e não escrita à mão aqui: já aconteceu de um tema ser
+    // removido do banco (o de "inglês para dev"), e uma cópia no frontend teria
+    // continuado oferecendo uma opção que não existe mais.
+    api.listarTemas().then(setTemas).catch(() => setTemas([]));
   }, []);
 
   async function salvar() {
@@ -56,6 +83,7 @@ export function TelaDeConfiguracoes({
         objetivo: usuario.objetivo,
         minutosPorDia: usuario.minutosPorDia,
         tipoDeCorrecao: usuario.tipoDeCorrecao,
+        temaPreferidoId: usuario.temaPreferidoId,
       });
       setUsuario(atualizado);
       setMensagem("Preferências salvas.");
@@ -84,7 +112,8 @@ export function TelaDeConfiguracoes({
       <label className="tela-de-configuracoes__campo">
         <span className="tela-de-configuracoes__rotulo">Objetivo</span>
         <span className="tela-de-configuracoes__ajuda">
-          Define o tema das cenas que o agente usa nos desafios.
+          Por que você está estudando. Sem um tema escolhido abaixo, é ele quem
+          decide a cena dos desafios.
         </span>
         <select
           value={usuario.objetivo}
@@ -104,14 +133,45 @@ export function TelaDeConfiguracoes({
       </label>
 
       <label className="tela-de-configuracoes__campo">
+        <span className="tela-de-configuracoes__rotulo">Tema das cenas</span>
+        <span className="tela-de-configuracoes__ajuda">
+          A roupagem dos desafios. O conceito praticado continua sendo decidido
+          pela trilha — o tema muda só o cenário. O agente varia a cena quando o
+          desafio anterior já usou a mesma.
+        </span>
+        <select
+          value={usuario.temaPreferidoId ?? ""}
+          onChange={(evento) =>
+            setUsuario({
+              ...usuario,
+              // Vazio volta a ser "sem preferência", e não um tema qualquer:
+              // desfazer a escolha precisa ser tão fácil quanto fazê-la.
+              temaPreferidoId: evento.target.value
+                ? Number(evento.target.value)
+                : null,
+            })
+          }
+        >
+          <option value="">Deixar o objetivo decidir</option>
+          {temas.map((tema) => (
+            <option key={tema.id} value={tema.id}>
+              {tema.nome}
+            </option>
+          ))}
+        </select>
+      </label>
+
+      <label className="tela-de-configuracoes__campo">
         <span className="tela-de-configuracoes__rotulo">Ritmo</span>
         <span className="tela-de-configuracoes__ajuda">
-          Minutos de prática por dia.
+          Minutos de prática por dia. A faixa vai de {MINUTOS_MINIMOS} a{" "}
+          {MINUTOS_MAXIMOS} porque é nela que mexer muda a meta.
         </span>
         <input
           type="number"
-          min={5}
-          max={240}
+          min={MINUTOS_MINIMOS}
+          max={MINUTOS_MAXIMOS}
+          step={3}
           value={usuario.minutosPorDia}
           onChange={(evento) =>
             setUsuario({
@@ -120,6 +180,16 @@ export function TelaDeConfiguracoes({
             })
           }
         />
+        {/*
+          Fecha a conta que o app fazia escondido: você escolhe minutos e a Trilha
+          cobra desafios. Sem isto, "15 minutos" e "5 de 5 hoje" pareciam dois
+          números sem relação.
+        */}
+        <span className="tela-de-configuracoes__resultado">
+          Meta de <b>{desafiosPorDia(usuario.minutosPorDia)}</b>{" "}
+          {desafiosPorDia(usuario.minutosPorDia) === 1 ? "desafio" : "desafios"}{" "}
+          por dia
+        </span>
       </label>
 
       <label className="tela-de-configuracoes__campo">
@@ -165,6 +235,16 @@ export function TelaDeConfiguracoes({
        */}
       <section className="tela-de-configuracoes__nivelamento">
         <h2>Ponto de partida</h2>
+        {/*
+          O nível saía do nivelamento, era gravado e não aparecia em lugar nenhum:
+          quem fazia o teste nunca via o resultado. Mostrar aqui é o que dá base
+          para decidir se vale refazer — sem ele, o botão abaixo é um palpite.
+        */}
+        <p className="tela-de-configuracoes__nivel">
+          {usuario.nivelEstimado
+            ? `O nivelamento estimou o seu nível em ${usuario.nivelEstimado}.`
+            : "Você ainda não fez o nivelamento."}
+        </p>
         <p>
           Se a trilha começou no lugar errado — cedo demais ou adiantado demais
           — refaça o nivelamento. As notas que você já conquistou praticando não

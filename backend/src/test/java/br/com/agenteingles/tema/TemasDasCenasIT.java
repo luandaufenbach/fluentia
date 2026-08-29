@@ -1,10 +1,12 @@
 package br.com.agenteingles.tema;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import br.com.agenteingles.ContaDeTeste;
 import br.com.agenteingles.LimpezaDoBancoDeTeste;
 import br.com.agenteingles.agente.simulado.GeradorDeDesafioSimulado;
+import br.com.agenteingles.comum.RecursoNaoEncontradoException;
 import br.com.agenteingles.desafio.ResumoDoDesafio;
 import br.com.agenteingles.desafio.ServicoDeDesafio;
 import br.com.agenteingles.usuario.ObjetivoDoUsuario;
@@ -123,5 +125,76 @@ class TemasDasCenasIT {
         }
 
         assertThat(emViagem).as("desafios na cena de viagem").isGreaterThanOrEqualTo(6);
+    }
+
+    // ---------- tema escolhido nos Ajustes ----------
+
+    @Test
+    @DisplayName("o tema escolhido pelo aluno ganha do tema do objetivo")
+    void temaEscolhidoGanhaDoObjetivo() {
+        // Ate a V12 o objetivo era a unica influencia sobre a cena, e ele so alcanca
+        // tres dos nove temas. Os outros seis existiam no conteudo e eram
+        // inalcancaveis por escolha — apareciam so quando o rodizio calhava neles.
+        usuario.setObjetivo(ObjetivoDoUsuario.VIAGEM);
+        Tema comida = temaRepositorio.buscarPorCodigo("comida_e_restaurante").orElseThrow();
+        usuario.setTemaPreferidoId(comida.getId());
+
+        long emComida = 0;
+        for (int i = 0; i < 12; i++) {
+            ResumoDoDesafio desafio = servicoDeDesafio.proximoDesafio(usuario, "verbo_to_be");
+            if ("Comida e restaurante".equals(desafio.temaNome())) {
+                emComida++;
+            }
+            servicoDeDesafio.responder(usuario, desafio.id(), "I am Brazilian.");
+        }
+
+        assertThat(emComida)
+                .as("desafios na cena escolhida, com objetivo apontando para outra")
+                .isGreaterThanOrEqualTo(6);
+    }
+
+    @Test
+    @DisplayName("mesmo com tema escolhido, a cena varia para nao repetir")
+    void temaEscolhidoNaoPrendeNumaCenaSo() {
+        // "Prefiro" nao e "somente": praticar o mesmo conceito na mesma cena duas vezes
+        // seguidas ensina menos, e o rodizio precisa continuar valendo.
+        Tema comida = temaRepositorio.buscarPorCodigo("comida_e_restaurante").orElseThrow();
+        usuario.setTemaPreferidoId(comida.getId());
+
+        Set<String> cenasVistas = new LinkedHashSet<>();
+        for (int i = 0; i < 20; i++) {
+            ResumoDoDesafio desafio = servicoDeDesafio.proximoDesafio(usuario, "verbo_to_be");
+            cenasVistas.add(desafio.temaNome());
+            servicoDeDesafio.responder(usuario, desafio.id(), "I am Brazilian.");
+        }
+
+        assertThat(cenasVistas).hasSizeGreaterThanOrEqualTo(2);
+    }
+
+    @Test
+    @DisplayName("limpar a preferencia devolve a decisao ao objetivo")
+    void limparAPreferenciaVoltaAoObjetivo() {
+        // Nulo aqui e "sem preferencia", e nao "nao mexer". Sem essa distincao, quem
+        // marcasse um tema uma vez ficaria preso a ele para sempre.
+        Tema comida = temaRepositorio.buscarPorCodigo("comida_e_restaurante").orElseThrow();
+        servicoDeUsuario.atualizarPreferencias(
+                ObjetivoDoUsuario.VIAGEM, null, null, null, comida.getId());
+        assertThat(servicoDeUsuario.usuarioAtual().getTemaPreferidoId()).isEqualTo(comida.getId());
+
+        servicoDeUsuario.atualizarPreferencias(
+                ObjetivoDoUsuario.VIAGEM, null, null, null, null);
+
+        assertThat(servicoDeUsuario.usuarioAtual().getTemaPreferidoId()).isNull();
+    }
+
+    @Test
+    @DisplayName("tema inexistente e recusado com erro que aponta a causa")
+    void temaInexistenteEhRecusado() {
+        // Deixar a chave estrangeira barrar daria 409 "este recurso ja existe", que
+        // manda quem investiga para o lado errado.
+        assertThatThrownBy(() -> servicoDeUsuario.atualizarPreferencias(
+                null, null, null, null, 999_999L))
+                .isInstanceOf(RecursoNaoEncontradoException.class)
+                .hasMessageContaining("999999");
     }
 }

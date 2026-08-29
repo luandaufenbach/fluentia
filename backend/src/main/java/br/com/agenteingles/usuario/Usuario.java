@@ -25,6 +25,18 @@ public class Usuario {
     @Column(name = "minutos_por_dia", nullable = false)
     private Integer minutosPorDia = 15;
 
+    /**
+     * Tema que o aluno prefere nas cenas. Nulo significa "sem preferencia": aí quem
+     * decide e o objetivo, como sempre foi.
+     *
+     * <p>Guardado como id solto, e nao como relacionamento JPA, porque quem precisa do
+     * tema inteiro e o orquestrador — e ele ja tem o repositorio de temas em maos. Um
+     * {@code ManyToOne} aqui traria carregamento preguicoso para dentro de uma entidade
+     * lida em todo request, com {@code open-in-view} desligado.
+     */
+    @Column(name = "tema_preferido_id")
+    private Long temaPreferidoId;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "tipo_de_correcao", nullable = false, length = 20)
     private TipoDeCorrecao tipoDeCorrecao = TipoDeCorrecao.DETALHADA;
@@ -110,6 +122,14 @@ public class Usuario {
 
     public void setMinutosPorDia(Integer minutosPorDia) {
         this.minutosPorDia = minutosPorDia;
+    }
+
+    public Long getTemaPreferidoId() {
+        return temaPreferidoId;
+    }
+
+    public void setTemaPreferidoId(Long temaPreferidoId) {
+        this.temaPreferidoId = temaPreferidoId;
     }
 
     public TipoDeCorrecao getTipoDeCorrecao() {

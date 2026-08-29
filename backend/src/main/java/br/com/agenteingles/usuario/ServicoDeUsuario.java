@@ -1,6 +1,8 @@
 package br.com.agenteingles.usuario;
 
+import br.com.agenteingles.comum.RecursoNaoEncontradoException;
 import br.com.agenteingles.modulo.NivelCefr;
+import br.com.agenteingles.tema.TemaRepositorio;
 import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -11,9 +13,11 @@ import org.springframework.transaction.annotation.Transactional;
 public class ServicoDeUsuario {
 
     private final UsuarioRepositorio usuarioRepositorio;
+    private final TemaRepositorio temaRepositorio;
 
-    public ServicoDeUsuario(UsuarioRepositorio usuarioRepositorio) {
+    public ServicoDeUsuario(UsuarioRepositorio usuarioRepositorio, TemaRepositorio temaRepositorio) {
         this.usuarioRepositorio = usuarioRepositorio;
+        this.temaRepositorio = temaRepositorio;
     }
 
     /**
@@ -43,10 +47,19 @@ public class ServicoDeUsuario {
     }
 
     @Transactional
+    /**
+     * @param temaPreferidoId <b>nulo aqui nao e "nao mexer", e "sem preferencia"</b> —
+     *        diferente dos outros campos. Sem essa distincao nao haveria como desfazer
+     *        a escolha: quem marcasse um tema uma vez ficaria preso a ele para sempre.
+     *        Em compensacao, um PUT parcial que omita o campo limpa a preferencia; e o
+     *        comportamento correto de um PUT, que substitui o recurso, e o unico
+     *        cliente deste endpoint sempre envia o conjunto inteiro.
+     */
     public Usuario atualizarPreferencias(ObjetivoDoUsuario objetivo,
                                          Integer minutosPorDia,
                                          TipoDeCorrecao tipoDeCorrecao,
-                                         NivelCefr nivelEstimado) {
+                                         NivelCefr nivelEstimado,
+                                         Long temaPreferidoId) {
         Usuario usuario = usuarioAtual();
         if (objetivo != null) {
             usuario.setObjetivo(objetivo);
@@ -60,6 +73,15 @@ public class ServicoDeUsuario {
         if (nivelEstimado != null) {
             usuario.setNivelEstimado(nivelEstimado);
         }
+
+        // Confere aqui em vez de deixar a chave estrangeira barrar: a violacao de
+        // integridade viraria um 409 dizendo "este recurso ja existe", que nao tem
+        // nada a ver com o problema e mandaria quem investiga para o lado errado.
+        if (temaPreferidoId != null && !temaRepositorio.existsById(temaPreferidoId)) {
+            throw new RecursoNaoEncontradoException("Tema " + temaPreferidoId + " nao existe.");
+        }
+        usuario.setTemaPreferidoId(temaPreferidoId);
+
         return usuarioRepositorio.save(usuario);
     }
 }
