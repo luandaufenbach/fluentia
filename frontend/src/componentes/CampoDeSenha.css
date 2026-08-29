@@ -1,0 +1,64 @@
+/*
+ * O botão de ver fica DENTRO da moldura do campo, e não ao lado.
+ *
+ * Ao lado, ele encurtaria o campo e desalinharia este da caixa de e-mail logo acima —
+ * dois campos empilhados com larguras diferentes lêem como defeito. Dentro, a moldura
+ * continua a mesma e o botão ocupa um espaço que o texto não usava.
+ */
+.campo-de-senha__caixa {
+  position: relative;
+  display: flex;
+}
+
+/*
+ * A moldura vem do input, como nos outros campos: repetir a borda no contêiner daria
+ * duas bordas de espessuras somadas.
+ *
+ * O seletor repete `.campo-de-senha` para ganhar especificidade, e isso é necessário,
+ * não enfeite: `.autenticacao__campo input` declara `padding` ABREVIADO, que redefine
+ * os quatro lados. Com a mesma especificidade, vence quem vem depois — e a folha da
+ * tela é importada depois desta. O resultado era 12px de folga no lugar de 48, com o
+ * texto passando por baixo do botão de ver assim que a senha ficava longa.
+ */
+.campo-de-senha .campo-de-senha__caixa input {
+  width: 100%;
+  /* Espaço à direita do tamanho do botão, para o texto não correr por baixo dele. */
+  padding-right: 3rem;
+}
+
+.campo-de-senha__ver {
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 3rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  border-radius: var(--raio-medio);
+  color: var(--cor-texto-secundario);
+  font-size: 1.125rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: color var(--transicao-rapida);
+}
+
+.campo-de-senha__ver:hover:not(:disabled) {
+  color: var(--cor-texto);
+}
+
+.campo-de-senha__ver:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+/*
+ * O anel de foco vira para dentro. Para fora ele passaria por cima da borda do campo,
+ * que está a zero pixel de distância, e os dois traços se sobreporiam.
+ */
+.campo-de-senha__ver:focus-visible {
+  outline: 2px solid var(--cor-destaque);
+  outline-offset: -0.25rem;
+}

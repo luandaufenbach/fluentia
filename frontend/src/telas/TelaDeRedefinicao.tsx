@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { CampoDeSenha } from "../componentes/CampoDeSenha";
 import { api } from "../servicos/api";
 import "./TelaDeAutenticacao.css";
 
@@ -61,42 +62,45 @@ export function TelaDeRedefinicao({ token, onRedefinida, onCancelar }: Props) {
           Uma frase que só você lembra vale mais do que símbolos embaralhados.
         </p>
 
-        <label className="autenticacao__campo">
-          <span>Nova senha</span>
-          <input
-            type="password"
-            value={senha}
-            autoComplete="new-password"
-            onChange={(evento) => setSenha(evento.target.value)}
-            disabled={enviando}
-          />
-        </label>
-
-        <label className="autenticacao__campo">
-          <span>Repita a nova senha</span>
-          <input
-            type="password"
-            value={confirmacao}
-            autoComplete="new-password"
-            onChange={(evento) => setConfirmacao(evento.target.value)}
-            disabled={enviando}
-          />
-        </label>
-
         {/*
-          Avisos enquanto digita, e não só ao enviar: descobrir que as senhas não
-          conferem depois de clicar significa digitar as duas de novo.
+          O mesmo componente da tela de entrada: o botão de ver precisa existir nos
+          três lugares onde se digita senha, senão a pessoa aprende que ele existe e
+          descobre que aqui não.
+
+          Os avisos ficam presos ao campo a que se referem, e aparecem enquanto digita:
+          descobrir que as senhas não conferem depois de clicar significa digitar as
+          duas de novo.
         */}
-        {curtaDemais && (
-          <p className="autenticacao__erro" role="alert">
-            Faltam {TAMANHO_MINIMO_DA_SENHA - senha.length} caracteres.
-          </p>
-        )}
-        {naoConfere && (
-          <p className="autenticacao__erro" role="alert">
-            As duas senhas não são iguais.
-          </p>
-        )}
+        <CampoDeSenha
+          rotulo="Nova senha"
+          valor={senha}
+          onChange={setSenha}
+          autoComplete="new-password"
+          desabilitado={enviando}
+          autoFocus
+          ajuda={
+            curtaDemais && (
+              <small className="autenticacao__ajuda--alerta">
+                Faltam {TAMANHO_MINIMO_DA_SENHA - senha.length} caracteres.
+              </small>
+            )
+          }
+        />
+
+        <CampoDeSenha
+          rotulo="Repita a nova senha"
+          valor={confirmacao}
+          onChange={setConfirmacao}
+          autoComplete="new-password"
+          desabilitado={enviando}
+          ajuda={
+            naoConfere && (
+              <small className="autenticacao__ajuda--alerta">
+                As duas senhas não são iguais.
+              </small>
+            )
+          }
+        />
         {erro && (
           <p className="autenticacao__erro" role="alert">
             {erro}
@@ -107,13 +111,16 @@ export function TelaDeRedefinicao({ token, onRedefinida, onCancelar }: Props) {
           {enviando ? "Salvando..." : "Salvar a nova senha"}
         </button>
 
-        <button
-          type="button"
-          className="autenticacao__alternar"
-          onClick={onCancelar}
-        >
-          Voltar para a entrada
-        </button>
+        {/* Mesmo rodapé da tela de entrada: um único caminho de volta, discreto. */}
+        <div className="autenticacao__rodape">
+          <button
+            type="button"
+            className="autenticacao__link autenticacao__link--discreto"
+            onClick={onCancelar}
+          >
+            Voltar para a entrada
+          </button>
+        </div>
       </form>
     </div>
   );

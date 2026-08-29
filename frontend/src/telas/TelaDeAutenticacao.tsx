@@ -1,5 +1,6 @@
 import { motion } from "motion/react";
 import { useState } from "react";
+import { CampoDeSenha } from "../componentes/CampoDeSenha";
 import { api } from "../servicos/api";
 import type { UsuarioAutenticado } from "../tipos";
 import "./TelaDeAutenticacao.css";
@@ -32,11 +33,14 @@ export function TelaDeAutenticacao({ onEntrou, avisoDeSenhaRedefinida }: Props) 
 
   /** Confirmação do pedido de recuperação. Nunca diz se a conta existe. */
   const [pedidoEnviado, setPedidoEnviado] = useState(false);
+  const [confirmacao, setConfirmacao] = useState("");
 
   const cadastrando = modo === "cadastrar";
   const recuperando = modo === "recuperar";
   const senhaCurta =
     cadastrando && senha.length > 0 && senha.length < TAMANHO_MINIMO_DA_SENHA;
+  const naoConfere =
+    cadastrando && confirmacao.length > 0 && senha !== confirmacao;
 
   const podeEnviar =
     email.trim().length > 0 &&
@@ -44,7 +48,9 @@ export function TelaDeAutenticacao({ onEntrou, avisoDeSenhaRedefinida }: Props) 
     (recuperando ||
       (senha.length > 0 &&
         (!cadastrando ||
-          (nome.trim().length > 0 && senha.length >= TAMANHO_MINIMO_DA_SENHA))));
+          (nome.trim().length > 0 &&
+            senha.length >= TAMANHO_MINIMO_DA_SENHA &&
+            senha === confirmacao))));
 
   async function enviar(evento: React.FormEvent) {
     evento.preventDefault();
@@ -70,6 +76,7 @@ export function TelaDeAutenticacao({ onEntrou, avisoDeSenhaRedefinida }: Props) 
         falha instanceof Error ? falha.message : "Não foi possível continuar.",
       );
       setSenha("");
+      setConfirmacao("");
     } finally {
       setEnviando(false);
     }
@@ -79,6 +86,7 @@ export function TelaDeAutenticacao({ onEntrou, avisoDeSenhaRedefinida }: Props) 
     setModo(destino);
     setErro(null);
     setSenha("");
+    setConfirmacao("");
     setPedidoEnviado(false);
   }
 
@@ -144,30 +152,53 @@ export function TelaDeAutenticacao({ onEntrou, avisoDeSenhaRedefinida }: Props) 
           </label>
 
           {!recuperando && (
-          <label className="autenticacao__campo">
-            <span>Senha</span>
-            <input
-              type="password"
-              value={senha}
-              onChange={(evento) => setSenha(evento.target.value)}
-              /* Diz ao gerenciador de senhas se é para criar ou preencher. */
+            <CampoDeSenha
+              rotulo="Senha"
+              valor={senha}
+              onChange={setSenha}
               autoComplete={cadastrando ? "new-password" : "current-password"}
-              maxLength={128}
-              disabled={enviando}
+              desabilitado={enviando}
+              ajuda={
+                cadastrando && (
+                  <small
+                    className={
+                      senhaCurta
+                        ? "autenticacao__ajuda--alerta"
+                        : "autenticacao__ajuda"
+                    }
+                  >
+                    Mínimo de {TAMANHO_MINIMO_DA_SENHA} caracteres. Uma frase que
+                    só você lembra vale mais que símbolos embaralhados.
+                  </small>
+                )
+              }
             />
-            {cadastrando && (
-              <small
-                className={
-                  senhaCurta
-                    ? "autenticacao__ajuda--alerta"
-                    : "autenticacao__ajuda"
-                }
-              >
-                Mínimo de {TAMANHO_MINIMO_DA_SENHA} caracteres. Uma frase que só
-                você lembra vale mais que símbolos embaralhados.
-              </small>
-            )}
-          </label>
+          )}
+
+          {/*
+            Confirmação só no cadastro. Em quem já tem conta ela não protege de nada:
+            senha errada é recusada na hora, com mensagem. No cadastro é diferente —
+            um erro de digitação vira uma conta cuja senha ninguém sabe, e a pessoa
+            só descobre no login seguinte.
+
+            O aviso aparece enquanto digita, não ao enviar: descobrir depois de
+            clicar significa preencher os dois campos de novo.
+          */}
+          {cadastrando && (
+            <CampoDeSenha
+              rotulo="Repita a senha"
+              valor={confirmacao}
+              onChange={setConfirmacao}
+              autoComplete="new-password"
+              desabilitado={enviando}
+              ajuda={
+                naoConfere && (
+                  <small className="autenticacao__ajuda--alerta">
+                    As duas senhas não são iguais.
+                  </small>
+                )
+              }
+            />
           )}
 
           {/*
@@ -214,33 +245,45 @@ export function TelaDeAutenticacao({ onEntrou, avisoDeSenhaRedefinida }: Props) 
           </button>
         </form>
 
-        <button
-          type="button"
-          className="autenticacao__troca"
-          onClick={() => (recuperando ? irPara("entrar") : trocarModo())}
-          disabled={enviando}
-        >
-          {recuperando
-            ? "Voltar para a entrada"
-            : cadastrando
-              ? "Já tenho conta"
-              : "Criar uma conta"}
-        </button>
-
         {/*
-          Só na entrada: quem está criando conta não tem senha para esquecer, e quem
-          já está recuperando não precisa do atalho para onde já está.
+          A troca de modo vem dentro de uma pergunta, não solta num botão.
+
+          "Criar uma conta" sozinho não diz a quem serve; "Não tem uma conta?" diz — e
+          quem já tem passa direto sem precisar ler o resto. O botão fica sendo só a
+          resposta da frase, que é o papel que ele tem de verdade.
         */}
-        {modo === "entrar" && (
-          <button
-            type="button"
-            className="autenticacao__esqueci"
-            onClick={() => irPara("recuperar")}
-            disabled={enviando}
-          >
-            Esqueci a senha
-          </button>
-        )}
+        <div className="autenticacao__rodape">
+          <p className="autenticacao__pergunta">
+            {recuperando
+              ? "Lembrou a senha?"
+              : cadastrando
+                ? "Já tem uma conta?"
+                : "Não tem uma conta?"}{" "}
+            <button
+              type="button"
+              className="autenticacao__link"
+              onClick={() => (recuperando ? irPara("entrar") : trocarModo())}
+              disabled={enviando}
+            >
+              {recuperando || cadastrando ? "Entrar" : "Criar uma conta"}
+            </button>
+          </p>
+
+          {/*
+            Só na entrada: quem está criando conta não tem senha para esquecer, e quem
+            já está recuperando não precisa do atalho para onde já está.
+          */}
+          {modo === "entrar" && (
+            <button
+              type="button"
+              className="autenticacao__link autenticacao__link--discreto"
+              onClick={() => irPara("recuperar")}
+              disabled={enviando}
+            >
+              Esqueci minha senha
+            </button>
+          )}
+        </div>
       </motion.div>
     </div>
   );

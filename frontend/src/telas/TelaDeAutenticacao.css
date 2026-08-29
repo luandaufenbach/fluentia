@@ -111,24 +111,6 @@
   margin-top: var(--espaco-1);
 }
 
-.autenticacao__troca {
-  display: block;
-  width: 100%;
-  margin-top: var(--espaco-5);
-  min-height: var(--alvo-de-toque);
-  background: transparent;
-  border: none;
-  color: var(--cor-texto-secundario);
-  font-size: 0.875rem;
-  font-weight: 500;
-  text-decoration: underline;
-  text-underline-offset: 3px;
-}
-
-.autenticacao__troca:hover:not(:disabled) {
-  color: var(--cor-texto);
-}
-
 /*
  * Confirmação do pedido de recuperação. Verde, e não vermelho: deu certo, e a
  * ambiguidade do texto ("se houver uma conta") é proteção, não falha.
@@ -143,30 +125,81 @@
 }
 
 /*
- * "Esqueci a senha" fica abaixo de "Criar uma conta" e mais discreto que ele. A
- * hierarquia é intencional: a maioria de quem chega aqui quer entrar ou se cadastrar;
- * recuperar senha é o caminho de exceção, e caminho de exceção com o mesmo peso do
- * principal atrapalha os dois.
+ * O rodapé: uma pergunta com a saída dentro dela, e o atalho de senha abaixo.
+ *
+ * Dois botões lado a lado liam como dois comandos de mesmo peso — e não são. "Criar
+ * uma conta" é para quem ainda não tem conta, e a frase diz isso sozinha; "esqueci
+ * minha senha" é o caminho de exceção, e fica embaixo, mais discreto.
+ *
+ * Sem fio de separação: o rodapé já se distingue do formulário pelo espaço, pelo
+ * tamanho do texto e pela cor. O traço só somava mais um elemento na tela.
  */
-.autenticacao__esqueci {
-  display: block;
-  width: 100%;
-  margin-top: var(--espaco-2);
-  min-height: var(--alvo-de-toque);
-  background: transparent;
-  border: none;
-  color: var(--cor-texto-secundario);
-  font-size: 0.8125rem;
-  cursor: pointer;
-  text-decoration: underline;
-  text-underline-offset: 0.2em;
+.autenticacao__rodape {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: var(--espaco-4);
 }
 
-.autenticacao__esqueci:hover:not(:disabled) {
+.autenticacao__pergunta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0 0.375rem;
+  min-height: var(--alvo-de-toque);
+  font-size: 0.875rem;
+  color: var(--cor-texto-secundario);
+}
+
+.autenticacao__link {
+  /* Os 44px de alvo de toque, os mesmos de qualquer outro botão do app. */
+  min-height: var(--alvo-de-toque);
+  padding: 0;
+  background: transparent;
+  border: none;
+  font: inherit;
+  font-weight: 600;
+  color: var(--cor-texto);
+  cursor: pointer;
+  text-decoration: underline;
+  /* Sublinhado discreto que acende no hover: o texto fica escuro, e não desbota. */
+  text-decoration-color: var(--cor-borda-forte);
+  text-underline-offset: 3px;
+  transition:
+    color var(--transicao-rapida),
+    text-decoration-color var(--transicao-rapida);
+}
+
+/*
+ * Duas saídas descartadas aqui, as duas medidas antes de cair:
+ *
+ * `align-self: stretch` pega a altura da linha do flex. Em tela larga dá os 44px,
+ * mas em tela estreita a frase quebra, cada linha passa a valer a própria altura, e
+ * o botão volta a 22px justamente no celular — onde o toque é que importa.
+ *
+ * Folga interna com margem negativa dá os 44px em qualquer largura, mas a área
+ * invisível avança 10px sobre o "Esqueci minha senha" logo abaixo. Dois alvos
+ * sobrepostos mandam o toque para a tela errada, e ninguém entende por quê.
+ *
+ * Sobrou o óbvio: altura mínima no próprio botão. Em tela estreita o rodapé fica
+ * mais alto, e é o preço certo — o alvo é real e nada se sobrepõe.
+ */
+.autenticacao__link--discreto {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--cor-texto-secundario);
+}
+
+.autenticacao__link:hover:not(:disabled) {
+  text-decoration-color: var(--cor-destaque);
+}
+
+.autenticacao__link--discreto:hover:not(:disabled) {
   color: var(--cor-texto);
 }
 
-.autenticacao__esqueci:disabled {
+.autenticacao__link:disabled {
   opacity: 0.6;
   cursor: default;
 }
