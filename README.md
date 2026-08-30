@@ -1,4 +1,9 @@
-XXX# Fluentia
+# Fluentia
+
+**No ar em [fluentia-268391932069.us-central1.run.app](https://fluentia-268391932069.us-central1.run.app)**
+
+> O primeiro acesso pode levar uns 20 segundos. O app roda em plano gratuito e é desligado
+> quando ninguém está usando — o que você espera é ele subindo, não carregando.
 
 Trilha adaptativa de inglês. **Não é um chat com IA**: é um percurso por nível CEFR em que o
 app ensina o conceito, cobra com exercícios gerados na hora e decide o próximo passo a partir
@@ -63,6 +68,14 @@ Detalhes de cada lado em [`backend/README.md`](backend/README.md) e
 
 Java 21 + Spring Boot 4 + Postgres no backend, React + TypeScript + Vite no frontend,
 Docker para empacotar. Migrations com Flyway, 138 testes incluindo integração contra o banco de verdade e a política de acesso.
+
+## Hospedagem
+
+Uma imagem só, no Google Cloud Run: o Vite compila o frontend e os arquivos entram dentro do
+jar, então o Spring serve a página e a API na mesma origem — sem CORS e sem cookie de
+terceiro. O banco é um Postgres gerenciado no Neon, na mesma costa do serviço.
+
+Roteiro completo em [`publicacao/PLATAFORMA.md`](publicacao/PLATAFORMA.md).
 
 ## Convenções
 

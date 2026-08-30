@@ -1,5 +1,14 @@
 # Publicar numa plataforma (Render, Cloud Run)
 
+> **Instalação em uso:** projeto `fluentia-ingles`, serviço `fluentia` em `us-central1`,
+> banco no Neon em `us-east-2` (Ohio). No ar em
+> <https://fluentia-268391932069.us-central1.run.app>.
+>
+> As variáveis de ambiente ficam num arquivo YAML passado com `--env-vars-file`, e não em
+> `--set-env-vars`: a lista separada por vírgula quebra em valores com vírgula ou igual, e a
+> `BANCO_URL` tem query string. **Esse arquivo substitui o conjunto inteiro a cada deploy** —
+> variável posta por comando avulso some no deploy seguinte.
+
 O outro caminho é o [README](README.md): máquina própria com Caddy fazendo o HTTPS. Este
 aqui é para plataformas que hospedam o container por você — sem servidor para manter,
 sem certificado para renovar, e de graça.
@@ -36,26 +45,116 @@ fatura. O Render simplesmente para.
 Veja [O banco: Neon](#o-banco-neon) logo abaixo e tenha as três variáveis em mãos antes
 de criar o serviço. Nos dois caminhos o banco é externo.
 
-## Cloud Run: as duas travas obrigatórias
+## Cloud Run, passo a passo
 
-```bash
-gcloud run deploy fluentia --source . --region southamerica-east1 --allow-unauthenticated --max-instances=1 --min-instances=0
+Ordem importa: o banco existe antes do serviço, e a `URL_BASE` só pode ser preenchida
+depois do primeiro deploy, porque é ele quem revela o endereço.
+
+### 1. A conta do Google
+
+Cloud Run **exige cartão**, mesmo dentro da cota gratuita. A cota é um desconto numa
+conta que pode faturar, não um teto: passou, cobra. Quem não quer cartão de jeito
+nenhum fica no Render, que simplesmente para.
+
+### 2. O CLI
+
+Instalador em <https://cloud.google.com/sdk/docs/install>, ou:
+
+```powershell
+winget install Google.CloudSDK
 ```
 
-`--max-instances=1` **não é só economia, é correção.** Este app guarda as sessões na
-memória do processo. Com duas instâncias, cada uma só conhece as sessões que ela mesma
-abriu — o usuário cai para a tela de login ao ser atendido pela outra, sem padrão
-nenhum que ajude a entender por quê.
+### 3. Projeto e APIs
 
-`--min-instances=0` é o que mantém a conta zerada. Com 1, o Cloud Run mantém CPU
-alocada 24 h por dia, o que estoura a cota gratuita com folga e vira cobrança.
+O identificador é único no Google inteiro, então `fluentia` sozinho não passa:
 
-Depois: **Billing → Budgets & alerts**, e um orçamento baixo. Ele avisa, não bloqueia —
-mas avisa cedo.
+```bash
+gcloud auth login
+gcloud projects create fluentia-SEU-SUFIXO --name=Fluentia
+gcloud config set project fluentia-SEU-SUFIXO
+```
 
-Já verifiquei que o app não tem tarefa agendada nem thread de fundo, e que a rotina de
-geração de conteúdo só roda no perfil `gerar-conteudo`. Nada dispara no arranque, então
-acordar não custa nada além do próprio arranque.
+Ligue o faturamento no console (**Billing → Link a billing account**) e habilite o que
+o deploy usa:
+
+```bash
+gcloud services enable run.googleapis.com cloudbuild.googleapis.com artifactregistry.googleapis.com secretmanager.googleapis.com
+```
+
+### 4. Os segredos
+
+Três valores nunca podem ir no comando: `ANTHROPIC_API_KEY`, `BANCO_SENHA` e
+`SMTP_SENHA`. O comando fica no histórico do shell, e o histórico vaza junto com a
+máquina. Crie os três pelo console (**Secret Manager → Create secret**), colando o
+valor no formulário, e libere a conta de serviço que roda o container:
+
+```bash
+PROJETO=$(gcloud config get-value project)
+NUMERO=$(gcloud projects describe "$PROJETO" --format='value(projectNumber)')
+for segredo in anthropic-api-key banco-senha smtp-senha; do
+  gcloud secrets add-iam-policy-binding "$segredo" \
+    --member="serviceAccount:$NUMERO-compute@developer.gserviceaccount.com" \
+    --role=roles/secretmanager.secretAccessor
+done
+```
+
+### 5. O deploy
+
+`us-central1` e não São Paulo: a região brasileira é da faixa de preço mais cara, e a
+diferença de latência não aparece num app cujas respostas dependem de uma chamada de
+IA que leva segundos.
+
+```bash
+gcloud run deploy fluentia --source . \
+  --region=us-central1 \
+  --allow-unauthenticated \
+  --max-instances=1 --min-instances=0 \
+  --memory=1Gi --cpu=1 --cpu-boost \
+  --set-env-vars=USAR_CLAUDE=true,FORWARD_HEADERS=framework,COOKIE_SEGURO=true,TZ=America/Sao_Paulo,BANCO_URL=jdbc:postgresql://SEU-HOST.neon.tech/neondb?sslmode=require,BANCO_USUARIO=SEU_USUARIO,SMTP_SERVIDOR=smtp.gmail.com,SMTP_USUARIO=SEU_EMAIL \
+  --set-secrets=ANTHROPIC_API_KEY=anthropic-api-key:latest,BANCO_SENHA=banco-senha:latest,SMTP_SENHA=smtp-senha:latest
+```
+
+Por que cada trava está aí:
+
+- `--max-instances=1` **não é economia, é correção.** As sessões vivem na memória do
+  processo (`SessoesAtivas`). Com duas instâncias, cada uma só conhece as sessões que
+  ela mesma abriu, e o usuário cai para o login ao ser atendido pela outra — sem
+  padrão nenhum que ajude a entender por quê.
+- `--min-instances=0` é o que mantém a conta zerada. Com 1, o Cloud Run mantém CPU
+  alocada 24 h por dia e a cota gratuita não cobre isso.
+- `--cpu-boost` dá CPU extra durante o arranque. É onde a JVM sofre, e é grátis.
+- `--memory=1Gi` porque 512 MB é apertado para Spring com JPA e Spring AI juntos. A
+  memória só é cobrada enquanto o container atende, e ele dorme quase o tempo todo.
+
+### 6. A URL, que só existe agora
+
+```bash
+URL=$(gcloud run services describe fluentia --region=us-central1 --format='value(status.url)')
+gcloud run services update fluentia --region=us-central1 --update-env-vars=URL_BASE=$URL
+```
+
+Sem isso, o link de recuperação de senha chega no e-mail apontando para
+`http://localhost:5173` — o app não quebra, e o link não funciona para ninguém.
+
+### 7. Os freios
+
+**Billing → Budgets & alerts**, com um orçamento baixo. Ele avisa, não bloqueia, mas
+avisa cedo. E o teto de gasto no console da Anthropic, que é a única proteção que não
+depende de nenhum código deste repositório estar certo.
+
+## O que dormir custa
+
+O app não tem tarefa agendada nem thread de fundo, e a geração de conteúdo só roda no
+perfil `gerar-conteudo`. Nada dispara sozinho no arranque, então acordar custa só o
+próprio arranque — algo entre 10 e 20 segundos com o `--cpu-boost` ligado.
+
+O preço real do sono é outro: **dormir apaga as sessões.** Elas moram na memória do
+processo, e o processo morre quando o Cloud Run escala para zero. Quem estava logado
+volta para a tela de entrada depois de uns 15 minutos sem ninguém usando o app.
+
+Para um app de portfólio isso é aceitável. A correção, quando incomodar, é guardar a
+sessão no Postgres (Spring Session JDBC): passa a sobreviver ao sono e ao deploy, e de
+quebra derruba a necessidade do `--max-instances=1`.
 
 ## O banco: Neon
 
@@ -107,13 +206,8 @@ Se cair para a tela de login, a causa quase certa é `FORWARD_HEADERS`. A plataf
 repassa a requisição em HTTP puro, o Spring conclui que a conexão é insegura e recusa o
 cookie `secure` que ele mesmo pediu — o login parece funcionar e a sessão não gruda.
 
-No Render, o `render.yaml` já traz isso ligado. No Cloud Run, as variáveis vão no
-comando (`BANCO_SENHA` e `ANTHROPIC_API_KEY` de preferência pelo Secret Manager, não
-aqui — o comando fica no histórico do shell):
-
-```bash
-gcloud run services update fluentia --region southamerica-east1 --update-env-vars FORWARD_HEADERS=framework,COOKIE_SEGURO=true,USAR_CLAUDE=true,TZ=America/Sao_Paulo,BANCO_URL=jdbc:postgresql://SEU-HOST.neon.tech/neondb?sslmode=require,BANCO_USUARIO=SEU_USUARIO
-```
+No Render, o `render.yaml` já traz isso ligado. No Cloud Run, `FORWARD_HEADERS=framework`
+e `COOKIE_SEGURO=true` já vão no comando de deploy do passo 5.
 
 ## Depois de publicar
 
